@@ -5,6 +5,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertMessageSchema } from "@shared/schema";
 import { z } from "zod";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 interface AuthenticatedUser {
   claims: {
@@ -120,6 +123,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating profile image:", error);
       res.status(500).json({ message: "Failed to update profile image" });
+    }
+  });
+
+  // Refresh Google profile image endpoint
+  app.post('/api/user/refresh-google-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const accessToken = req.user.access_token;
+      
+      if (!accessToken) {
+        return res.status(400).json({ message: 'Access token not available. Please re-login.' });
+      }
+
+      console.log('Fetching Google profile with access token for user:', userId);
+      
+      // Fetch current Google profile data
+      const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
+      
+      if (!googleResponse.ok) {
+        console.error('Google API response not ok:', googleResponse.status, await googleResponse.text());
+        return res.status(400).json({ message: 'Failed to fetch Google profile. Please re-login.' });
+      }
+
+      const googleProfile = await googleResponse.json();
+      console.log('Google profile data:', googleProfile);
+      
+      // Update user with fresh Google profile image
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          profileImageUrl: googleProfile.picture,
+          firstName: googleProfile.given_name || null,
+          lastName: googleProfile.family_name || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error refreshing Google profile:', error);
+      res.status(500).json({ message: 'Failed to refresh Google profile' });
     }
   });
 

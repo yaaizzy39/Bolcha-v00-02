@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Camera, Globe, Upload, RotateCcw } from 'lucide-react';
+import { Camera, Globe, Upload, RotateCcw, RefreshCw } from 'lucide-react';
 
 export function ProfileImageUpload() {
   const { user } = useAuth();
@@ -45,6 +45,27 @@ export function ProfileImageUpload() {
       toast({
         title: "Error",
         description: "Failed to update profile image. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation to refresh Google profile image
+  const refreshGoogleProfileMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/user/refresh-google-profile');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: "Google profile refreshed",
+        description: "Your Google profile image has been updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to refresh Google profile. Please try again or re-login.",
         variant: "destructive",
       });
     },
@@ -184,6 +205,10 @@ export function ProfileImageUpload() {
     toggleImageMutation.mutate();
   };
 
+  const handleRefreshGoogleProfile = () => {
+    refreshGoogleProfileMutation.mutate();
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -271,16 +296,30 @@ export function ProfileImageUpload() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleImage}
-            disabled={toggleImageMutation.isPending}
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Switch
-          </Button>
+          <div className="flex items-center gap-2">
+            {!currentUser?.useCustomProfileImage && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefreshGoogleProfile}
+                disabled={refreshGoogleProfileMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleImage}
+              disabled={toggleImageMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Switch
+            </Button>
+          </div>
         </div>
       </div>
     </div>
