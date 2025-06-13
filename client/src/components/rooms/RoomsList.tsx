@@ -33,7 +33,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
-      const response = await apiRequest('/api/rooms', 'POST', data);
+      const response = await apiRequest('POST', '/api/rooms', data);
       return await response.json();
     },
     onSuccess: (room: ChatRoom) => {
@@ -59,7 +59,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (roomId: number) => {
-      await apiRequest(`/api/rooms/${roomId}`, 'DELETE');
+      await apiRequest('DELETE', `/api/rooms/${roomId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
