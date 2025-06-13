@@ -297,6 +297,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             senderProfileImageUrl: profileImageUrl,
             originalText: message.text,
             originalLanguage: detectLanguage(message.text),
+            replyToId: message.replyToId || null,
+            replyToText: message.replyToText || null,
+            replyToSenderName: message.replyToSenderName || null,
           };
 
           console.log('Message data to save:', messageData);

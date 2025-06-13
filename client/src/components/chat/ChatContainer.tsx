@@ -122,13 +122,24 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
     
-    // Send message with the current room ID
-    sendMessage(text.trim(), roomId);
+    // Send message with the current room ID and reply information
+    sendMessage(text.trim(), roomId, replyingTo);
+    
+    // Clear reply state after sending
+    setReplyingTo(null);
     
     // Scroll to bottom after sending message with a slight delay
     setTimeout(() => {
       scrollToBottom();
     }, 100);
+  };
+
+  const handleReply = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
   };
 
   return (
@@ -195,6 +206,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   isOwnMessage={message.senderId === (user as any)?.id}
                   showOriginal={(user as any)?.showOriginalText || false}
                   currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
+                  onReply={handleReply}
                 />
               ))}
             
@@ -214,7 +226,11 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
       {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0">
-        <MessageInput onSendMessage={handleSendMessage} />
+        <MessageInput 
+          onSendMessage={handleSendMessage} 
+          replyingTo={replyingTo}
+          onCancelReply={handleCancelReply}
+        />
       </div>
     </main>
   );

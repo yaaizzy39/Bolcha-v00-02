@@ -86,13 +86,16 @@ export function useWebSocket() {
     };
   }, [isAuthenticated, user]);
 
-  const sendMessage = useCallback((text: string, roomId: number = 1) => {
-    console.log('Attempting to send message:', { text, roomId, wsState: wsRef.current?.readyState });
+  const sendMessage = useCallback((text: string, roomId: number = 1, replyTo?: Message | null) => {
+    console.log('Attempting to send message:', { text, roomId, replyTo: replyTo?.id, wsState: wsRef.current?.readyState });
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const messageData = {
         type: 'chat_message',
         text: text.trim(),
-        roomId: roomId
+        roomId: roomId,
+        replyToId: replyTo?.id || null,
+        replyToText: replyTo?.originalText || null,
+        replyToSenderName: replyTo?.senderName || null
       };
       console.log('Sending WebSocket message:', messageData);
       wsRef.current.send(JSON.stringify(messageData));
