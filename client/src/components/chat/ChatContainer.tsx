@@ -160,6 +160,24 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     setReplyingTo(message);
   };
 
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete message');
+      }
+
+      // Message will be removed via WebSocket broadcast
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('メッセージの削除に失敗しました');
+    }
+  };
+
   const handleCancelReply = () => {
     setReplyingTo(null);
   };
@@ -253,6 +271,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
                   onReply={handleReply}
                   onNavigateToMessage={handleNavigateToMessage}
+                  onDelete={handleDeleteMessage}
                   isHighlighted={highlightedMessageId === message.id}
                 />
               ))}

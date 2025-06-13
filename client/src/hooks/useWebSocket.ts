@@ -5,6 +5,7 @@ import type { Message } from '@shared/schema';
 interface WebSocketMessage {
   type: string;
   message?: Message;
+  messageId?: number;
   userName?: string;
   timestamp: string;
 }
@@ -56,6 +57,9 @@ export function useWebSocket() {
             // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, data.message];
           });
+        } else if (data.type === 'message_deleted' && data.messageId) {
+          console.log('Message deleted:', data.messageId);
+          setMessages(prev => prev.filter(msg => msg.id !== data.messageId));
         } else if (data.type === 'user_joined') {
           console.log(`${data.userName} joined the chat`);
         } else if (data.type === 'user_left') {
