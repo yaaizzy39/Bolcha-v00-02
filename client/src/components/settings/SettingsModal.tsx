@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +30,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -56,16 +58,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated successfully.",
+        title: t('settings.saved'),
+        description: t('settings.savedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onOpenChange(false);
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to save settings. Please try again.",
+        title: t('settings.error'),
+        description: t('settings.errorDesc'),
         variant: "destructive",
       });
     },
@@ -83,16 +85,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>{t('settings.title')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Profile Settings */}
           <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Profile</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">{t('settings.profile')}</h4>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="displayName">Display Name</Label>
+                <Label htmlFor="displayName">{t('settings.displayName')}</Label>
                 <Input
                   id="displayName"
                   value={user?.firstName && user?.lastName 
@@ -110,10 +112,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
           {/* Language Preferences */}
           <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Language Preferences</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">{t('settings.languagePreferences')}</h4>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="interfaceLanguage">Interface Language</Label>
+                <Label htmlFor="interfaceLanguage">{t('settings.interfaceLanguage')}</Label>
                 <Select 
                   value={settings.interfaceLanguage}
                   onValueChange={(value) => setSettings(prev => ({ ...prev, interfaceLanguage: value }))}
@@ -122,14 +124,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ja">日本語</SelectItem>
+                    <SelectItem value="en">{t('language.english')}</SelectItem>
+                    <SelectItem value="ja">{t('language.japanese')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div>
-                <Label htmlFor="messageLanguage">Preferred Message Language</Label>
+                <Label htmlFor="messageLanguage">{t('settings.messageLanguage')}</Label>
                 <Select 
                   value={settings.preferredLanguage}
                   onValueChange={(value) => setSettings(prev => ({ ...prev, preferredLanguage: value }))}
@@ -138,8 +140,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ja">日本語</SelectItem>
+                    <SelectItem value="en">{t('language.english')}</SelectItem>
+                    <SelectItem value="ja">{t('language.japanese')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

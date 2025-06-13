@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Languages, Check, CheckCheck } from 'lucide-react';
+import { useI18n } from '@/hooks/useI18n';
 import type { Message } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -18,11 +19,12 @@ export function MessageBubble({
   showOriginal,
   currentUserLanguage 
 }: MessageBubbleProps) {
+  const { t } = useI18n();
   const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
-  const timestamp = new Date(message.timestamp).toLocaleTimeString([], { 
+  const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
-  });
+  }) : '';
 
   if (isOwnMessage) {
     return (

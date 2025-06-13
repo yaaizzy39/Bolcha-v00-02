@@ -42,7 +42,7 @@ export function MessageInput({ onSendMessage }: MessageInputProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder={t('chat.placeholder')}
               rows={1}
               className="resize-none pr-12 max-h-32"
             />
@@ -59,11 +59,11 @@ export function MessageInput({ onSendMessage }: MessageInputProps) {
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
               <Globe className="w-3 h-3" />
               <span>
-                Detected: {detectedLanguage === 'ja' ? 'Japanese' : 'English'}
+                {t('chat.detected')}: {detectedLanguage === 'ja' ? t('language.japanese') : t('language.english')}
               </span>
               <span>→</span>
               <span>
-                Will translate to: {targetLanguage === 'ja' ? 'Japanese' : 'English'}
+                {t('chat.willTranslateTo')}: {targetLanguage === 'ja' ? t('language.japanese') : t('language.english')}
               </span>
             </div>
           )}
