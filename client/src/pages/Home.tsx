@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useI18n } from '@/hooks/useI18n';
+import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,9 +24,8 @@ export default function Home() {
     window.location.href = '/api/logout';
   };
 
-  const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user?.email?.split('@')[0] || 'User';
+  const displayName = getDisplayName(user);
+  const currentProfileImage = getCurrentProfileImage(user);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -49,7 +49,7 @@ export default function Home() {
               <div className="hidden sm:flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {user?.preferredLanguage === 'ja' ? t('language.japanese') : t('language.english')}
+                  {(user as any)?.preferredLanguage === 'ja' ? t('language.japanese') : t('language.english')}
                 </span>
               </div>
 
@@ -62,7 +62,7 @@ export default function Home() {
               {/* User Profile */}
               <div className="flex items-center gap-3">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={user?.profileImageUrl} />
+                  <AvatarImage src={currentProfileImage} />
                   <AvatarFallback>
                     {displayName.charAt(0).toUpperCase()}
                   </AvatarFallback>

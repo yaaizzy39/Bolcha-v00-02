@@ -185,10 +185,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (message.type === 'chat_message' && ws.userId) {
+          // Get user data for profile image
+          const user = await storage.getUser(ws.userId);
+          const profileImageUrl = user?.useCustomProfileImage && user?.customProfileImageUrl 
+            ? user.customProfileImageUrl 
+            : user?.profileImageUrl;
+
           // Validate message
           const messageData = {
             senderId: ws.userId,
             senderName: ws.userName || 'Anonymous',
+            senderProfileImageUrl: profileImageUrl,
             originalText: message.text,
             originalLanguage: detectLanguage(message.text),
           };

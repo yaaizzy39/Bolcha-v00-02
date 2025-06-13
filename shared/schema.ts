@@ -44,6 +44,7 @@ export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   senderId: varchar("sender_id").notNull().references(() => users.id),
   senderName: varchar("sender_name").notNull(),
+  senderProfileImageUrl: varchar("sender_profile_image_url"),
   originalText: text("original_text").notNull(),
   translatedText: text("translated_text"),
   originalLanguage: varchar("original_language").notNull(),
