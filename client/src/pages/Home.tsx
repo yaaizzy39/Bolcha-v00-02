@@ -96,15 +96,18 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content with Sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Rooms Sidebar */}
-        <div className="w-80 bg-muted/30 border-r border-border flex-shrink-0 overflow-hidden">
-          <RoomsList 
-            onRoomSelect={setSelectedRoomId}
-            selectedRoomId={selectedRoomId}
-          />
-        </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-80 bg-background border-r border-border overflow-y-auto">
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Rooms</h2>
+            <RoomsList 
+              onRoomSelect={setSelectedRoomId} 
+              selectedRoomId={selectedRoomId}
+            />
+          </div>
+        </aside>
 
         {/* Chat Interface */}
         <div className="flex-1 overflow-hidden">

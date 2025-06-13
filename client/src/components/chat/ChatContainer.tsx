@@ -13,15 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getSupportedLanguages } from '@/lib/languageSupport';
-import { Languages, Users, TestTube, ArrowDown, Shield } from 'lucide-react';
-import type { Message } from '@shared/schema';
+import { Languages, Users, TestTube, ArrowDown, Shield, Menu, MessageSquare } from 'lucide-react';
+import type { Message, ChatRoom } from '@shared/schema';
 
 interface ChatContainerProps {
   roomId: number;
   onOpenSettings: () => void;
+  onRoomSelect?: (roomId: number) => void;
 }
 
-export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
+export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
   const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
@@ -49,6 +50,12 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     queryKey: ['/api/rooms', roomId],
     queryFn: () => fetch(`/api/rooms/${roomId}`, { credentials: 'include' }).then(res => res.json()),
     enabled: !!user && !!roomId,
+  });
+
+  // Load all rooms for mobile selector
+  const { data: allRooms = [] } = useQuery({
+    queryKey: ['/api/rooms'],
+    enabled: !!user,
   });
 
   // Clear messages and reload when room changes
@@ -286,39 +293,72 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   };
 
   return (
-    <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full">
+    <main className="flex-1 flex flex-col w-full h-full">
+      {/* Mobile Room Selector */}
+      <div className="lg:hidden bg-background border-b border-border p-3">
+        <Select
+          value={roomId.toString()}
+          onValueChange={(value) => onRoomSelect?.(parseInt(value))}
+        >
+          <SelectTrigger className="w-full">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              <SelectValue placeholder="Select a room" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {(allRooms as ChatRoom[]).map((room) => (
+              <SelectItem key={room.id} value={room.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{room.name}</span>
+                  {room.adminOnly && (
+                    <Badge variant="destructive" className="text-xs">
+                      <Shield className="w-3 h-3" />
+                    </Badge>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Chat Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-3 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Room Info */}
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
               {currentRoom?.name || t('chat.title')}
             </h2>
             {currentRoom?.description && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
                 {currentRoom.description}
               </span>
             )}
             {currentRoom?.adminOnly && (
-              <Badge variant="destructive" className="flex items-center gap-1">
+              <Badge variant="destructive" className="flex items-center gap-1 text-xs">
                 <Shield className="w-3 h-3" />
-                Admin Only
+                <span className="hidden xs:inline">Admin Only</span>
               </Badge>
             )}
-            <Badge variant="secondary" className="flex items-center gap-1">
+            <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <Users className="w-3 h-3" />
-              {t('nav.online')}
+              <span className="hidden xs:inline">{t('nav.online')}</span>
             </Badge>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Language Selector */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <Select
                 value={currentLanguage}
                 onValueChange={handleLanguageChange}
               >
-                <SelectTrigger className="w-[200px] h-8 text-xs">
+                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
                   <SelectValue placeholder={
                     getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || currentLanguage
                   } />
@@ -332,20 +372,25 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            
+            {/* Auto-translate status */}
+            <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <span>{t('chat.autoTranslate')}: {(user as any)?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
             </div>
+            
+            {/* Action buttons */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => setShowTestPanel(!showTestPanel)}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 p-2"
             >
               <TestTube className="w-4 h-4" />
-              {showTestPanel ? 'テスト非表示' : 'テスト'}
+              <span className="hidden sm:inline">{showTestPanel ? 'テスト非表示' : 'テスト'}</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={onOpenSettings}>
-              {t('chat.settings')}
+            <Button variant="ghost" size="sm" onClick={onOpenSettings} className="p-2">
+              <span className="hidden sm:inline">{t('chat.settings')}</span>
+              <span className="sm:hidden">設定</span>
             </Button>
           </div>
         </div>
