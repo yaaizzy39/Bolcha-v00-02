@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MessageCircle } from 'lucide-react';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function Landing() {
+  const { t } = useI18n();
+  
   const handleGoogleSignIn = () => {
     window.location.href = '/api/login';
   };
@@ -17,10 +20,10 @@ export default function Landing() {
                 <MessageCircle className="w-8 h-8 text-primary-foreground" />
               </div>
               <h2 className="text-2xl font-medium text-foreground mb-2">
-                Welcome to Multi-Language Chat
+                {t('landing.title')}
               </h2>
               <p className="text-muted-foreground">
-                Connect with people around the world in your preferred language
+                {t('landing.subtitle')}
               </p>
             </div>
             
@@ -35,7 +38,7 @@ export default function Landing() {
                 alt="Google" 
                 className="w-5 h-5"
               />
-              <span>Sign in with Google</span>
+              <span>{t('landing.signIn')}</span>
             </Button>
           </div>
         </CardContent>

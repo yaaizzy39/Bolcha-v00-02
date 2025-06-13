@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +16,7 @@ import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-rea
 
 export default function Home() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
@@ -37,7 +39,7 @@ export default function Home() {
                 <MessageCircle className="w-4 h-4 text-primary-foreground" />
               </div>
               <h1 className="text-xl font-medium text-foreground">
-                Multi-Language Chat
+                {t('nav.title')}
               </h1>
             </div>
 
@@ -47,14 +49,14 @@ export default function Home() {
               <div className="hidden sm:flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {user?.preferredLanguage === 'ja' ? '日本語' : 'English'}
+                  {user?.preferredLanguage === 'ja' ? t('language.japanese') : t('language.english')}
                 </span>
               </div>
 
               {/* Online Status */}
               <Badge variant="secondary" className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Online
+                {t('nav.online')}
               </Badge>
 
               {/* User Profile */}
@@ -78,11 +80,11 @@ export default function Home() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                       <Settings className="w-4 h-4 mr-2" />
-                      Settings
+                      {t('nav.settings')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
+                      {t('nav.signOut')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

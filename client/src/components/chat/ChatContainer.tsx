@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface ChatContainerProps {
 
 export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { isConnected, messages, sendMessage, setMessages } = useWebSocket();
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
@@ -68,21 +70,21 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-              Global Chat Room
+              {t('chat.title')}
             </h2>
             <Badge variant="secondary" className="flex items-center gap-1">
               <Users className="w-3 h-3" />
-              Online
+              {t('nav.online')}
             </Badge>
           </div>
           
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <Languages className="w-4 h-4" />
-              <span>Auto-translate: {user?.autoTranslate ? 'ON' : 'OFF'}</span>
+              <span>{t('chat.autoTranslate')}: {user?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={onOpenSettings}>
-              Settings
+              {t('chat.settings')}
             </Button>
           </div>
         </div>
@@ -105,7 +107,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
           {!isConnected && (
             <div className="flex justify-center">
               <Badge variant="destructive">
-                Disconnected - Attempting to reconnect...
+                {t('chat.disconnected')}
               </Badge>
             </div>
           )}

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useI18n } from '@/hooks/useI18n';
 import { Send, Smile, Globe } from 'lucide-react';
 
 interface MessageInputProps {
@@ -12,6 +13,7 @@ interface MessageInputProps {
 export function MessageInput({ onSendMessage }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const { user } = useAuth();
+  const { t } = useI18n();
   const { detectLanguage } = useTranslation();
 
   const detectedLanguage = message.trim() ? detectLanguage(message) : null;
