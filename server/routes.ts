@@ -396,6 +396,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const savedMessage = await storage.createMessage(messageData);
             console.log('Message saved successfully:', savedMessage);
 
+            // Update room activity timestamp
+            await storage.updateRoomActivity(messageData.roomId);
+
             // Broadcast message to all clients
             const broadcastData = {
               type: 'new_message',
@@ -437,6 +440,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Manual cleanup trigger for testing
+  app.post('/api/cleanup-rooms', isAuthenticated, async (req, res) => {
+    try {
+      const deletedCount = await storage.cleanupInactiveRooms();
+      res.json({ message: `Cleaned up ${deletedCount} inactive rooms`, deletedCount });
+    } catch (error) {
+      console.error('Manual cleanup error:', error);
+      res.status(500).json({ message: 'Cleanup failed' });
+    }
+  });
+
   // Translation endpoint
   app.post('/api/translate', isAuthenticated, async (req, res) => {
     try {
@@ -453,6 +467,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Translation failed' });
     }
   });
+
+  // Start periodic cleanup of inactive rooms (every minute for testing)
+  setInterval(async () => {
+    try {
+      const deletedCount = await storage.cleanupInactiveRooms();
+      if (deletedCount > 0) {
+        console.log(`Cleaned up ${deletedCount} inactive rooms`);
+      }
+    } catch (error) {
+      console.error('Error during room cleanup:', error);
+    }
+  }, 60 * 1000); // Run every minute
 
   return httpServer;
 }
