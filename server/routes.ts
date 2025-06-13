@@ -26,13 +26,42 @@ async function translateText(text: string, source: string, target: string): Prom
   try {
     const apiUrl = `https://script.google.com/macros/s/AKfycbyRgU6XjIjoFZh1Y8kIY9-YnLmkNxalGWwlI-0k93wnjfFjWcjDZijIOMy_-WjV47Be0A/exec?text=${encodeURIComponent(text)}&source=${source}&target=${target}`;
     
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      redirect: 'follow', // Follow redirects automatically
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ChatApp/1.0)',
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Translation API error: ${response.status}`);
     }
     
-    const result = await response.text();
-    return result || text; // Fallback to original text if translation fails
+    const resultText = await response.text();
+    console.log('Translation API response:', resultText.substring(0, 500));
+    
+    // Try to parse as JSON first
+    try {
+      const jsonResult = JSON.parse(resultText);
+      console.log('Parsed JSON result:', jsonResult);
+      if (jsonResult.code === 200 && jsonResult.text) {
+        return jsonResult.text;
+      }
+      if (jsonResult.text) {
+        return jsonResult.text;
+      }
+    } catch (parseError) {
+      // If JSON parsing fails, check if it's a simple text response
+      if (resultText && !resultText.includes('<HTML>') && !resultText.includes('<!DOCTYPE')) {
+        const cleanText = resultText.trim();
+        console.log('Using clean text response:', cleanText);
+        return cleanText;
+      }
+      console.log('Non-JSON response or HTML redirect detected');
+    }
+    
+    return text; // Return original text if translation fails
   } catch (error) {
     console.error('Translation error:', error);
     return text; // Return original text on error

@@ -18,7 +18,21 @@ export function useTranslation() {
       });
       
       const data = await response.json();
-      return data.translatedText || text;
+      let translatedText = data.translatedText || text;
+      
+      // If translatedText is a JSON string, parse it
+      try {
+        const parsedResult = JSON.parse(translatedText);
+        if (parsedResult.code === 200 && parsedResult.text) {
+          translatedText = parsedResult.text;
+        } else if (parsedResult.text) {
+          translatedText = parsedResult.text;
+        }
+      } catch (parseError) {
+        // If it's not JSON, use the text as-is
+      }
+      
+      return translatedText;
     } catch (error) {
       console.error('Translation failed:', error);
       return text; // Return original text on error

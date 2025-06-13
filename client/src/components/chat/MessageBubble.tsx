@@ -60,7 +60,7 @@ export function MessageBubble({
           {shouldShowTranslation && showOriginal && (
             <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
               <Languages className="w-3 h-3" />
-              Original ({message.originalLanguage}): {message.originalText}
+              {t('chat.original')} ({message.originalLanguage}): {message.originalText}
             </div>
           )}
           <p className="text-foreground">
