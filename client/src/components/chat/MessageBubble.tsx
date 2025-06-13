@@ -49,9 +49,11 @@ export function MessageBubble({
   };
 
   // Function to convert URLs to clickable links and handle line breaks
-  const renderTextWithLinks = (text: string, isOwnMessage: boolean = false) => {
+  const renderTextWithLinks = (text: string | undefined, isOwnMessage: boolean = false) => {
+    if (!text) return '';
+    const safeText = String(text);
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = text.split(urlRegex);
+    const parts = safeText.split(urlRegex);
     
     return parts.map((part, index) => {
       if (urlRegex.test(part)) {
@@ -79,10 +81,7 @@ export function MessageBubble({
     });
   };
   
-  // Debug log for translation display
-  if (message.id >= 1 && message.id <= 5) {
-    console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalText="${message.originalText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}, hasTranslated=${!!translatedText}, langDiff=${message.originalLanguage !== currentUserLanguage}`);
-  }
+
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
@@ -108,10 +107,10 @@ export function MessageBubble({
             {shouldShowTranslation && (
               <div className="text-xs text-primary-foreground/70 mb-2 border-l-2 border-primary-foreground/30 pl-2">
                 <div className="font-medium mb-1">原文:</div>
-                {renderTextWithLinks(message.originalText, true)}
+                {renderTextWithLinks(message.originalText || '', true)}
               </div>
             )}
-            <p>{renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText, true)}</p>
+            <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || '') : (message.originalText || ''), true)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -182,11 +181,11 @@ export function MessageBubble({
           {shouldShowTranslation && (
             <div className="text-xs text-muted-foreground mb-2 border-l-2 border-border pl-2">
               <div className="font-medium mb-1">原文:</div>
-              {renderTextWithLinks(message.originalText, false)}
+              {renderTextWithLinks(message.originalText || '', false)}
             </div>
           )}
           <p className="text-foreground">
-            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText, false)}
+            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}
           </p>
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
