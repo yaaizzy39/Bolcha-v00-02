@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuery } from '@tanstack/react-query';
-import { Languages, Users, TestTube, ArrowDown } from 'lucide-react';
+import { Languages, Users, TestTube, ArrowDown, Shield } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
 interface ChatContainerProps {
@@ -190,6 +190,12 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {currentRoom.description}
               </span>
+            )}
+            {currentRoom?.adminOnly && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Admin Only
+              </Badge>
             )}
             <Badge variant="secondary" className="flex items-center gap-1">
               <Users className="w-3 h-3" />

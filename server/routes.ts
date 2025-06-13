@@ -392,6 +392,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return;
             }
 
+            // Check if room is admin-only and user is not admin
+            if (room.adminOnly && !user?.isAdmin) {
+              console.log('Non-admin user attempted to post in admin-only room:', { userId: ws.userId, roomId: messageData.roomId });
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'This room is restricted to administrators only',
+              }));
+              return;
+            }
+
             // Save message to database
             const savedMessage = await storage.createMessage(messageData);
             console.log('Message saved successfully:', savedMessage);

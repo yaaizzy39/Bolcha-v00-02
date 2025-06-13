@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   interfaceLanguage: varchar("interface_language").default("ja"),
   showOriginalText: boolean("show_original_text").default(true),
   autoTranslate: boolean("auto_translate").default(true),
+  isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -46,6 +47,7 @@ export const chatRooms = pgTable("chat_rooms", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   createdBy: varchar("created_by").notNull().references(() => users.id),
+  adminOnly: boolean("admin_only").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   lastActivity: timestamp("last_activity").defaultNow(),
   isActive: boolean("is_active").default(true),
