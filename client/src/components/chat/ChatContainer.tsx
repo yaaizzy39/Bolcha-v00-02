@@ -9,7 +9,10 @@ import { TranslationDemo } from './TranslationDemo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useQuery } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { getSupportedLanguages } from '@/lib/languageSupport';
 import { Languages, Users, TestTube, ArrowDown, Shield } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
@@ -22,6 +25,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
   const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
+  const queryClient = useQueryClient();
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
@@ -216,6 +220,22 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     }
   };
 
+  // Language change mutation
+  const updateLanguageMutation = useMutation({
+    mutationFn: async (newLanguage: string) => {
+      return apiRequest('POST', '/api/auth/settings', { 
+        preferredLanguage: newLanguage 
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+  });
+
+  const handleLanguageChange = (newLanguage: string) => {
+    updateLanguageMutation.mutate(newLanguage);
+  };
+
   return (
     <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full">
       {/* Chat Header */}
@@ -243,8 +263,25 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <Select
+                value={(user as any)?.preferredLanguage || 'ja'}
+                onValueChange={handleLanguageChange}
+              >
+                <SelectTrigger className="w-[200px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSupportedLanguages().map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.nativeName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-              <Languages className="w-4 h-4" />
               <span>{t('chat.autoTranslate')}: {(user as any)?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
             </div>
             <Button 
