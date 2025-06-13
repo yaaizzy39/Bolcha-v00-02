@@ -90,6 +90,8 @@ async function translateText(text: string, source: string, target: string): Prom
 // Simple fallback translation for common phrases
 function getSimpleTranslation(text: string, target: string): string {
   console.log(`Fallback translation called for "${text}" to language "${target}"`);
+  
+  // If exact match exists, use it
   const translations: Record<string, Record<string, string>> = {
     'こんにちは': {
       'en': 'Hello',
@@ -157,7 +159,7 @@ function getSimpleTranslation(text: string, target: string): string {
     }
   };
 
-  const normalizedText = text.trim().toLowerCase();
+  const textNormalized = text.trim().toLowerCase();
   
   // Check exact matches first
   if (translations[text] && translations[text][target]) {
@@ -167,14 +169,147 @@ function getSimpleTranslation(text: string, target: string): string {
   
   // Check lowercase matches
   for (const [key, langMap] of Object.entries(translations)) {
-    if (key.toLowerCase() === normalizedText && langMap[target]) {
+    if (key.toLowerCase() === textNormalized && langMap[target]) {
       console.log(`Found lowercase match translation: "${text}" -> "${langMap[target]}"`);
       return langMap[target];
     }
   }
   
   console.log(`No fallback translation found for "${text}" to "${target}"`);
-  return text; // Return original if no fallback translation found
+  
+  // Enhanced fallback translations for more content
+  const enhancedTranslations: Record<string, Record<string, string>> = {
+    // Add more common Japanese expressions
+    'いっちばん！': {
+      'en': 'Number one!',
+      'es': '¡Número uno!',
+      'fr': 'Numéro un !',
+      'de': 'Nummer eins!',
+      'zh': '第一！',
+      'ko': '넘버원!',
+      'pt': 'Número um!',
+      'ru': 'Номер один!',
+      'ar': 'رقم واحد!',
+      'hi': 'नंबर वन!',
+      'it': 'Numero uno!',
+      'nl': 'Nummer één!',
+      'th': 'อันดับหนึ่ง!',
+      'vi': 'Số một!'
+    },
+    'もう待てない！': {
+      'en': "I can't wait anymore!",
+      'es': '¡Ya no puedo esperar más!',
+      'fr': 'Je ne peux plus attendre !',
+      'de': 'Ich kann nicht mehr warten!',
+      'zh': '我等不及了！',
+      'ko': '더 이상 기다릴 수 없어요!',
+      'pt': 'Não posso mais esperar!',
+      'ru': 'Я больше не могу ждать!',
+      'ar': 'لا أستطيع الانتظار أكثر!',
+      'hi': 'मैं और इंतज़ार नहीं कर सकता!',
+      'it': 'Non posso più aspettare!',
+      'nl': 'Ik kan niet meer wachten!',
+      'th': 'ฉันรอไม่ไหวแล้ว!',
+      'vi': 'Tôi không thể đợi thêm nữa!'
+    },
+    // Common short phrases
+    'あ': {
+      'en': 'Ah',
+      'es': 'Ah',
+      'fr': 'Ah',
+      'de': 'Ach',
+      'zh': '啊',
+      'ko': '아',
+      'pt': 'Ah',
+      'ru': 'А',
+      'ar': 'آه',
+      'hi': 'आह',
+      'it': 'Ah',
+      'nl': 'Ah',
+      'th': 'อา',
+      'vi': 'Ah'
+    },
+    'そうですね': {
+      'en': 'I see',
+      'es': 'Ya veo',
+      'fr': 'Je vois',
+      'de': 'Ich verstehe',
+      'zh': '我明白了',
+      'ko': '그렇군요',
+      'pt': 'Entendo',
+      'ru': 'Понятно',
+      'ar': 'أفهم',
+      'hi': 'मैं समझ गया',
+      'it': 'Capisco',
+      'nl': 'Ik begrijp het',
+      'th': 'เข้าใจแล้ว',
+      'vi': 'Tôi hiểu'
+    },
+    'これでいいのだ': {
+      'en': 'This is fine',
+      'es': 'Esto está bien',
+      'fr': 'C\'est bien',
+      'de': 'Das ist gut so',
+      'zh': '这样就好',
+      'ko': '이게 좋다',
+      'pt': 'Isso está bom',
+      'ru': 'Так хорошо',
+      'ar': 'هذا جيد',
+      'hi': 'यह ठीक है',
+      'it': 'Va bene così',
+      'nl': 'Dit is goed',
+      'th': 'นี่ดี',
+      'vi': 'Như vậy là tốt'
+    },
+    'ちがいますか？': {
+      'en': 'Is that wrong?',
+      'es': '¿Está mal?',
+      'fr': 'C\'est faux ?',
+      'de': 'Ist das falsch?',
+      'zh': '不对吗？',
+      'ko': '틀렸나요?',
+      'pt': 'Está errado?',
+      'ru': 'Это неправильно?',
+      'ar': 'هل هذا خطأ؟',
+      'hi': 'क्या यह गलत है?',
+      'it': 'È sbagliato?',
+      'nl': 'Is dat verkeerd?',
+      'th': 'ผิดหรือเปล่า?',
+      'vi': 'Có sai không?'
+    },
+    'い': {
+      'en': 'I',
+      'es': 'I',
+      'fr': 'I',
+      'de': 'I',
+      'zh': 'I',
+      'ko': 'I',
+      'pt': 'I',
+      'ru': 'I',
+      'ar': 'I',
+      'hi': 'I',
+      'it': 'I',
+      'nl': 'I',
+      'th': 'I',
+      'vi': 'I'
+    }
+  };
+
+  // Check enhanced translations
+  if (enhancedTranslations[text] && enhancedTranslations[text][target]) {
+    console.log(`Found enhanced translation: "${text}" -> "${enhancedTranslations[text][target]}"`);
+    return enhancedTranslations[text][target];
+  }
+
+  // Check enhanced translations for lowercase matches
+  for (const [key, langMap] of Object.entries(enhancedTranslations)) {
+    if (key.toLowerCase() === textNormalized && langMap[target]) {
+      console.log(`Found enhanced lowercase translation: "${text}" -> "${langMap[target]}"`);
+      return langMap[target];
+    }
+  }
+  
+  return text; // Return original if no translation found
 }
 
 // Enhanced language detection function
