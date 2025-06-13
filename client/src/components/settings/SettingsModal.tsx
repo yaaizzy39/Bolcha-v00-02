@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { ProfileImageUpload } from './ProfileImageUpload';
+import { getSupportedLanguages } from '@/lib/languageSupport';
 import {
   Dialog,
   DialogContent,
@@ -114,8 +115,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">{t('language.english')}</SelectItem>
-                      <SelectItem value="ja">{t('language.japanese')}</SelectItem>
+                      {getSupportedLanguages().map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.nativeName} ({lang.name})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -130,8 +134,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">{t('language.english')}</SelectItem>
-                      <SelectItem value="ja">{t('language.japanese')}</SelectItem>
+                      {getSupportedLanguages().map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.nativeName} ({lang.name})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

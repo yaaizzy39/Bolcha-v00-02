@@ -45,6 +45,19 @@ export const translations = {
     // Languages
     'language.english': 'English',
     'language.japanese': 'Japanese',
+    'language.spanish': 'Spanish',
+    'language.french': 'French',
+    'language.german': 'German',
+    'language.chinese': 'Chinese (Simplified)',
+    'language.korean': 'Korean',
+    'language.portuguese': 'Portuguese',
+    'language.russian': 'Russian',
+    'language.arabic': 'Arabic',
+    'language.hindi': 'Hindi',
+    'language.italian': 'Italian',
+    'language.dutch': 'Dutch',
+    'language.thai': 'Thai',
+    'language.vietnamese': 'Vietnamese',
   },
   ja: {
     // Landing Page
@@ -92,12 +105,27 @@ export const translations = {
     // Languages
     'language.english': '英語',
     'language.japanese': '日本語',
+    'language.spanish': 'スペイン語',
+    'language.french': 'フランス語',
+    'language.german': 'ドイツ語',
+    'language.chinese': '中国語（簡体字）',
+    'language.korean': '韓国語',
+    'language.portuguese': 'ポルトガル語',
+    'language.russian': 'ロシア語',
+    'language.arabic': 'アラビア語',
+    'language.hindi': 'ヒンディー語',
+    'language.italian': 'イタリア語',
+    'language.dutch': 'オランダ語',
+    'language.thai': 'タイ語',
+    'language.vietnamese': 'ベトナム語',
   }
 };
 
-export type Language = 'en' | 'ja';
+export type Language = 'en' | 'ja' | 'es' | 'fr' | 'de' | 'zh' | 'ko' | 'pt' | 'ru' | 'ar' | 'hi' | 'it' | 'nl' | 'th' | 'vi';
 export type TranslationKey = keyof typeof translations.en;
 
 export function t(key: TranslationKey, language: Language = 'en'): string {
-  return translations[language][key] || translations.en[key] || key;
+  // Only use translations that exist (en and ja for now)
+  const supportedLang = language === 'ja' ? 'ja' : 'en';
+  return translations[supportedLang][key] || translations.en[key] || key;
 }

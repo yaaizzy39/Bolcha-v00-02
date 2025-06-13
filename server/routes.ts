@@ -66,10 +66,35 @@ async function translateText(text: string, source: string, target: string): Prom
   }
 }
 
-// Language detection function
+// Enhanced language detection function
 function detectLanguage(text: string): string {
-  const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-  return japaneseRegex.test(text) ? 'ja' : 'en';
+  // Language detection patterns
+  const patterns: Record<string, RegExp> = {
+    'ja': /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/,  // Japanese
+    'ko': /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/,  // Korean
+    'zh': /[\u4E00-\u9FFF]/,                              // Chinese
+    'ar': /[\u0600-\u06FF\u0750-\u077F]/,                // Arabic
+    'hi': /[\u0900-\u097F]/,                             // Hindi
+    'th': /[\u0E00-\u0E7F]/,                             // Thai
+    'vi': /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i,
+    'ru': /[\u0400-\u04FF]/,                             // Russian
+    'es': /[ñáéíóúü]/i,                                  // Spanish
+    'fr': /[àâäçéèêëïîôùûüÿ]/i,                          // French
+    'de': /[äöüßÄÖÜ]/,                                   // German
+    'pt': /[ãâáàçêéíôóõúü]/i,                            // Portuguese
+    'it': /[àèéìíîòóù]/i,                                // Italian
+    'nl': /[äëïöüÄËÏÖÜ]/,                                // Dutch
+  };
+
+  // Check for non-Latin scripts first
+  for (const [lang, pattern] of Object.entries(patterns)) {
+    if (pattern.test(text)) {
+      return lang;
+    }
+  }
+
+  // Default to English for basic Latin text
+  return 'en';
 }
 
 // Extract mentions from message text
