@@ -4,7 +4,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
-import { MessageInput } from './MessageInput';
+import { MentionInput } from './MentionInput';
 import { TranslationDemo } from './TranslationDemo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -136,11 +136,11 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     translateMessages();
   }, [roomMessages, user, translateText, translatedMessages]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
     
     // Send message with the current room ID and reply information
-    sendMessage(text.trim(), roomId, replyingTo);
+    sendMessage(text.trim(), roomId, replyingTo, mentions);
     
     // Clear reply state after sending
     setReplyingTo(null);
@@ -275,10 +275,11 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
       {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0">
-        <MessageInput 
+        <MentionInput 
           onSendMessage={handleSendMessage} 
           replyingTo={replyingTo}
           onCancelReply={handleCancelReply}
+          roomId={roomId}
         />
       </div>
     </main>

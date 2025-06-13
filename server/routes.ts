@@ -6,7 +6,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertMessageSchema } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
-import { users } from "@shared/schema";
+import { users, messages, chatRooms } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 interface AuthenticatedUser {
@@ -82,7 +82,7 @@ function extractMentions(text: string): string[] {
     mentions.push(match[1]);
   }
   
-  return [...new Set(mentions)];
+  return Array.from(new Set(mentions));
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
