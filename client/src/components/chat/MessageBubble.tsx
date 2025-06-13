@@ -29,13 +29,10 @@ export function MessageBubble({
   isHighlighted
 }: MessageBubbleProps) {
   const { t } = useI18n();
-  // Show translation only if:
-  // 1. We have translated text
-  // 2. The message is in a different language than user's language  
-  // 3. The translation is actually different from the original text
+  // Show translation if we have translated text and the message is in a different language
   const shouldShowTranslation = Boolean(translatedText) && 
-    String(message.originalLanguage) !== String(currentUserLanguage) &&
-    translatedText !== message.originalText;
+    String(message.originalLanguage) !== String(currentUserLanguage);
+
 
   // Function to handle link click with warning
   const handleLinkClick = (e: React.MouseEvent, url: string) => {
