@@ -302,8 +302,9 @@ function getSimpleTranslation(text: string, target: string): string {
   }
 
   // Check enhanced translations for lowercase matches
+  const enhancedNormalized = text.trim().toLowerCase();
   for (const [key, langMap] of Object.entries(enhancedTranslations)) {
-    if (key.toLowerCase() === textNormalized && langMap[target]) {
+    if (key.toLowerCase() === enhancedNormalized && langMap[target]) {
       console.log(`Found enhanced lowercase translation: "${text}" -> "${langMap[target]}"`);
       return langMap[target];
     }
