@@ -125,20 +125,12 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   };
 
   const canDeleteRoom = (room: ChatRoom) => {
+    if (!user) return false;
+    
     const userId = (user as any)?.id;
-    const canDelete = room.createdBy === userId;
+    if (!userId) return false;
     
-    // Debug logging for troubleshooting
-    console.log('Delete permission check:', {
-      roomId: room.id,
-      roomName: room.name,
-      roomCreatedBy: room.createdBy,
-      currentUserId: userId,
-      canDelete: canDelete,
-      userObject: user
-    });
-    
-    return canDelete;
+    return room.createdBy === userId;
   };
 
   const handleCreateRoom = () => {
@@ -261,7 +253,8 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                   </div>
                 </div>
                 
-                {canDeleteRoom(room) && (
+                {/* Always show delete button for owned rooms */}
+                {user && room.createdBy === (user as any)?.id && (
                   <div className="w-full">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
