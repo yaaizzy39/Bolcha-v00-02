@@ -107,11 +107,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     const translateMessages = async () => {
       const newTranslations = new Map<number, string>();
       
+      console.log('User auto-translate setting:', (user as any).autoTranslate);
+      console.log('User preferred language:', (user as any).preferredLanguage);
+      console.log('Current translated messages:', translatedMessages);
+      
       for (const message of roomMessages) {
         // Only translate if auto-translate is enabled, message is in a different language, and not already translated
         if ((user as any).autoTranslate && 
             message.originalLanguage !== (user as any).preferredLanguage &&
             !translatedMessages.has(message.id)) {
+          console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${(user as any).preferredLanguage}`);
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
@@ -123,6 +128,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       
       // Only update if we have new translations
       if (newTranslations.size > 0) {
+        console.log('Setting new translations:', newTranslations);
         setTranslatedMessages(prev => {
           const updated = new Map(prev);
           newTranslations.forEach((value, key) => {
