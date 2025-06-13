@@ -26,6 +26,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

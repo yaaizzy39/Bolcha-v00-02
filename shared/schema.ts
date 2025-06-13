@@ -61,6 +61,9 @@ export const messages = pgTable("messages", {
   originalText: text("original_text").notNull(),
   translatedText: text("translated_text"),
   originalLanguage: varchar("original_language").notNull(),
+  replyToId: integer("reply_to_id").references(() => messages.id),
+  replyToText: text("reply_to_text"),
+  replyToSenderName: varchar("reply_to_sender_name"),
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
