@@ -21,7 +21,7 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, messages: allMessages, sendMessage, setMessages: setAllMessages } = useWebSocket();
+  const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());

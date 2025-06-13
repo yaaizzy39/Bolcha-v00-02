@@ -14,6 +14,7 @@ export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
 
   const connect = useCallback(() => {
@@ -58,9 +59,11 @@ export function useWebSocket() {
             // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, newMessage];
           });
-        } else if (data.type === 'message_deleted' && data.messageId) {
+        } else if (data.type === 'message_deleted' && typeof data.messageId === 'number') {
           console.log('Message deleted:', data.messageId);
-          setMessages(prev => prev.filter(msg => msg.id !== data.messageId));
+          const messageId = data.messageId;
+          setDeletedMessageIds(prev => new Set(prev).add(messageId));
+          setMessages(prev => prev.filter(msg => msg.id !== messageId));
         } else if (data.type === 'user_joined') {
           console.log(`${data.userName} joined the chat`);
         } else if (data.type === 'user_left') {
@@ -130,6 +133,7 @@ export function useWebSocket() {
   return {
     isConnected,
     messages,
+    deletedMessageIds,
     sendMessage,
     setMessages,
   };
