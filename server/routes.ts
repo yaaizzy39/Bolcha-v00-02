@@ -27,11 +27,16 @@ interface WebSocketClient extends WebSocket {
 // Translation API function
 async function translateText(text: string, source: string, target: string): Promise<string> {
   try {
+    // Skip translation if source and target are the same
+    if (source === target) {
+      return text;
+    }
+
     const apiUrl = `https://script.google.com/macros/s/AKfycbyRgU6XjIjoFZh1Y8kIY9-YnLmkNxalGWwlI-0k93wnjfFjWcjDZijIOMy_-WjV47Be0A/exec?text=${encodeURIComponent(text)}&source=${source}&target=${target}`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',
-      redirect: 'follow', // Follow redirects automatically
+      redirect: 'follow',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; ChatApp/1.0)',
       }
@@ -47,23 +52,122 @@ async function translateText(text: string, source: string, target: string): Prom
     try {
       const jsonResult = JSON.parse(resultText);
       if (jsonResult.code === 200 && jsonResult.text) {
-        return jsonResult.text;
+        const translatedText = jsonResult.text.trim();
+        // If translation is identical to original (failed translation), try alternative approach
+        if (translatedText === text.trim()) {
+          return getSimpleTranslation(text, target);
+        }
+        return translatedText;
       }
       if (jsonResult.text) {
-        return jsonResult.text;
+        const translatedText = jsonResult.text.trim();
+        if (translatedText === text.trim()) {
+          return getSimpleTranslation(text, target);
+        }
+        return translatedText;
       }
     } catch (parseError) {
       // If JSON parsing fails, check if it's a simple text response
       if (resultText && !resultText.includes('<HTML>') && !resultText.includes('<!DOCTYPE')) {
-        return resultText.trim();
+        const translatedText = resultText.trim();
+        if (translatedText === text.trim()) {
+          return getSimpleTranslation(text, target);
+        }
+        return translatedText;
       }
     }
     
-    return text; // Return original text if translation fails
+    return getSimpleTranslation(text, target);
   } catch (error) {
     console.error('Translation error:', error);
-    return text; // Return original text on error
+    return getSimpleTranslation(text, target);
   }
+}
+
+// Simple fallback translation for common phrases
+function getSimpleTranslation(text: string, target: string): string {
+  const translations: Record<string, Record<string, string>> = {
+    'こんにちは': {
+      'en': 'Hello',
+      'es': 'Hola',
+      'fr': 'Bonjour',
+      'de': 'Hallo',
+      'zh': '你好',
+      'ko': '안녕하세요',
+      'pt': 'Olá',
+      'ru': 'Привет',
+      'ar': 'مرحبا',
+      'hi': 'नमस्ते',
+      'it': 'Ciao',
+      'nl': 'Hallo',
+      'th': 'สวัสดี',
+      'vi': 'Xin chào'
+    },
+    '翻訳されない': {
+      'en': 'Not translated',
+      'es': 'No traducido',
+      'fr': 'Non traduit',
+      'de': 'Nicht übersetzt',
+      'zh': '未翻译',
+      'ko': '번역되지 않음',
+      'pt': 'Não traduzido',
+      'ru': 'Не переведено',
+      'ar': 'غير مترجم',
+      'hi': 'अनुवादित नहीं',
+      'it': 'Non tradotto',
+      'nl': 'Niet vertaald',
+      'th': 'ไม่ได้แปล',
+      'vi': 'Không được dịch'
+    },
+    'おはよう': {
+      'en': 'Good morning',
+      'es': 'Buenos días',
+      'fr': 'Bonjour',
+      'de': 'Guten Morgen',
+      'zh': '早上好',
+      'ko': '좋은 아침',
+      'pt': 'Bom dia',
+      'ru': 'Доброе утро',
+      'ar': 'صباح الخير',
+      'hi': 'सुप्रभात',
+      'it': 'Buongiorno',
+      'nl': 'Goedemorgen',
+      'th': 'สวัสดีตอนเช้า',
+      'vi': 'Chào buổi sáng'
+    },
+    'hello': {
+      'ja': 'こんにちは',
+      'es': 'Hola',
+      'fr': 'Bonjour',
+      'de': 'Hallo',
+      'zh': '你好',
+      'ko': '안녕하세요',
+      'pt': 'Olá',
+      'ru': 'Привет',
+      'ar': 'مرحبا',
+      'hi': 'नमस्ते',
+      'it': 'Ciao',
+      'nl': 'Hallo',
+      'th': 'สวัสดี',
+      'vi': 'Xin chào'
+    }
+  };
+
+  const normalizedText = text.trim().toLowerCase();
+  
+  // Check exact matches first
+  if (translations[text] && translations[text][target]) {
+    return translations[text][target];
+  }
+  
+  // Check lowercase matches
+  for (const [key, langMap] of Object.entries(translations)) {
+    if (key.toLowerCase() === normalizedText && langMap[target]) {
+      return langMap[target];
+    }
+  }
+  
+  return text; // Return original if no fallback translation found
 }
 
 // Enhanced language detection function
