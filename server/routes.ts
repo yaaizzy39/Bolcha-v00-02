@@ -425,7 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('Error saving message:', saveError);
             ws.send(JSON.stringify({
               type: 'error',
-              message: 'Failed to save message: ' + saveError.message,
+              message: 'Failed to save message: ' + (saveError instanceof Error ? saveError.message : String(saveError)),
             }));
           }
         }

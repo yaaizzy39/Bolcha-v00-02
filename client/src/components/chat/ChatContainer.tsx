@@ -286,12 +286,21 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
       {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0">
-        <MentionInput 
-          onSendMessage={handleSendMessage} 
-          replyingTo={replyingTo}
-          onCancelReply={handleCancelReply}
-          roomId={roomId}
-        />
+        {currentRoom?.adminOnly && !(user as any)?.isAdmin ? (
+          <div className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <Shield className="w-4 h-4" />
+              <span>This room is restricted to administrators only</span>
+            </div>
+          </div>
+        ) : (
+          <MentionInput 
+            onSendMessage={handleSendMessage} 
+            replyingTo={replyingTo}
+            onCancelReply={handleCancelReply}
+            roomId={roomId}
+          />
+        )}
       </div>
     </main>
   );
