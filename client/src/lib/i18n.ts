@@ -1,12 +1,12 @@
 export const translations = {
   en: {
     // Landing Page
-    'landing.title': 'Welcome to Multi-Language Chat',
+    'landing.title': 'Welcome to Chat without border',
     'landing.subtitle': 'Connect with people around the world in your preferred language',
     'landing.signIn': 'Sign in with Google',
     
     // Navigation
-    'nav.title': 'Multi-Language Chat',
+    'nav.title': 'Chat without border',
     'nav.online': 'Online',
     'nav.settings': 'Settings',
     'nav.signOut': 'Sign Out',
@@ -48,12 +48,12 @@ export const translations = {
   },
   ja: {
     // Landing Page
-    'landing.title': '多言語対応チャットへようこそ',
+    'landing.title': 'Chat without borderへようこそ',
     'landing.subtitle': '世界中の人々とあなたの好きな言語でつながりましょう',
     'landing.signIn': 'Googleでサインイン',
     
     // Navigation
-    'nav.title': '多言語対応チャット',
+    'nav.title': 'Chat without border',
     'nav.online': 'オンライン',
     'nav.settings': '設定',
     'nav.signOut': 'サインアウト',
