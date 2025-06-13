@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useI18n } from '@/hooks/useI18n';
 import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
@@ -14,13 +14,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useQuery } from '@tanstack/react-query';
 import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-react';
+import type { ChatRoom } from '@shared/schema';
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState<number>(1); // Default to general chat
+  const [selectedRoomId, setSelectedRoomId] = useState<number | undefined>(undefined);
+
+  // Fetch available rooms
+  const { data: rooms = [] } = useQuery<ChatRoom[]>({
+    queryKey: ['/api/rooms'],
+    enabled: !!user,
+  });
+
+  // Set default room when rooms are loaded
+  useEffect(() => {
+    if (rooms.length > 0 && selectedRoomId === undefined) {
+      setSelectedRoomId(rooms[0].id);
+    }
+  }, [rooms, selectedRoomId]);
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
@@ -104,18 +119,32 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-4">Rooms</h2>
             <RoomsList 
               onRoomSelect={setSelectedRoomId} 
-              selectedRoomId={selectedRoomId}
+              selectedRoomId={selectedRoomId || undefined}
             />
           </div>
         </aside>
 
         {/* Chat Interface */}
         <div className="flex-1 overflow-hidden">
-          <ChatContainer 
-            roomId={selectedRoomId}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onRoomSelect={setSelectedRoomId}
-          />
+          {selectedRoomId ? (
+            <ChatContainer 
+              roomId={selectedRoomId}
+              onOpenSettings={() => setSettingsOpen(true)}
+              onRoomSelect={setSelectedRoomId}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                  No chat rooms available
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Create your first room to start chatting
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
