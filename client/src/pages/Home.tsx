@@ -163,7 +163,7 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto">
                   <RoomsList 
                     onRoomSelect={setSelectedRoomId} 
                     selectedRoomId={selectedRoomId || undefined}

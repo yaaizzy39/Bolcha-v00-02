@@ -145,7 +145,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-shrink-0 p-4 border-b">
+      <div className="p-4 border-b bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">チャットルーム</h2>
           <Button onClick={() => setShowCreateModal(true)} size="sm">
@@ -155,9 +155,12 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-2">
-          {(rooms as ChatRoom[]).map((room: ChatRoom) => (
+      <div className="flex-1 p-4 space-y-2" style={{ 
+        overflowY: 'auto', 
+        WebkitOverflowScrolling: 'touch',
+        maxHeight: 'calc(100vh - 140px)' 
+      }}>
+        {(rooms as ChatRoom[]).map((room: ChatRoom) => (
           <Card 
             key={room.id} 
             className={`cursor-pointer transition-colors hover:bg-muted/50 ${
@@ -277,7 +280,6 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
             </CardContent>
           </Card>
         ))}
-        </div>
       </div>
 
       {/* Create Room Modal */}
