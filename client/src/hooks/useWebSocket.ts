@@ -49,10 +49,10 @@ export function useWebSocket() {
       // Authenticate WebSocket connection
       ws.send(JSON.stringify({
         type: 'auth',
-        userId: (user as any).id,
-        userName: (user as any).firstName && (user as any).lastName 
+        userId: (user as any)?.id || null,
+        userName: (user as any)?.firstName && (user as any)?.lastName 
           ? `${(user as any).firstName} ${(user as any).lastName}` 
-          : (user as any).email?.split('@')[0] || 'Anonymous'
+          : (user as any)?.email?.split('@')[0] || 'Anonymous'
       }));
     };
 

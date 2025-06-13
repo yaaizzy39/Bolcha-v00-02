@@ -394,13 +394,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (message.type === 'auth') {
           // Handle WebSocket authentication
-          ws.userId = message.userId;
-          ws.userName = message.userName;
+          ws.userId = message.userId || null;
+          ws.userName = message.userName || 'Anonymous';
+          
+          console.log('WebSocket authenticated:', { userId: ws.userId, userName: ws.userName });
           
           // Broadcast user joined
           broadcastToAll(wss, {
             type: 'user_joined',
-            userName: message.userName,
+            userName: ws.userName,
             timestamp: new Date().toISOString(),
           });
           
