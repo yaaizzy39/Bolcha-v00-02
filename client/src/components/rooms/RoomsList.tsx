@@ -258,6 +258,15 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                   const currentUserId = user && typeof user === 'object' && 'id' in user ? (user as any).id : null;
                   const canDelete = currentUserId && room.createdBy === currentUserId;
                   
+                  // Debug logging
+                  console.log('Delete button check:', {
+                    user,
+                    currentUserId,
+                    roomCreatedBy: room.createdBy,
+                    canDelete,
+                    roomName: room.name
+                  });
+                  
                   return canDelete ? (
                     <div className="w-full">
                       <AlertDialog>
