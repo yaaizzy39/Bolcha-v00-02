@@ -143,6 +143,19 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     setReplyingTo(null);
   };
 
+  const handleNavigateToMessage = (messageId: number) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Highlight the message temporarily
+      setHighlightedMessageId(messageId);
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 3000); // Remove highlight after 3 seconds
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full">
       {/* Chat Header */}
@@ -208,6 +221,8 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   showOriginal={(user as any)?.showOriginalText || false}
                   currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
                   onReply={handleReply}
+                  onNavigateToMessage={handleNavigateToMessage}
+                  isHighlighted={highlightedMessageId === message.id}
                 />
               ))}
             
