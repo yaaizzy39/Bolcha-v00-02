@@ -28,10 +28,10 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load initial messages
+  // Load initial messages for the current room
   const { data: initialMessages } = useQuery({
-    queryKey: ['/api/messages'],
-    enabled: !!user,
+    queryKey: ['/api/messages', roomId],
+    enabled: !!user && !!roomId,
   });
 
   useEffect(() => {

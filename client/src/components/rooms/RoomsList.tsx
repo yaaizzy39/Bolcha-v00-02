@@ -68,7 +68,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     },
   });
 
-  const formatLastActivity = (timestamp: string | null) => {
+  const formatLastActivity = (timestamp: string | Date | null) => {
     if (!timestamp) return '不明';
     const date = new Date(timestamp);
     const now = new Date();
@@ -119,7 +119,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
       </div>
 
       <div className="space-y-2">
-        {rooms.map((room: ChatRoom) => (
+        {(rooms as ChatRoom[]).map((room: ChatRoom) => (
           <Card 
             key={room.id} 
             className={`cursor-pointer transition-colors hover:bg-muted/50 ${
@@ -191,14 +191,61 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
         ))}
       </div>
 
-      <CreateRoomModal 
-        open={showCreateModal} 
-        onOpenChange={setShowCreateModal}
-        onRoomCreated={(room) => {
-          onRoomSelect(room.id);
-          setShowCreateModal(false);
-        }}
-      />
+      {/* Create Room Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>新しいチャットルーム作成</DialogTitle>
+            <DialogDescription>
+              新しいチャットルームを作成します。ルーム名と説明を入力してください。
+            </DialogDescription>
+          </DialogHeader>
+
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              ⚠️ ルームは48時間非アクティブ後に自動削除されます
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">ルーム名</label>
+              <Input 
+                placeholder="ルーム名を入力..." 
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">説明（オプション）</label>
+              <Textarea 
+                placeholder="ルーム説明を入力..." 
+                className="resize-none"
+                rows={3}
+                value={roomDescription}
+                onChange={(e) => setRoomDescription(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateModal(false)}
+              disabled={createMutation.isPending}
+            >
+              キャンセル
+            </Button>
+            <Button 
+              onClick={handleCreateRoom}
+              disabled={createMutation.isPending || !roomName.trim()}
+            >
+              {createMutation.isPending ? 'ルーム作成中...' : 'ルーム作成'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
