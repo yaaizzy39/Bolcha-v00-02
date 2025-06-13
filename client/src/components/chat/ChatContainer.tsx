@@ -154,7 +154,13 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
           );
           
           if (!cancelled) {
-            setTranslatedMessages(prev => new Map(prev).set(message.id, translatedText));
+            console.log(`Setting translation for message ${message.id}: "${translatedText}"`);
+            setTranslatedMessages(prev => {
+              const newMap = new Map(prev);
+              newMap.set(message.id, translatedText);
+              console.log(`Translation map updated, size: ${newMap.size}, message ${message.id} = "${newMap.get(message.id)}"`);
+              return newMap;
+            });
           }
         } catch (error) {
           console.error(`Translation failed for message ${message.id}:`, error);
@@ -352,11 +358,14 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
               .filter((message: Message, index: number, self: Message[]) => 
                 index === self.findIndex((m: Message) => m.id === message.id)
               )
-              .map((message: Message) => (
+              .map((message: Message) => {
+                const translation = translatedMessages.get(message.id);
+                console.log(`Rendering message ${message.id}, translation: "${translation}"`);
+                return (
                 <MessageBubble
                   key={`msg-${message.id}`}
                   message={message}
-                  translatedText={translatedMessages.get(message.id)}
+                  translatedText={translation}
                   isOwnMessage={message.senderId === (user as any)?.id}
                   showOriginal={(user as any)?.showOriginalText || false}
                   currentUserLanguage={currentLanguage}
@@ -365,7 +374,8 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   onDelete={message.senderId === (user as any)?.id || (user as any)?.isAdmin ? handleDeleteMessage : undefined}
                   isHighlighted={highlightedMessageId === message.id}
                 />
-              ))}
+                );
+              })}
             
             {!isConnected && (
               <div className="flex justify-center">
