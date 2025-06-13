@@ -386,6 +386,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           
           {/* Controls */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Mobile: Back to rooms button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRoomSelect?.(0)}
+              className="sm:hidden h-8 px-2 text-xs"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              ルーム一覧
+            </Button>
+            
             {/* Language Selector */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
