@@ -55,7 +55,8 @@ export function CreateRoomModal({ open, onOpenChange, onRoomCreated }: CreateRoo
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateRoomForm) => {
-      return await apiRequest('/api/rooms', 'POST', data);
+      const response = await apiRequest('POST', '/api/rooms', data);
+      return await response.json();
     },
     onSuccess: (room: ChatRoom) => {
       queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
@@ -67,9 +68,10 @@ export function CreateRoomModal({ open, onOpenChange, onRoomCreated }: CreateRoo
       onRoomCreated(room);
     },
     onError: (error: Error) => {
+      console.error('Room creation error:', error);
       toast({
         title: "エラー",
-        description: "ルームの作成に失敗しました。",
+        description: `ルームの作成に失敗しました: ${error.message}`,
         variant: "destructive",
       });
     },
