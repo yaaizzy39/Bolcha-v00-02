@@ -247,6 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('Received WebSocket message:', message);
         
         if (message.type === 'auth') {
           // Handle WebSocket authentication

@@ -81,12 +81,17 @@ export function useWebSocket() {
   }, [isAuthenticated, user]);
 
   const sendMessage = useCallback((text: string, roomId: number = 1) => {
+    console.log('Attempting to send message:', { text, roomId, wsState: wsRef.current?.readyState });
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
+      const messageData = {
         type: 'chat_message',
         text: text.trim(),
         roomId: roomId
-      }));
+      };
+      console.log('Sending WebSocket message:', messageData);
+      wsRef.current.send(JSON.stringify(messageData));
+    } else {
+      console.error('WebSocket is not connected. State:', wsRef.current?.readyState);
     }
   }, []);
 
