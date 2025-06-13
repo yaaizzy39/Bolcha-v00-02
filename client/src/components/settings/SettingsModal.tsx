@@ -35,8 +35,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const queryClient = useQueryClient();
   
   const [settings, setSettings] = useState({
-    preferredLanguage: 'en',
-    interfaceLanguage: 'en',
+    preferredLanguage: 'ja',
+    interfaceLanguage: 'ja',
     showOriginalText: true,
     autoTranslate: true,
   });

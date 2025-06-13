@@ -5,11 +5,12 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
+import { LanguageTestPanel } from './LanguageTestPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuery } from '@tanstack/react-query';
-import { Languages, Users } from 'lucide-react';
+import { Languages, Users, TestTube } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
 interface ChatContainerProps {
@@ -43,16 +44,20 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       const newTranslations = new Map<number, string>();
       
       for (const message of messages) {
-        if (message.originalLanguage !== user.preferredLanguage && user.autoTranslate) {
+        // Only translate if auto-translate is enabled and the message is in a different language
+        if (user.autoTranslate && message.originalLanguage !== user.preferredLanguage) {
+          console.log(`Translating message ${message.id}: "${message.originalText}" from ${message.originalLanguage} to ${user.preferredLanguage}`);
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
-            user.preferredLanguage || 'en'
+            user.preferredLanguage || 'ja'
           );
+          console.log(`Translation result: "${translatedText}"`);
           newTranslations.set(message.id, translatedText);
         }
       }
       
+      console.log('Setting translations:', newTranslations);
       setTranslatedMessages(newTranslations);
     };
 
