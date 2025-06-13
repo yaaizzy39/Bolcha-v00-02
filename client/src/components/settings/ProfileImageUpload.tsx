@@ -32,11 +32,7 @@ export function ProfileImageUpload() {
   // Mutation to update profile image
   const updateProfileImageMutation = useMutation({
     mutationFn: async ({ imageUrl, useCustom }: { imageUrl: string; useCustom: boolean }) => {
-      return await apiRequest('/api/user/profile-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, useCustom }),
-      });
+      return await apiRequest('POST', '/api/user/profile-image', { imageUrl, useCustom });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
@@ -57,9 +53,7 @@ export function ProfileImageUpload() {
   // Mutation to toggle between Google and custom image
   const toggleImageMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/user/toggle-profile-image', {
-        method: 'POST',
-      });
+      return await apiRequest('POST', '/api/user/toggle-profile-image');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
