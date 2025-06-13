@@ -125,7 +125,20 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   };
 
   const canDeleteRoom = (room: ChatRoom) => {
-    return room.createdBy === (user as any)?.id;
+    const userId = (user as any)?.id;
+    const canDelete = room.createdBy === userId;
+    
+    // Debug logging for troubleshooting
+    console.log('Delete permission check:', {
+      roomId: room.id,
+      roomName: room.name,
+      roomCreatedBy: room.createdBy,
+      currentUserId: userId,
+      canDelete: canDelete,
+      userObject: user
+    });
+    
+    return canDelete;
   };
 
   const handleCreateRoom = () => {
