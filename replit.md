@@ -133,11 +133,14 @@ Chat without border is a real-time multilingual chat application that enables us
 
 ## Recent Changes
 
-- **June 13, 2025**: Enhanced mobile room deletion functionality
+- **June 13, 2025**: Enhanced mobile room deletion functionality and navigation
   - Added larger touch targets for mobile delete buttons (8x8px vs 6x6px)
   - Implemented mobile-only action bar at bottom of room cards with prominent "削除" button
   - Fixed translation system variable conflicts and enhanced fallback translations
   - Improved mobile accessibility for room management interface
+  - Added mobile-first room list display with proper scrolling functionality
+  - Implemented "ルーム一覧" navigation button in chat header for mobile users
+  - Fixed mobile room list layout with flexible header and scrollable content area
 
 ## Changelog
 
