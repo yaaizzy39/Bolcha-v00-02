@@ -145,16 +145,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get messages
-  app.get('/api/messages', isAuthenticated, async (req, res) => {
+  // Chat room routes
+  app.get('/api/rooms', isAuthenticated, async (req, res) => {
     try {
-      const messages = await storage.getMessages();
+      const rooms = await storage.getChatRooms();
+      res.json(rooms);
+    } catch (error) {
+      console.error("Error fetching chat rooms:", error);
+      res.status(500).json({ message: "Failed to fetch chat rooms" });
+    }
+  });
+
+  app.post('/api/rooms', isAuthenticated, async (req: any, res) => {
+    try {
+      const roomData = {
+        ...req.body,
+        createdBy: req.user.claims.sub,
+      };
+      const room = await storage.createChatRoom(roomData);
+      res.json(room);
+    } catch (error) {
+      console.error("Error creating chat room:", error);
+      res.status(500).json({ message: "Failed to create chat room" });
+    }
+  });
+
+  app.delete('/api/rooms/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const roomId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const success = await storage.deleteChatRoom(roomId, userId);
+      if (success) {
+        res.json({ message: "Chat room deleted successfully" });
+      } else {
+        res.status(403).json({ message: "Not authorized to delete this room" });
+      }
+    } catch (error) {
+      console.error("Error deleting chat room:", error);
+      res.status(500).json({ message: "Failed to delete chat room" });
+    }
+  });
+
+  // Get messages for a specific room
+  app.get('/api/messages/:roomId', isAuthenticated, async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.roomId);
+      const messages = await storage.getMessages(roomId);
       res.json(messages.reverse()); // Return in chronological order
     } catch (error) {
       console.error("Error fetching messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
     }
   });
+
+  // Legacy route for backward compatibility
+  app.get('/api/messages', isAuthenticated, async (req, res) => {
+    try {
+      const messages = await storage.getMessages(1); // Default to room 1
+      res.json(messages.reverse());
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  // Cleanup job for inactive rooms (runs every hour)
+  setInterval(async () => {
+    try {
+      const cleanedUp = await storage.cleanupInactiveRooms();
+      if (cleanedUp > 0) {
+        console.log(`Cleaned up ${cleanedUp} inactive chat rooms`);
+      }
+    } catch (error) {
+      console.error("Error cleaning up inactive rooms:", error);
+    }
+  }, 60 * 60 * 1000); // Run every hour
 
   // Create HTTP server
   const httpServer = createServer(app);
@@ -193,6 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Validate message
           const messageData = {
+            roomId: message.roomId || 1, // Default to general chat room
             senderId: ws.userId,
             senderName: ws.userName || 'Anonymous',
             senderProfileImageUrl: profileImageUrl,
