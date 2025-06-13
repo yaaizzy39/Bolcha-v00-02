@@ -53,26 +53,31 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     }
   }, [roomId, refetchMessages]);
 
-  // Load initial messages for the room
+  // Merge initial messages from database with real-time WebSocket messages
   useEffect(() => {
-    if (initialMessages && Array.isArray(initialMessages)) {
-      setRoomMessages(initialMessages);
-    }
-  }, [initialMessages]);
-
-  // Filter WebSocket messages for current room
-  useEffect(() => {
-    console.log('Filtering messages for room:', roomId, 'allMessages:', allMessages.length);
-    const newRoomMessages = allMessages.filter(msg => msg.roomId === roomId);
-    console.log('Filtered messages for room', roomId, ':', newRoomMessages.length, 'messages');
-    console.log('Current roomMessages count:', roomMessages.length);
+    const dbMessages = initialMessages && Array.isArray(initialMessages) ? initialMessages : [];
+    const wsMessages = allMessages.filter(msg => msg.roomId === roomId);
     
-    if (newRoomMessages.length !== roomMessages.length || 
-        !newRoomMessages.every(msg => roomMessages.some(rm => rm.id === msg.id))) {
-      console.log('Updating room messages:', newRoomMessages);
-      setRoomMessages(newRoomMessages);
-    }
-  }, [allMessages, roomId]);
+    // Create a map to deduplicate messages by ID
+    const messageMap = new Map<number, Message>();
+    
+    // Add database messages first
+    dbMessages.forEach(msg => {
+      if (msg.id) messageMap.set(msg.id, msg);
+    });
+    
+    // Add/update with WebSocket messages (newer data)
+    wsMessages.forEach(msg => {
+      if (msg.id) messageMap.set(msg.id, msg);
+    });
+    
+    // Convert back to array and sort by timestamp
+    const mergedMessages = Array.from(messageMap.values())
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    console.log('Merged messages for room', roomId, ':', mergedMessages.length, 'total messages');
+    setRoomMessages(mergedMessages);
+  }, [initialMessages, allMessages, roomId]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {

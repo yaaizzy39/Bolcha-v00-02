@@ -124,7 +124,7 @@ export class DatabaseStorage implements IStorage {
     return result.length;
   }
 
-  async getMessages(roomId: number, limit: number = 50): Promise<Message[]> {
+  async getMessages(roomId: number, limit: number = 200): Promise<Message[]> {
     return await db
       .select()
       .from(messages)
