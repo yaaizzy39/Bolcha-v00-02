@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -24,6 +24,8 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load initial messages
   const { data: initialMessages } = useQuery({
@@ -36,6 +38,16 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       setMessages(initialMessages);
     }
   }, [initialMessages, setMessages]);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Translate messages based on user preference
   useEffect(() => {
@@ -75,6 +87,10 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
 
   const handleSendMessage = (text: string) => {
     sendMessage(text);
+    // Scroll to bottom after sending message with a slight delay
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
   };
 
   return (
@@ -122,7 +138,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
 
       {/* Messages Container */}
       <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full px-4 py-4">
+        <ScrollArea className="h-full px-4 py-4" ref={scrollAreaRef}>
           <div className="space-y-4 pb-4">
             {messages
               .filter((message, index, self) => 
@@ -146,6 +162,9 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
                 </Badge>
               </div>
             )}
+            
+            {/* Invisible element to scroll to */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
       </div>
