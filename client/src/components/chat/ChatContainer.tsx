@@ -62,14 +62,18 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     // Create a map to deduplicate messages by ID
     const messageMap = new Map<number, Message>();
     
-    // Add database messages first
+    // Add database messages first, but skip deleted ones
     dbMessages.forEach(msg => {
-      if (msg.id) messageMap.set(msg.id, msg);
+      if (msg.id && !deletedMessageIds.has(msg.id)) {
+        messageMap.set(msg.id, msg);
+      }
     });
     
-    // Add/update with WebSocket messages (newer data)
+    // Add/update with WebSocket messages (newer data), but skip deleted ones
     wsMessages.forEach(msg => {
-      if (msg.id) messageMap.set(msg.id, msg);
+      if (msg.id && !deletedMessageIds.has(msg.id)) {
+        messageMap.set(msg.id, msg);
+      }
     });
     
     // Convert back to array and sort by timestamp
@@ -78,7 +82,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     
     console.log('Merged messages for room', roomId, ':', mergedMessages.length, 'total messages');
     setRoomMessages(mergedMessages);
-  }, [initialMessages, allMessages, roomId]);
+  }, [initialMessages, allMessages, roomId, deletedMessageIds]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
