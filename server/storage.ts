@@ -149,12 +149,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMessage(messageId: number, userId: string): Promise<boolean> {
-    const result = await db
-      .delete(messages)
-      .where(and(
-        eq(messages.id, messageId),
-        eq(messages.senderId, userId)
-      ));
+    // Check if user is admin
+    const user = await this.getUser(userId);
+    const isAdmin = user?.isAdmin || false;
+    
+    let result;
+    if (isAdmin) {
+      // Admin can delete any message
+      result = await db
+        .delete(messages)
+        .where(eq(messages.id, messageId));
+    } else {
+      // Regular users can only delete their own messages
+      result = await db
+        .delete(messages)
+        .where(and(
+          eq(messages.id, messageId),
+          eq(messages.senderId, userId)
+        ));
+    }
     
     return result.rowCount > 0;
   }

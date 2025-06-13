@@ -116,7 +116,7 @@ export function MessageBubble({
                 返信
               </Button>
             )}
-            {isOwnMessage && onDelete && (
+            {onDelete && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -192,7 +192,7 @@ export function MessageBubble({
               返信
             </Button>
           )}
-          {isOwnMessage && onDelete && (
+          {onDelete && (
             <Button
               variant="ghost"
               size="sm"
