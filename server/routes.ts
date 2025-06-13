@@ -265,6 +265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (message.type === 'chat_message' && ws.userId) {
+          console.log('Processing chat message:', { userId: ws.userId, text: message.text, roomId: message.roomId });
+          
           // Get user data for profile image
           const user = await storage.getUser(ws.userId);
           const profileImageUrl = user?.useCustomProfileImage && user?.customProfileImageUrl 
@@ -281,20 +283,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
             originalLanguage: detectLanguage(message.text),
           };
 
-          // Save message to database
-          const savedMessage = await storage.createMessage(messageData);
+          console.log('Message data to save:', messageData);
 
-          // Broadcast message to all clients
-          const broadcastData = {
-            type: 'new_message',
-            message: {
-              ...savedMessage,
-              id: savedMessage.id.toString(),
-            },
-            timestamp: new Date().toISOString(),
-          };
+          try {
+            // Verify room exists before saving message
+            const room = await storage.getChatRoom(messageData.roomId);
+            if (!room) {
+              console.error('Room not found:', messageData.roomId);
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Chat room not found',
+              }));
+              return;
+            }
 
-          broadcastToAll(wss, broadcastData);
+            // Save message to database
+            const savedMessage = await storage.createMessage(messageData);
+            console.log('Message saved successfully:', savedMessage);
+
+            // Broadcast message to all clients
+            const broadcastData = {
+              type: 'new_message',
+              message: {
+                ...savedMessage,
+                id: Number(savedMessage.id), // Ensure id is a number
+              },
+              timestamp: new Date().toISOString(),
+            };
+
+            console.log('Broadcasting message:', broadcastData);
+            broadcastToAll(wss, broadcastData);
+          } catch (saveError) {
+            console.error('Error saving message:', saveError);
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Failed to save message: ' + saveError.message,
+            }));
+          }
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
