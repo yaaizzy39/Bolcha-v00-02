@@ -135,8 +135,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     console.log(`Room ownership check for "${room.name}":`, {
       userId: userIdStr,
       createdBy: createdByStr,
-      isOwner: Boolean(isOwner),
-      user: user
+      isOwner: Boolean(isOwner)
     });
     
     return Boolean(isOwner);
@@ -287,7 +286,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                 </div>
                 
                 {/* Delete button for room owner */}
-                {isRoomOwner(room) && (
+                {isRoomOwner(room) ? (
                   <div className="w-full">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -320,7 +319,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
