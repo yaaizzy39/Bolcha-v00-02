@@ -107,7 +107,29 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
         description: "チャットルームが削除されました。",
       });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "エラー",
+        description: "ルームの削除に失敗しました。",
+        variant: "destructive",
+      });
+    },
   });
+
+  // Improved room ownership check
+  const isRoomOwner = (room: ChatRoom): boolean => {
+    if (!user) return false;
+    
+    const userId = (user as any)?.id;
+    const createdBy = room.createdBy;
+    
+    // Convert both to strings for comparison
+    const userIdStr = String(userId || '');
+    const createdByStr = String(createdBy || '');
+    
+    const isOwner = userIdStr && createdByStr && userIdStr === createdByStr;
+    return Boolean(isOwner);
+  };
 
   const formatLastActivity = (timestamp: string | Date | null) => {
     if (!timestamp) return '不明';
@@ -254,7 +276,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                 </div>
                 
                 {/* Delete button for room owner */}
-                {user && (user as any)?.id === room.createdBy && (
+                {isRoomOwner(room) && (
                   <div className="w-full">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

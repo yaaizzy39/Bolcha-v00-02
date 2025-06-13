@@ -145,6 +145,8 @@ Chat without border is a real-time multilingual chat application that enables us
   - Ensured room deletion returns user to room list instead of auto-selecting other rooms
   - Fixed delete button disappearing after language settings changes with robust user authentication checks
   - Implemented defensive programming patterns for user state management during settings updates
+  - Resolved TypeScript compatibility issues and type conversion conflicts in room ownership verification
+  - Enhanced deletion logic with dedicated `isRoomOwner` function for consistent ownership validation
 
 ## Changelog
 
