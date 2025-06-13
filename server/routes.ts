@@ -130,32 +130,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/user/refresh-google-profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const accessToken = req.user.access_token;
+      const refreshToken = req.user.refresh_token;
       
-      if (!accessToken) {
-        return res.status(400).json({ message: 'Access token not available. Please re-login.' });
+      console.log('Debug: User session data:', {
+        hasAccessToken: !!req.user.access_token,
+        hasRefreshToken: !!refreshToken,
+        expiresAt: req.user.expires_at,
+        currentTime: Math.floor(Date.now() / 1000)
+      });
+
+      // For now, we'll use the user claims data which should have the profile info
+      const claims = req.user.claims;
+      const profileImageUrl = claims.picture || claims.profile_image_url;
+      
+      if (!profileImageUrl) {
+        return res.status(400).json({ 
+          message: 'プロフィール画像URLが見つかりません。再ログインしてください。' 
+        });
       }
 
-      console.log('Fetching Google profile with access token for user:', userId);
+      console.log('Updating profile with image URL from claims:', profileImageUrl);
       
-      // Fetch current Google profile data
-      const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
-      
-      if (!googleResponse.ok) {
-        console.error('Google API response not ok:', googleResponse.status, await googleResponse.text());
-        return res.status(400).json({ message: 'Failed to fetch Google profile. Please re-login.' });
-      }
-
-      const googleProfile = await googleResponse.json();
-      console.log('Google profile data:', googleProfile);
-      
-      // Update user with fresh Google profile image
+      // Update user with Google profile image from claims
       const [updatedUser] = await db
         .update(users)
         .set({
-          profileImageUrl: googleProfile.picture,
-          firstName: googleProfile.given_name || null,
-          lastName: googleProfile.family_name || null,
+          profileImageUrl: profileImageUrl,
+          firstName: claims.given_name || claims.first_name || null,
+          lastName: claims.family_name || claims.last_name || null,
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId))
@@ -164,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedUser);
     } catch (error) {
       console.error('Error refreshing Google profile:', error);
-      res.status(500).json({ message: 'Failed to refresh Google profile' });
+      res.status(500).json({ message: 'Googleプロフィールの更新に失敗しました' });
     }
   });
 
