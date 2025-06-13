@@ -29,7 +29,13 @@ export function MessageBubble({
   isHighlighted
 }: MessageBubbleProps) {
   const { t } = useI18n();
-  const shouldShowTranslation = translatedText && translatedText !== message.originalText;
+  // Show translation only if:
+  // 1. We have translated text
+  // 2. The message is in a different language than user's language  
+  // 3. The translation is actually different from the original text
+  const shouldShowTranslation = Boolean(translatedText) && 
+    String(message.originalLanguage) !== String(currentUserLanguage) &&
+    translatedText !== message.originalText;
 
   // Function to handle link click with warning
   const handleLinkClick = (e: React.MouseEvent, url: string) => {
@@ -75,7 +81,7 @@ export function MessageBubble({
   
   // Debug log for translation display
   if (message.id >= 1 && message.id <= 5) {
-    console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalText="${message.originalText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}`);
+    console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalText="${message.originalText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}, hasTranslated=${!!translatedText}, langDiff=${message.originalLanguage !== currentUserLanguage}`);
   }
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
