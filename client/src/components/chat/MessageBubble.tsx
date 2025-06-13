@@ -21,6 +21,29 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
+
+  // Function to convert URLs to clickable links
+  const renderTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
   
   // Debug log for translation display
   // console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}`);
@@ -37,10 +60,10 @@ export function MessageBubble({
             {shouldShowTranslation && showOriginal && (
               <div className="text-xs text-primary-foreground/70 mb-2 flex items-center gap-1">
                 <Languages className="w-3 h-3" />
-                {t('chat.original')} ({message.originalLanguage}): {message.originalText}
+                {t('chat.original')} ({message.originalLanguage}): {renderTextWithLinks(message.originalText)}
               </div>
             )}
-            <p>{shouldShowTranslation ? translatedText : message.originalText}</p>
+            <p>{renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
             <span>{timestamp}</span>
