@@ -14,6 +14,26 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import type { ChatRoom } from '@shared/schema';
 
+// Room name translations
+const roomNameTranslations: Record<string, Record<string, string>> = {
+  'General Chat': {
+    'ja': '一般チャット',
+    'es': 'Chat General',
+    'fr': 'Chat Général',
+    'de': 'Allgemeiner Chat',
+    'zh': '普通聊天',
+    'ko': '일반 채팅',
+    'pt': 'Chat Geral',
+    'ru': 'Общий чат',
+    'ar': 'دردشة عامة',
+    'hi': 'सामान्य चैट',
+    'it': 'Chat Generale',
+    'nl': 'Algemene Chat',
+    'th': 'แชททั่วไป',
+    'vi': 'Trò chuyện chung'
+  }
+};
+
 interface RoomsListProps {
   onRoomSelect: (roomId: number) => void;
   selectedRoomId?: number;
@@ -26,6 +46,17 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [roomName, setRoomName] = useState('');
   const [roomDescription, setRoomDescription] = useState('');
+
+  // Get user's preferred language for room name translation
+  const userLanguage = (user as any)?.preferredLanguage || 'ja';
+
+  // Function to translate room names
+  const translateRoomName = (roomName: string): string => {
+    if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
+      return roomNameTranslations[roomName][userLanguage];
+    }
+    return roomName; // Return original if no translation found
+  };
 
   const { data: rooms = [], isLoading } = useQuery({
     queryKey: ['/api/rooms'],
@@ -132,7 +163,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">
-                  {room.name}
+                  {translateRoomName(room.name)}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">

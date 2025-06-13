@@ -16,6 +16,26 @@ import { getSupportedLanguages } from '@/lib/languageSupport';
 import { Languages, Users, TestTube, ArrowDown, Shield, Menu, MessageSquare } from 'lucide-react';
 import type { Message, ChatRoom } from '@shared/schema';
 
+// Room name translations
+const roomNameTranslations: Record<string, Record<string, string>> = {
+  'General Chat': {
+    'ja': '一般チャット',
+    'es': 'Chat General',
+    'fr': 'Chat Général',
+    'de': 'Allgemeiner Chat',
+    'zh': '普通聊天',
+    'ko': '일반 채팅',
+    'pt': 'Chat Geral',
+    'ru': 'Общий чат',
+    'ar': 'دردشة عامة',
+    'hi': 'सामान्य चैट',
+    'it': 'Chat Generale',
+    'nl': 'Algemene Chat',
+    'th': 'แชททั่วไป',
+    'vi': 'Trò chuyện chung'
+  }
+};
+
 interface ChatContainerProps {
   roomId: number;
   onOpenSettings: () => void;
@@ -27,6 +47,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const { t } = useI18n();
   const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
   const queryClient = useQueryClient();
+  
+  // Get user's preferred language for room name translation
+  const userLanguage = (user as any)?.preferredLanguage || 'ja';
+
+  // Function to translate room names
+  const translateRoomName = (roomName: string): string => {
+    if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
+      return roomNameTranslations[roomName][userLanguage];
+    }
+    return roomName; // Return original if no translation found
+  };
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
@@ -311,7 +342,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               <SelectItem key={room.id} value={room.id.toString()}>
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{room.name}</span>
+                  <span>{translateRoomName(room.name)}</span>
                   {room.adminOnly && (
                     <Badge variant="destructive" className="text-xs">
                       <Shield className="w-3 h-3" />
@@ -330,7 +361,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           {/* Room Info */}
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {currentRoom?.name || t('chat.title')}
+              {currentRoom?.name ? translateRoomName(currentRoom.name) : t('chat.title')}
             </h2>
             {currentRoom?.description && (
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
