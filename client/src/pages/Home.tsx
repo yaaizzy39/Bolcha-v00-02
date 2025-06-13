@@ -32,13 +32,10 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Don't auto-select a room on mobile to show room list first
+  // Don't auto-select any room to prevent unwanted Global Chat display
   useEffect(() => {
-    // Only auto-select on desktop (lg screens and up)
-    const isDesktop = window.innerWidth >= 1024;
-    if (rooms.length > 0 && selectedRoomId === undefined && isDesktop) {
-      setSelectedRoomId(rooms[0].id);
-    }
+    // Disabled auto-selection to avoid showing Global Chat after deletion
+    // Users can manually select rooms from the room list
   }, [rooms, selectedRoomId]);
 
   const handleLogout = () => {

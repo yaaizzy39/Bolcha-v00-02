@@ -35,7 +35,7 @@ const roomNameTranslations: Record<string, Record<string, string>> = {
 };
 
 interface RoomsListProps {
-  onRoomSelect: (roomId: number) => void;
+  onRoomSelect: (roomId: number | undefined) => void;
   selectedRoomId?: number;
 }
 
@@ -94,8 +94,14 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     mutationFn: async (roomId: number) => {
       await apiRequest('DELETE', `/api/rooms/${roomId}`);
     },
-    onSuccess: () => {
+    onSuccess: (_, deletedRoomId) => {
       queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
+      
+      // If the deleted room was currently selected, clear the selection
+      if (selectedRoomId === deletedRoomId) {
+        onRoomSelect(undefined);
+      }
+      
       toast({
         title: "ルーム削除完了",
         description: "チャットルームが削除されました。",
