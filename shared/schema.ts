@@ -64,6 +64,7 @@ export const messages = pgTable("messages", {
   replyToId: integer("reply_to_id").references(() => messages.id),
   replyToText: text("reply_to_text"),
   replyToSenderName: varchar("reply_to_sender_name"),
+  mentions: text("mentions").array(),
   timestamp: timestamp("timestamp").defaultNow(),
 });
 

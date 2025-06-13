@@ -72,6 +72,19 @@ function detectLanguage(text: string): string {
   return japaneseRegex.test(text) ? 'ja' : 'en';
 }
 
+// Extract mentions from message text
+function extractMentions(text: string): string[] {
+  const mentionPattern = /@(\w+)/g;
+  const mentions: string[] = [];
+  let match;
+  
+  while ((match = mentionPattern.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  
+  return [...new Set(mentions)];
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -256,6 +269,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching messages:", error);
       res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  // Get participants in a room
+  app.get('/api/rooms/:roomId/participants', isAuthenticated, async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.roomId);
+      
+      // Get unique users who have sent messages in this room
+      const participants = await db
+        .selectDistinct({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl,
+          useCustomProfileImage: users.useCustomProfileImage,
+          customProfileImageUrl: users.customProfileImageUrl
+        })
+        .from(messages)
+        .innerJoin(users, eq(messages.senderId, users.id))
+        .where(eq(messages.roomId, roomId))
+        .orderBy(users.firstName, users.lastName);
+
+      res.json(participants);
+    } catch (error) {
+      console.error('Error fetching room participants:', error);
+      res.status(500).json({ message: 'Failed to fetch room participants' });
     }
   });
 
