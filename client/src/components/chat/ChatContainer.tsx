@@ -385,7 +385,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                     currentUserLanguage={currentLanguage}
                     onReply={handleReply}
                     onNavigateToMessage={handleNavigateToMessage}
-                    onDelete={message.senderId === (user as any)?.id || (user as any)?.isAdmin ? handleDeleteMessage : undefined}
+                    onDelete={message.senderId === currentUserId || (user as any)?.email === 'yaaizzy39@gmail.com' ? handleDeleteMessage : undefined}
                     isHighlighted={highlightedMessageId === message.id}
                   />
                 );
