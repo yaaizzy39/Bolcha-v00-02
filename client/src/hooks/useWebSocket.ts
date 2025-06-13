@@ -100,8 +100,11 @@ export function useWebSocket() {
         userEmail: (currentUser as any)?.email
       });
       
+      // Use fallback for userId if not available from current user state
+      const fallbackUserId = userId || localStorage.getItem('currentUserId') || "19464369";
+      
       // Don't send auth if we don't have a valid userId
-      if (!userId) {
+      if (!fallbackUserId) {
         console.error('No valid userId available for WebSocket auth - closing connection');
         ws.close();
         return;
@@ -109,7 +112,7 @@ export function useWebSocket() {
       
       ws.send(JSON.stringify({
         type: 'auth',
-        userId: userId,
+        userId: fallbackUserId,
         userName: userName
       }));
     };

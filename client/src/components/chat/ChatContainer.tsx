@@ -373,16 +373,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   localStorage.setItem('currentUserId', (user as any).id);
                 }
                 
-                // Debug logging for layout issues - check all messages from current user
-                if (message.senderId === "19464369") {
-                  console.log(`Message ${message.id} layout check:`, {
-                    senderId: message.senderId,
-                    currentUserId,
-                    isOwnMessage,
-                    senderName: message.senderName,
-                    userObject: user
-                  });
-                }
+
                 
                 return (
                   <MessageBubble
