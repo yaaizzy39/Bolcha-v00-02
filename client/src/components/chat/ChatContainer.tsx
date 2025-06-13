@@ -48,34 +48,6 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
   const queryClient = useQueryClient();
   
-  // Get user's preferred language for room name translation
-  // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
-  const userLanguage = (user as any)?.preferredLanguage || 
-                      localStorage.getItem('selectedLanguage') || 
-                      'ja';
-  console.log('ChatContainer userLanguage detected:', userLanguage, 'room data:', currentRoom);
-  // Function to translate room names
-  const translateRoomName = (roomName: string): string => {
-    console.log('ChatContainer translateRoomName:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
-    if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
-      const translated = roomNameTranslations[roomName][userLanguage];
-      console.log('ChatContainer translated:', roomName, 'to', translated);
-      return translated;
-    }
-    console.log('ChatContainer no translation for:', roomName);
-    return roomName; // Return original if no translation found
-  };
-  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const { translateText } = useTranslation();
-  const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
-  const [showTestPanel, setShowTestPanel] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mentionInputRef = useRef<MentionInputRef>(null);
-
   // Load initial messages for the current room
   const { data: initialMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/messages', roomId],
@@ -95,6 +67,35 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     queryKey: ['/api/rooms'],
     enabled: !!user,
   });
+
+  // Get user's preferred language for room name translation
+  // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
+  const userLanguage = (user as any)?.preferredLanguage || 
+                      localStorage.getItem('selectedLanguage') || 
+                      'ja';
+
+  // Function to translate room names
+  const translateRoomName = (roomName: string): string => {
+    console.log('ChatContainer translateRoomName:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
+    if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
+      const translated = roomNameTranslations[roomName][userLanguage];
+      console.log('ChatContainer translated:', roomName, 'to', translated);
+      return translated;
+    }
+    console.log('ChatContainer no translation for:', roomName);
+    return roomName; // Return original if no translation found
+  };
+  
+  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
+  const { translateText } = useTranslation();
+  const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
+  const [showTestPanel, setShowTestPanel] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mentionInputRef = useRef<MentionInputRef>(null);
 
   // Clear messages and reload when room changes
   useEffect(() => {
@@ -349,10 +350,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               <SelectItem key={room.id} value={room.id.toString()}>
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{(() => {
-                console.log('Mobile room translation called for:', room.name);
-                return translateRoomName(room.name);
-              })()}</span>
+                  <span>{translateRoomName(room.name)}</span>
                   {room.adminOnly && (
                     <Badge variant="destructive" className="text-xs">
                       <Shield className="w-3 h-3" />
@@ -371,10 +369,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           {/* Room Info */}
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {currentRoom?.name ? (() => {
-                console.log('Header room translation called for:', currentRoom.name);
-                return translateRoomName(currentRoom.name);
-              })() : t('chat.title')}
+              {currentRoom?.name ? translateRoomName(currentRoom.name) : t('chat.title')}
             </h2>
             {currentRoom?.description && (
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
