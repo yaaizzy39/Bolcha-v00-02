@@ -114,15 +114,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   // Keep track of current language for cache invalidation
   const currentLanguage = (user as any)?.preferredLanguage || 'ja';
-  const [lastLanguage, setLastLanguage] = useState(currentLanguage);
+  const [translationLanguage, setTranslationLanguage] = useState(currentLanguage);
 
-  // Clear translations when language changes
+  // Clear translations and re-translate when language changes
   useEffect(() => {
-    if (lastLanguage !== currentLanguage) {
+    if (translationLanguage !== currentLanguage) {
+      console.log(`Language changed from ${translationLanguage} to ${currentLanguage}, clearing translations`);
       setTranslatedMessages(new Map());
-      setLastLanguage(currentLanguage);
+      setTranslationLanguage(currentLanguage);
     }
-  }, [currentLanguage, lastLanguage]);
+  }, [currentLanguage, translationLanguage]);
 
   // Translate messages based on user preference
   useEffect(() => {
@@ -136,9 +137,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         if ((user as any).autoTranslate && 
             message.originalLanguage !== currentLanguage) {
           
-          // Check if we already have a translation for this message in the current language
-          const existingTranslation = translatedMessages.get(message.id);
-          if (!existingTranslation) {
+          // Always translate if we don't have a translation for current language
+          if (!translatedMessages.has(message.id)) {
+            console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${currentLanguage}`);
             const translatedText = await translateText(
               message.originalText,
               message.originalLanguage,
@@ -149,8 +150,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         }
       }
       
-      // Only update if we have new translations
+      // Update translations
       if (newTranslations.size > 0) {
+        console.log(`Adding ${newTranslations.size} new translations`);
         setTranslatedMessages(prev => {
           const updated = new Map(prev);
           newTranslations.forEach((value, key) => {
@@ -162,7 +164,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     };
 
     translateMessages();
-  }, [roomMessages, user, translateText, translatedMessages, currentLanguage]);
+  }, [roomMessages, user, translateText, translatedMessages, currentLanguage, translationLanguage]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
@@ -239,11 +241,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       });
     },
     onSuccess: () => {
+      console.log('Language updated successfully, invalidating cache');
       // Invalidate user data to refresh language preference
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      
-      // Clear translation cache to force re-translation with new language
-      setTranslatedMessages(new Map());
     },
   });
 
