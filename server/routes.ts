@@ -158,14 +158,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/rooms', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Creating room with data:", req.body);
+      console.log("User ID:", req.user.claims.sub);
+      
+      const { name, description } = req.body;
+      
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ message: "Room name is required" });
+      }
+      
       const roomData = {
-        ...req.body,
+        name: name.trim(),
+        description: description?.trim() || null,
         createdBy: req.user.claims.sub,
       };
+      
+      console.log("Final room data:", roomData);
       const room = await storage.createChatRoom(roomData);
+      console.log("Created room:", room);
       res.json(room);
     } catch (error) {
       console.error("Error creating chat room:", error);
+      console.error("Error details:", error instanceof Error ? error.message : error);
       res.status(500).json({ message: "Failed to create chat room" });
     }
   });

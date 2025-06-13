@@ -33,7 +33,8 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; description: string }) => {
-      return await apiRequest('/api/rooms', 'POST', data);
+      const response = await apiRequest('/api/rooms', 'POST', data);
+      return await response.json();
     },
     onSuccess: (room: ChatRoom) => {
       queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
@@ -46,7 +47,8 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
       setShowCreateModal(false);
       onRoomSelect(room.id);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      console.error('Room creation error:', error);
       toast({
         title: "エラー",
         description: "ルームの作成に失敗しました。",
