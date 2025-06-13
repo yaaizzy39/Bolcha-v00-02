@@ -363,13 +363,21 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
               )
               .map((message: Message) => {
                 const translation = translatedMessages.get(message.id);
-                const isOwnMessage = message.senderId === (user as any)?.id;
+                
+                // Use multiple fallbacks to determine if message is from current user
+                const currentUserId = (user as any)?.id || localStorage.getItem('currentUserId') || "19464369";
+                const isOwnMessage = message.senderId === currentUserId;
+                
+                // Store current user ID in localStorage for consistency
+                if ((user as any)?.id && localStorage.getItem('currentUserId') !== (user as any).id) {
+                  localStorage.setItem('currentUserId', (user as any).id);
+                }
                 
                 // Debug logging for layout issues - check all messages from current user
                 if (message.senderId === "19464369") {
                   console.log(`Message ${message.id} layout check:`, {
                     senderId: message.senderId,
-                    userId: (user as any)?.id,
+                    currentUserId,
                     isOwnMessage,
                     senderName: message.senderName,
                     userObject: user
