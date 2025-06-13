@@ -112,9 +112,8 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     }
   }, [roomMessages, showScrollToBottom]);
 
-  // Language state management with local state to prevent WebSocket disruptions
-  const [localLanguage, setLocalLanguage] = useState<string>((user as any)?.preferredLanguage || 'ja');
-  const currentLanguage = localLanguage;
+  // Simple language-based translation management
+  const currentLanguage = (user as any)?.preferredLanguage || 'ja';
   
   // Clear translations when language changes
   useEffect(() => {
@@ -237,24 +236,15 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         preferredLanguage: newLanguage 
       });
     },
-    onSuccess: (updatedUser) => {
-      console.log('Language updated successfully:', updatedUser);
-      // Update local language state immediately for UI responsiveness
-      setLocalLanguage(updatedUser.preferredLanguage);
-      // Update query cache
-      queryClient.setQueryData(['/api/auth/user'], updatedUser);
+    onSuccess: () => {
+      console.log('Language updated successfully');
+      // Refresh user data to get updated language preference
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error) => {
       console.error('Language update failed:', error);
     },
   });
-
-  // Sync local language with user data when user changes
-  useEffect(() => {
-    if (user && (user as any).preferredLanguage !== localLanguage) {
-      setLocalLanguage((user as any).preferredLanguage || 'ja');
-    }
-  }, [user]);
 
   const handleLanguageChange = (newLanguage: string) => {
     // Prevent language change if it's the same as current
@@ -263,15 +253,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       return;
     }
     
-    // Prevent multiple simultaneous language changes
-    if (updateLanguageMutation.isPending) {
-      console.log('Language change already in progress, skipping');
-      return;
-    }
-    
     console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
-    // Immediately update local state for instant UI response
-    setLocalLanguage(newLanguage);
     updateLanguageMutation.mutate(newLanguage);
   };
 

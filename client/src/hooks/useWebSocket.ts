@@ -19,6 +19,11 @@ export function useWebSocket() {
 
   const connect = useCallback(() => {
     if (!isAuthenticated || !user) return;
+    
+    // Close existing connection if any
+    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+      wsRef.current.close();
+    }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -92,7 +97,7 @@ export function useWebSocket() {
       console.error('WebSocket error:', error);
       setIsConnected(false);
     };
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, (user as any)?.id]);
 
   const sendMessage = useCallback((text: string, roomId: number = 1, replyTo?: Message | null, mentions?: string[]) => {
     console.log('Attempting to send message:', { text, roomId, replyTo: replyTo?.id, mentions, wsState: wsRef.current?.readyState });
@@ -128,7 +133,7 @@ export function useWebSocket() {
     return () => {
       disconnect();
     };
-  }, [isAuthenticated, user, connect, disconnect]);
+  }, [isAuthenticated, (user as any)?.id, connect, disconnect]);
 
   return {
     isConnected,
