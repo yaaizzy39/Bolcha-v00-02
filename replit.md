@@ -131,11 +131,20 @@ Chat without border is a real-time multilingual chat application that enables us
 - **ISSUER_URL**: OpenID Connect issuer endpoint
 - **NODE_ENV**: Environment mode (development/production)
 
+## Recent Changes
+
+- **June 13, 2025**: Enhanced mobile room deletion functionality
+  - Added larger touch targets for mobile delete buttons (8x8px vs 6x6px)
+  - Implemented mobile-only action bar at bottom of room cards with prominent "削除" button
+  - Fixed translation system variable conflicts and enhanced fallback translations
+  - Improved mobile accessibility for room management interface
+
 ## Changelog
 
 ```
 Changelog:
 - June 13, 2025. Initial setup
+- June 13, 2025. Mobile room deletion enhancements
 ```
 
 ## User Preferences
