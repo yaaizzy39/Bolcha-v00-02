@@ -31,8 +31,12 @@ export const translations = {
     'settings.interfaceLanguage': 'Interface Language',
     'settings.messageLanguage': 'Preferred Message Language',
     'settings.translationSettings': 'Translation Settings',
+    'settings.translationPreferences': 'Translation Preferences',
     'settings.showOriginal': 'Show original text with translations',
+    'settings.showOriginalText': 'Show original text with translations',
+    'settings.showOriginalTextDescription': 'Display both original and translated text',
     'settings.autoTranslate': 'Enable automatic translation',
+    'settings.autoTranslateDescription': 'Automatically translate messages to your preferred language',
     'settings.account': 'Account',
     'settings.save': 'Save',
     'settings.saving': 'Saving...',
@@ -91,8 +95,12 @@ export const translations = {
     'settings.interfaceLanguage': 'インターフェース言語',
     'settings.messageLanguage': 'メッセージの優先言語',
     'settings.translationSettings': '翻訳設定',
+    'settings.translationPreferences': '翻訳設定',
     'settings.showOriginal': '翻訳と一緒に原文を表示',
+    'settings.showOriginalText': '翻訳と一緒に原文を表示',
+    'settings.showOriginalTextDescription': '原文と翻訳の両方を表示する',
     'settings.autoTranslate': '自動翻訳を有効にする',
+    'settings.autoTranslateDescription': 'メッセージを自動的に優先言語に翻訳する',
     'settings.account': 'アカウント',
     'settings.save': '保存',
     'settings.saving': '保存中...',
@@ -127,5 +135,5 @@ export type TranslationKey = keyof typeof translations.en;
 export function t(key: TranslationKey, language: Language = 'en'): string {
   // Only use translations that exist (en and ja for now)
   const supportedLang = language === 'ja' ? 'ja' : 'en';
-  return translations[supportedLang][key] || translations.en[key] || key;
+  return (translations[supportedLang] as any)[key] || (translations.en as any)[key] || key;
 }
