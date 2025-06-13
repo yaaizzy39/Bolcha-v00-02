@@ -323,6 +323,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
           </div>
         ) : (
           <MentionInput 
+            ref={mentionInputRef}
             onSendMessage={handleSendMessage} 
             replyingTo={replyingTo}
             onCancelReply={handleCancelReply}
