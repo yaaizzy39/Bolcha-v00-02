@@ -40,7 +40,7 @@ export function MessageBubble({
     }
   };
 
-  // Function to convert URLs to clickable links
+  // Function to convert URLs to clickable links and handle line breaks
   const renderTextWithLinks = (text: string, isOwnMessage: boolean = false) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
@@ -61,7 +61,13 @@ export function MessageBubble({
           </a>
         );
       }
-      return part;
+      // Handle line breaks in non-URL parts
+      return part.split('\n').map((line, lineIndex, lines) => (
+        <span key={`${index}-${lineIndex}`}>
+          {line}
+          {lineIndex < lines.length - 1 && <br />}
+        </span>
+      ));
     });
   };
   
