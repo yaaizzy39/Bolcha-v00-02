@@ -82,7 +82,7 @@ export function MessageBubble({
 
   if (isOwnMessage) {
     return (
-      <div className={`flex items-start gap-3 justify-end ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+      <div className={`group flex items-start gap-3 justify-end ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
         <div className="flex-1 max-w-lg">
           <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 ml-auto">
             {message.replyToId && (
@@ -105,32 +105,34 @@ export function MessageBubble({
             <p>{renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText, true)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
-            {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onReply(message)}
-                className="h-6 px-2 text-xs hover:bg-muted/50"
-              >
-                <Reply className="w-3 h-3 mr-1" />
-                返信
-              </Button>
-            )}
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (confirm('このメッセージを削除しますか？')) {
-                    onDelete(message.id);
-                  }
-                }}
-                className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
-              >
-                <Trash2 className="w-3 h-3 mr-1" />
-                削除
-              </Button>
-            )}
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+              {onReply && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onReply(message)}
+                  className="h-6 px-2 text-xs hover:bg-muted/50"
+                >
+                  <Reply className="w-3 h-3 mr-1" />
+                  返信
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('このメッセージを削除しますか？')) {
+                      onDelete(message.id);
+                    }
+                  }}
+                  className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                >
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  削除
+                </Button>
+              )}
+            </div>
             <span>{timestamp}</span>
             <CheckCheck className="w-3 h-3 text-green-500" />
           </div>
@@ -146,7 +148,7 @@ export function MessageBubble({
   }
 
   return (
-    <div className={`flex items-start gap-3 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+    <div className={`group flex items-start gap-3 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
       <Avatar className="w-8 h-8 flex-shrink-0">
         <AvatarImage src={message.senderProfileImageUrl || undefined} />
         <AvatarFallback>
@@ -181,32 +183,34 @@ export function MessageBubble({
           <span>{message.senderName}</span>
           <span>•</span>
           <span>{timestamp}</span>
-          {onReply && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onReply(message)}
-              className="h-6 px-2 text-xs hover:bg-muted/50 ml-auto"
-            >
-              <Reply className="w-3 h-3 mr-1" />
-              返信
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (confirm('このメッセージを削除しますか？')) {
-                  onDelete(message.id);
-                }
-              }}
-              className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
-            >
-              <Trash2 className="w-3 h-3 mr-1" />
-              削除
-            </Button>
-          )}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 ml-auto">
+            {onReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onReply(message)}
+                className="h-6 px-2 text-xs hover:bg-muted/50"
+              >
+                <Reply className="w-3 h-3 mr-1" />
+                返信
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (confirm('このメッセージを削除しますか？')) {
+                    onDelete(message.id);
+                  }
+                }}
+                className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+              >
+                <Trash2 className="w-3 h-3 mr-1" />
+                削除
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
