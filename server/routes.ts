@@ -156,6 +156,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/rooms/:id', isAuthenticated, async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.id);
+      const room = await storage.getChatRoom(roomId);
+      
+      if (!room) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+      
+      res.json(room);
+    } catch (error) {
+      console.error("Error fetching room:", error);
+      res.status(500).json({ message: "Failed to fetch room" });
+    }
+  });
+
   app.post('/api/rooms', isAuthenticated, async (req: any, res) => {
     try {
       console.log("Creating room with data:", req.body);

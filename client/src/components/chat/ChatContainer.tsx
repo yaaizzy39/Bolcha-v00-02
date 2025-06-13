@@ -36,6 +36,13 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     enabled: !!user && !!roomId,
   });
 
+  // Load current room information
+  const { data: currentRoom } = useQuery({
+    queryKey: ['/api/rooms', roomId],
+    queryFn: () => fetch(`/api/rooms/${roomId}`, { credentials: 'include' }).then(res => res.json()),
+    enabled: !!user && !!roomId,
+  });
+
   // Clear messages and reload when room changes
   useEffect(() => {
     setRoomMessages([]);
@@ -130,8 +137,13 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-              {t('chat.title')}
+              {currentRoom?.name || t('chat.title')}
             </h2>
+            {currentRoom?.description && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {currentRoom.description}
+              </span>
+            )}
             <Badge variant="secondary" className="flex items-center gap-1">
               <Users className="w-3 h-3" />
               {t('nav.online')}
