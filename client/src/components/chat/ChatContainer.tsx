@@ -78,9 +78,9 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
   };
 
   return (
-    <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+    <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full h-full">
       {/* Chat Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -95,7 +95,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <Languages className="w-4 h-4" />
-              <span>{t('chat.autoTranslate')}: {user?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
+              <span>{t('chat.autoTranslate')}: {(user as any)?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
             </div>
             <Button 
               variant="ghost" 
@@ -115,41 +115,45 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
 
       {/* Translation Test Panel */}
       {showTestPanel && (
-        <div className="border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex-shrink-0">
           <TranslationDemo />
         </div>
       )}
 
       {/* Messages Container */}
-      <ScrollArea className="flex-1 px-4 py-4">
-        <div className="space-y-4">
-          {messages
-            .filter((message, index, self) => 
-              index === self.findIndex(m => m.id === message.id)
-            )
-            .map((message) => (
-              <MessageBubble
-                key={`msg-${message.id}`}
-                message={message}
-                translatedText={translatedMessages.get(message.id)}
-                isOwnMessage={message.senderId === (user as any)?.id}
-                showOriginal={(user as any)?.showOriginalText || false}
-                currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
-              />
-            ))}
-          
-          {!isConnected && (
-            <div className="flex justify-center">
-              <Badge variant="destructive">
-                {t('chat.disconnected')}
-              </Badge>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full px-4 py-4">
+          <div className="space-y-4 pb-4">
+            {messages
+              .filter((message, index, self) => 
+                index === self.findIndex(m => m.id === message.id)
+              )
+              .map((message) => (
+                <MessageBubble
+                  key={`msg-${message.id}`}
+                  message={message}
+                  translatedText={translatedMessages.get(message.id)}
+                  isOwnMessage={message.senderId === (user as any)?.id}
+                  showOriginal={(user as any)?.showOriginalText || false}
+                  currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
+                />
+              ))}
+            
+            {!isConnected && (
+              <div className="flex justify-center">
+                <Badge variant="destructive">
+                  {t('chat.disconnected')}
+                </Badge>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
 
-      {/* Message Input */}
-      <MessageInput onSendMessage={handleSendMessage} />
+      {/* Message Input - Fixed at bottom */}
+      <div className="flex-shrink-0">
+        <MessageInput onSendMessage={handleSendMessage} />
+      </div>
     </main>
   );
 }

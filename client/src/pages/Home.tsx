@@ -28,9 +28,9 @@ export default function Home() {
     : user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Top Navigation */}
-      <header className="bg-background shadow-sm sticky top-0 z-40 border-b border-border">
+      <header className="bg-background shadow-sm border-b border-border flex-shrink-0">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
@@ -95,7 +95,9 @@ export default function Home() {
       </header>
 
       {/* Main Chat Interface */}
-      <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
+      <div className="flex-1 overflow-hidden">
+        <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
+      </div>
 
       {/* Settings Modal */}
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />

@@ -34,7 +34,7 @@ export function MessageInput({ onSendMessage }: MessageInputProps) {
   };
 
   return (
-    <div className="bg-background border-t border-border p-4">
+    <div className="bg-background border-t border-border p-4 sticky bottom-0 z-10">
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <div className="relative">
