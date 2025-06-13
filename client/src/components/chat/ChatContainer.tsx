@@ -406,11 +406,11 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       {/* Messages Container */}
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea 
-          className="h-full px-4 py-4" 
+          className="h-full px-2 sm:px-4 py-2 sm:py-4" 
           ref={scrollAreaRef}
           onScrollCapture={handleScroll}
         >
-          <div className="space-y-4 pb-4">
+          <div className="space-y-2 sm:space-y-4 pb-4">
             {roomMessages
               .filter((message: Message, index: number, self: Message[]) => 
                 index === self.findIndex((m: Message) => m.id === message.id)

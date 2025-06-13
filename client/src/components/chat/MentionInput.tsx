@@ -214,17 +214,22 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
       )}
 
       {/* Message input form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 p-4 border-t">
+      <form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4 border-t bg-background">
         <Textarea
           ref={textareaRef}
           value={message}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="メッセージを入力... (@でメンション)"
-          className="flex-1 min-h-[40px] max-h-48 resize-none overflow-hidden"
+          className="flex-1 min-h-[44px] sm:min-h-[40px] max-h-48 resize-none overflow-hidden text-base sm:text-sm"
           rows={1}
         />
-        <Button type="submit" disabled={!message.trim()} size="sm">
+        <Button 
+          type="submit" 
+          disabled={!message.trim()} 
+          size="sm"
+          className="min-w-[44px] h-[44px] sm:min-w-[36px] sm:h-[36px] flex-shrink-0"
+        >
           <Send className="w-4 h-4" />
         </Button>
       </form>

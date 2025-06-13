@@ -113,7 +113,8 @@ export default function Home() {
         <div className="flex-1 overflow-hidden">
           <ChatContainer 
             roomId={selectedRoomId}
-            onOpenSettings={() => setSettingsOpen(true)} 
+            onOpenSettings={() => setSettingsOpen(true)}
+            onRoomSelect={setSelectedRoomId}
           />
         </div>
       </div>

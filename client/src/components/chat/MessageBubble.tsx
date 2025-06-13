@@ -84,9 +84,9 @@ export function MessageBubble({
 
   if (isOwnMessage) {
     return (
-      <div className={`group flex items-start gap-3 justify-end ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
-        <div className="flex flex-col items-end max-w-lg ml-auto">
-          <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3">
+      <div className={`group flex items-start gap-2 sm:gap-3 justify-end px-2 sm:px-4 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+        <div className="flex flex-col items-end max-w-[85%] sm:max-w-lg ml-auto">
+          <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-3 sm:px-4 py-2 sm:py-3">
             {message.replyToId && (
               <div 
                 className="bg-primary-foreground/10 rounded-lg p-2 mb-2 border-l-2 border-primary-foreground/30 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
@@ -151,16 +151,16 @@ export function MessageBubble({
   }
 
   return (
-    <div className={`group flex items-start gap-3 justify-start ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
-      <Avatar className="w-8 h-8 flex-shrink-0">
+    <div className={`group flex items-start gap-2 sm:gap-3 justify-start px-2 sm:px-4 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+      <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
         <AvatarImage src={message.senderProfileImageUrl || undefined} />
         <AvatarFallback>
           {message.senderName.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex flex-col items-start max-w-lg mr-auto">
-        <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-3">
+      <div className="flex flex-col items-start max-w-[85%] sm:max-w-lg mr-auto">
+        <div className="bg-muted rounded-2xl rounded-tl-md px-3 sm:px-4 py-2 sm:py-3">
           {message.replyToId && (
             <div 
               className="bg-background/50 rounded-lg p-2 mb-2 border-l-2 border-border cursor-pointer hover:bg-background/70 transition-colors"
