@@ -113,7 +113,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   }, [roomMessages, showScrollToBottom]);
 
   // Language state with local management for UI responsiveness
-  const [localLanguage, setLocalLanguage] = useState<string>('ja');
+  const [localLanguage, setLocalLanguage] = useState<string>((user as any)?.preferredLanguage || 'ja');
   const currentLanguage = localLanguage;
 
   // Sync local language with user data
