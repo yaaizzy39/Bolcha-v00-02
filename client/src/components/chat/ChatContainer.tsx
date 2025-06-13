@@ -236,10 +236,10 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         preferredLanguage: newLanguage 
       });
     },
-    onSuccess: () => {
-      console.log('Language updated successfully');
-      // Refresh user data to get updated language preference
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    onSuccess: (updatedUser) => {
+      console.log('Language updated successfully to:', updatedUser.preferredLanguage);
+      // Update the query cache with new user data
+      queryClient.setQueryData(['/api/auth/user'], updatedUser);
     },
     onError: (error) => {
       console.error('Language update failed:', error);
@@ -247,12 +247,6 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   });
 
   const handleLanguageChange = (newLanguage: string) => {
-    // Prevent language change if it's the same as current
-    if (newLanguage === currentLanguage) {
-      console.log(`Language ${newLanguage} is already selected`);
-      return;
-    }
-    
     console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
     updateLanguageMutation.mutate(newLanguage);
   };
