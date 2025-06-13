@@ -22,8 +22,19 @@ export function MessageBubble({
   const { t } = useI18n();
   const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
 
+  // Function to handle link click with warning
+  const handleLinkClick = (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    const confirmed = window.confirm(
+      `このリンクを開きますか？\n\n${url}\n\n外部サイトのリンクです。信頼できるサイトかどうか確認してください。`
+    );
+    if (confirmed) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   // Function to convert URLs to clickable links
-  const renderTextWithLinks = (text: string) => {
+  const renderTextWithLinks = (text: string, isOwnMessage: boolean = false) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
     
@@ -32,10 +43,12 @@ export function MessageBubble({
         return (
           <a
             key={index}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-600 underline break-all"
+            onClick={(e) => handleLinkClick(e, part)}
+            className={`underline break-all cursor-pointer hover:opacity-80 ${
+              isOwnMessage 
+                ? 'text-blue-100 hover:text-blue-50' 
+                : 'text-blue-600 hover:text-blue-700'
+            }`}
           >
             {part}
           </a>
@@ -60,10 +73,10 @@ export function MessageBubble({
             {shouldShowTranslation && showOriginal && (
               <div className="text-xs text-primary-foreground/70 mb-2 flex items-center gap-1">
                 <Languages className="w-3 h-3" />
-                {t('chat.original')} ({message.originalLanguage}): {renderTextWithLinks(message.originalText)}
+                {t('chat.original')} ({message.originalLanguage}): {renderTextWithLinks(message.originalText, true)}
               </div>
             )}
-            <p>{renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}</p>
+            <p>{renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText, true)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
             <span>{timestamp}</span>
@@ -94,11 +107,11 @@ export function MessageBubble({
           {shouldShowTranslation && showOriginal && (
             <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
               <Languages className="w-3 h-3" />
-              {t('chat.original')} ({message.originalLanguage}): {renderTextWithLinks(message.originalText)}
+              {t('chat.original')} ({message.originalLanguage}): {renderTextWithLinks(message.originalText, false)}
             </div>
           )}
           <p className="text-foreground">
-            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}
+            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText, false)}
           </p>
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
