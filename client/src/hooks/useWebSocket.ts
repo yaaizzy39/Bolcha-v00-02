@@ -46,16 +46,17 @@ export function useWebSocket() {
         
         if (data.type === 'new_message' && data.message) {
           console.log('Processing new message:', data.message);
+          const newMessage = data.message;
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
-            const messageExists = prev.some(msg => msg.id === data.message?.id);
+            const messageExists = prev.some(msg => msg.id === newMessage.id);
             if (messageExists) {
-              console.log('Message already exists, skipping:', data.message?.id);
+              console.log('Message already exists, skipping:', newMessage.id);
               return prev;
             }
-            console.log('Adding new message to state:', data.message);
+            console.log('Adding new message to state:', newMessage);
             // Only add message if it's for the current room (will be filtered by parent component)
-            return [...prev, data.message];
+            return [...prev, newMessage];
           });
         } else if (data.type === 'message_deleted' && data.messageId) {
           console.log('Message deleted:', data.messageId);
