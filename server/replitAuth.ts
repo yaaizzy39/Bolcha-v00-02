@@ -57,12 +57,21 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  console.log('Upserting user with claims:', {
+    sub: claims["sub"],
+    email: claims["email"],
+    first_name: claims["first_name"],
+    last_name: claims["last_name"],
+    profile_image_url: claims["profile_image_url"],
+    picture: claims["picture"], // Google uses 'picture' field
+  });
+
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
+    profileImageUrl: claims["profile_image_url"] || claims["picture"], // Try both fields
   });
 }
 
