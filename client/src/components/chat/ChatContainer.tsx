@@ -115,6 +115,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Keep track of current language for cache invalidation
   const currentLanguage = (user as any)?.preferredLanguage || 'ja';
   const [translationLanguage, setTranslationLanguage] = useState(currentLanguage);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Clear translations and re-translate when language changes
   useEffect(() => {
@@ -122,14 +123,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       console.log(`Language changed from ${translationLanguage} to ${currentLanguage}, clearing translations`);
       setTranslatedMessages(new Map());
       setTranslationLanguage(currentLanguage);
+      setIsTranslating(false); // Reset translation flag
     }
   }, [currentLanguage, translationLanguage]);
 
   // Translate messages based on user preference
   useEffect(() => {
-    if (!user || !roomMessages.length) return;
+    if (!user || !roomMessages.length || isTranslating) return;
 
     const translateMessages = async () => {
+      setIsTranslating(true);
       const newTranslations = new Map<number, string>();
       
       for (const message of roomMessages) {
@@ -137,20 +140,24 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
         if ((user as any).autoTranslate && 
             message.originalLanguage !== currentLanguage) {
           
-          // Always translate if we don't have a translation for current language
+          // Check if we already have a translation for this message
           if (!translatedMessages.has(message.id)) {
             console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${currentLanguage}`);
-            const translatedText = await translateText(
-              message.originalText,
-              message.originalLanguage,
-              currentLanguage
-            );
-            newTranslations.set(message.id, translatedText);
+            try {
+              const translatedText = await translateText(
+                message.originalText,
+                message.originalLanguage,
+                currentLanguage
+              );
+              newTranslations.set(message.id, translatedText);
+            } catch (error) {
+              console.error(`Translation failed for message ${message.id}:`, error);
+            }
           }
         }
       }
       
-      // Update translations
+      // Update translations only if we have new ones
       if (newTranslations.size > 0) {
         console.log(`Adding ${newTranslations.size} new translations`);
         setTranslatedMessages(prev => {
@@ -161,10 +168,13 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
           return updated;
         });
       }
+      setIsTranslating(false);
     };
 
-    translateMessages();
-  }, [roomMessages, user, translateText, translatedMessages, currentLanguage, translationLanguage]);
+    // Debounce translation requests to prevent multiple simultaneous calls
+    const timeoutId = setTimeout(translateMessages, 100);
+    return () => clearTimeout(timeoutId);
+  }, [roomMessages, user, translateText, currentLanguage, translationLanguage, isTranslating]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;

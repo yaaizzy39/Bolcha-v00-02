@@ -1,0 +1,32 @@
+6:59:37 AM [express] POST /api/translate 200 in 1313ms :: {"translatedText":"我得到了"}
+6:59:38 AM [express] POST /api/translate 200 in 1159ms :: {"translatedText":"你真好！"}
+6:59:39 AM [express] POST /api/translate 200 in 1141ms :: {"translatedText":"你可以把它送出去吗？"}
+6:59:41 AM [express] POST /api/translate 200 in 1147ms :: {"translatedText":"一个"}
+6:59:42 AM [express] POST /api/translate 200 in 1081ms :: {"translatedText":"艾尤"}
+6:59:43 AM [express] POST /api/translate 200 in 1430ms :: {"translatedText":"一个"}
+6:59:45 AM [express] POST /api/translate 200 in 1227ms :: {"translatedText":"一个"}
+6:59:46 AM [express] POST /api/translate 200 in 1426ms :: {"translatedText":"你好"}
+6:59:47 AM [express] PATCH /api/user/settings 200 in 202ms :: {"id":"19464369","email":"yaaizzy39@gm…
+6:59:47 AM [express] GET /api/auth/user 200 in 117ms :: {"id":"19464369","email":"yaaizzy39@gmail.co…
+Broadcast message sent to 0 clients out of 0 total
+WebSocket client disconnected
+6:59:48 AM [express] POST /api/translate 200 in 1170ms :: {"translatedText":"你好"}
+WebSocket client connected
+Received WebSocket message: { type: 'auth', userId: '19464369', userName: 'yaaizzy39' }
+Broadcast message sent to 1 clients out of 1 total
+6:59:49 AM [express] POST /api/translate 200 in 1356ms :: {"translatedText":"こんにちは"}
+6:59:49 AM [express] POST /api/translate 200 in 1547ms :: {"translatedText":"こんにちは"}
+6:59:49 AM [express] POST /api/translate 200 in 1340ms :: {"translatedText":"你好"}
+6:59:50 AM [express] POST /api/translate 200 in 1472ms :: {"translatedText":"こんにちは"}
+6:59:51 AM [express] POST /api/translate 200 in 1379ms :: {"translatedText":"こんにちは"}
+6:59:51 AM [express] POST /api/translate 200 in 1418ms :: {"translatedText":"可可可"}
+WebSocket client connected
+Received WebSocket message: { type: 'auth', userId: '19464369', userName: 'yaaizzy39' }
+Broadcast message sent to 2 clients out of 2 total
+6:59:52 AM [express] POST /api/translate 200 in 1174ms :: {"translatedText":"こんにちは"}
+6:59:52 AM [express] POST /api/translate 200 in 1485ms :: {"translatedText":"こんにちは"}
+6:59:53 AM [express] POST /api/translate 200 in 1745ms :: {"translatedText":"我同意"}
+6:59:54 AM [express] POST /api/translate 200 in 1212ms :: {"translatedText":"こんにちは"}
+6:59:54 AM [express] POST /api/translate 200 in 1277ms :: {"translatedText":"こんにちは"}
+6:59:55 AM [express] POST /api/translate 200 in 1420ms :: {"translatedText":"一个"}
+6:59:55 AM [express] POST /api/translate 200 in 1446ms :: {"translatedText":"こんにちは"}
