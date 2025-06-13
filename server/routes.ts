@@ -105,6 +105,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile image
+  app.post('/api/user/profile-image', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { imageUrl, useCustom } = req.body;
+      
+      if (!imageUrl || typeof useCustom !== 'boolean') {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      const updatedUser = await storage.updateUserProfileImage(userId, imageUrl, useCustom);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      res.status(500).json({ message: "Failed to update profile image" });
+    }
+  });
+
+  // Toggle between Google and custom profile image
+  app.post('/api/user/toggle-profile-image', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const updatedUser = await storage.updateUserProfileImage(
+        userId, 
+        user.customProfileImageUrl || '', 
+        !user.useCustomProfileImage
+      );
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error toggling profile image:", error);
+      res.status(500).json({ message: "Failed to toggle profile image" });
+    }
+  });
+
   // Get messages
   app.get('/api/messages', isAuthenticated, async (req, res) => {
     try {

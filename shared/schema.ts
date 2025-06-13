@@ -29,6 +29,8 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  customProfileImageUrl: varchar("custom_profile_image_url"),
+  useCustomProfileImage: boolean("use_custom_profile_image").default(false),
   preferredLanguage: varchar("preferred_language").default("ja"),
   interfaceLanguage: varchar("interface_language").default("ja"),
   showOriginalText: boolean("show_original_text").default(true),

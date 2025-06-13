@@ -14,6 +14,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserSettings(id: string, settings: Partial<User>): Promise<User>;
+  updateUserProfileImage(id: string, customImageUrl: string, useCustom: boolean): Promise<User>;
   
   // Message operations
   getMessages(limit?: number): Promise<Message[]>;
@@ -64,6 +65,19 @@ export class DatabaseStorage implements IStorage {
       .values(messageData)
       .returning();
     return message;
+  }
+
+  async updateUserProfileImage(id: string, customImageUrl: string, useCustom: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        customProfileImageUrl: customImageUrl,
+        useCustomProfileImage: useCustom,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 }
 
