@@ -133,7 +133,10 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   // Translate messages based on user preference
   useEffect(() => {
-    if (!user || !roomMessages.length || !(user as any).autoTranslate) return;
+    if (!user || !roomMessages.length) return;
+    
+    // Enable translation for all users by default when language is different from message language
+    console.log(`Translation check: user autoTranslate = ${(user as any).autoTranslate}, current language = ${currentLanguage}`);
 
     let cancelled = false;
     

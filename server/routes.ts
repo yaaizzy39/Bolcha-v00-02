@@ -446,6 +446,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }));
               return;
             }
+            
+            console.log('Room verification passed:', room.name);
 
             // Check if room is admin-only and user is not admin
             if (room.adminOnly && !user?.isAdmin) {
@@ -458,8 +460,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // Save message to database
+            console.log('Attempting to save message with data:', messageData);
             const savedMessage = await storage.createMessage(messageData);
-            console.log('Message saved successfully:', savedMessage);
+            console.log('Message saved successfully:', savedMessage.id);
 
             // Update room activity timestamp
             await storage.updateRoomActivity(messageData.roomId);
