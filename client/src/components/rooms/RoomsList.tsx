@@ -119,7 +119,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   };
 
   const canDeleteRoom = (room: ChatRoom) => {
-    return room.createdBy === user?.id;
+    return room.createdBy === (user as any)?.id;
   };
 
   const handleCreateRoom = () => {
@@ -154,7 +154,9 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
       </div>
 
       <div className="space-y-2">
-        {(rooms as ChatRoom[]).map((room: ChatRoom) => (
+        {(rooms as ChatRoom[]).map((room: ChatRoom) => {
+          console.log('Rendering room:', room, 'Can delete:', canDeleteRoom(room));
+          return (
           <Card 
             key={room.id} 
             className={`cursor-pointer transition-colors hover:bg-muted/50 ${
@@ -269,7 +271,8 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
               </div>
             </CardContent>
           </Card>
-        ))}
+        );
+        })}
       </div>
 
       {/* Create Room Modal */}
