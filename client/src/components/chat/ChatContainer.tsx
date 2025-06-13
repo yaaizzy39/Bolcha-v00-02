@@ -119,15 +119,22 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Sync local language with user data
   useEffect(() => {
     if (user && (user as any).preferredLanguage) {
-      setLocalLanguage((user as any).preferredLanguage);
+      const newLanguage = (user as any).preferredLanguage;
+      if (newLanguage !== localLanguage) {
+        setLocalLanguage(newLanguage);
+      }
     }
-  }, [user]);
+  }, [user, localLanguage]);
   
   // Clear translations when language changes
   useEffect(() => {
     if (currentLanguage) {
       console.log(`Language is now: ${currentLanguage}, clearing all translations`);
       setTranslatedMessages(new Map());
+      // Force re-evaluation of translation needs after clearing
+      setTimeout(() => {
+        console.log(`Re-evaluating translations for language: ${currentLanguage}`);
+      }, 100);
     }
   }, [currentLanguage]);
 
@@ -142,7 +149,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     
     const translateMessages = async () => {
       const messagesToTranslate = roomMessages.filter(message => 
-        message.originalLanguage !== currentLanguage && !translatedMessages.has(message.id)
+        message.originalLanguage && 
+        message.originalLanguage !== currentLanguage && 
+        !translatedMessages.has(message.id)
       );
 
       for (const message of messagesToTranslate) {
