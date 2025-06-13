@@ -74,7 +74,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     
     // Convert back to array and sort by timestamp
     const mergedMessages = Array.from(messageMap.values())
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      .sort((a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime());
     
     console.log('Merged messages for room', roomId, ':', mergedMessages.length, 'total messages');
     setRoomMessages(mergedMessages);

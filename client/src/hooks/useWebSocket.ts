@@ -31,10 +31,10 @@ export function useWebSocket() {
       // Authenticate WebSocket connection
       ws.send(JSON.stringify({
         type: 'auth',
-        userId: user.id,
-        userName: user.firstName && user.lastName 
-          ? `${user.firstName} ${user.lastName}` 
-          : user.email?.split('@')[0] || 'Anonymous'
+        userId: (user as any).id,
+        userName: (user as any).firstName && (user as any).lastName 
+          ? `${(user as any).firstName} ${(user as any).lastName}` 
+          : (user as any).email?.split('@')[0] || 'Anonymous'
       }));
     };
 
@@ -47,14 +47,14 @@ export function useWebSocket() {
           console.log('Processing new message:', data.message);
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
-            const messageExists = prev.some(msg => msg.id === data.message!.id);
+            const messageExists = prev.some(msg => msg.id === data.message?.id);
             if (messageExists) {
-              console.log('Message already exists, skipping:', data.message.id);
+              console.log('Message already exists, skipping:', data.message?.id);
               return prev;
             }
             console.log('Adding new message to state:', data.message);
             // Only add message if it's for the current room (will be filtered by parent component)
-            return [...prev, data.message!];
+            return [...prev, data.message];
           });
         } else if (data.type === 'user_joined') {
           console.log(`${data.userName} joined the chat`);
@@ -86,8 +86,8 @@ export function useWebSocket() {
     };
   }, [isAuthenticated, user]);
 
-  const sendMessage = useCallback((text: string, roomId: number = 1, replyTo?: Message | null) => {
-    console.log('Attempting to send message:', { text, roomId, replyTo: replyTo?.id, wsState: wsRef.current?.readyState });
+  const sendMessage = useCallback((text: string, roomId: number = 1, replyTo?: Message | null, mentions?: string[]) => {
+    console.log('Attempting to send message:', { text, roomId, replyTo: replyTo?.id, mentions, wsState: wsRef.current?.readyState });
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const messageData = {
         type: 'chat_message',
@@ -95,7 +95,8 @@ export function useWebSocket() {
         roomId: roomId,
         replyToId: replyTo?.id || null,
         replyToText: replyTo?.originalText || null,
-        replyToSenderName: replyTo?.senderName || null
+        replyToSenderName: replyTo?.senderName || null,
+        mentions: mentions || []
       };
       console.log('Sending WebSocket message:', messageData);
       wsRef.current.send(JSON.stringify(messageData));

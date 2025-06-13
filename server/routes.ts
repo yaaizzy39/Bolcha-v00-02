@@ -361,6 +361,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? user.customProfileImageUrl 
             : user?.profileImageUrl;
 
+          // Extract mentions from message text
+          const mentions = extractMentions(message.text);
+
           // Validate message
           const messageData = {
             roomId: message.roomId || 1, // Default to general chat room
@@ -372,6 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             replyToId: message.replyToId || null,
             replyToText: message.replyToText || null,
             replyToSenderName: message.replyToSenderName || null,
+            mentions: mentions,
           };
 
           console.log('Message data to save:', messageData);
