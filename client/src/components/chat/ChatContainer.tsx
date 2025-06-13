@@ -38,17 +38,26 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   // Clear messages and reload when room changes
   useEffect(() => {
-    setMessages([]);
+    setRoomMessages([]);
     if (roomId) {
       refetchMessages();
     }
-  }, [roomId, refetchMessages, setMessages]);
+  }, [roomId, refetchMessages]);
 
+  // Load initial messages for the room
   useEffect(() => {
     if (initialMessages && Array.isArray(initialMessages)) {
-      setMessages(initialMessages);
+      setRoomMessages(initialMessages);
     }
-  }, [initialMessages, setMessages]);
+  }, [initialMessages]);
+
+  // Filter WebSocket messages for current room
+  useEffect(() => {
+    const newRoomMessages = allMessages.filter(msg => msg.roomId === roomId);
+    if (newRoomMessages.length > roomMessages.length) {
+      setRoomMessages(newRoomMessages);
+    }
+  }, [allMessages, roomId, roomMessages.length]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -58,16 +67,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [roomMessages]);
 
   // Translate messages based on user preference
   useEffect(() => {
-    if (!user || !messages.length) return;
+    if (!user || !roomMessages.length) return;
 
     const translateMessages = async () => {
       const newTranslations = new Map<number, string>();
       
-      for (const message of messages) {
+      for (const message of roomMessages) {
         // Only translate if auto-translate is enabled, message is in a different language, and not already translated
         if ((user as any).autoTranslate && 
             message.originalLanguage !== (user as any).preferredLanguage &&
@@ -94,7 +103,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     };
 
     translateMessages();
-  }, [messages, user, translateText, translatedMessages]);
+  }, [roomMessages, user, translateText, translatedMessages]);
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -155,11 +164,11 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full px-4 py-4" ref={scrollAreaRef}>
           <div className="space-y-4 pb-4">
-            {messages
-              .filter((message, index, self) => 
-                index === self.findIndex(m => m.id === message.id)
+            {roomMessages
+              .filter((message: Message, index: number, self: Message[]) => 
+                index === self.findIndex((m: Message) => m.id === message.id)
               )
-              .map((message) => (
+              .map((message: Message) => (
                 <MessageBubble
                   key={`msg-${message.id}`}
                   message={message}
