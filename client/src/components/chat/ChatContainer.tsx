@@ -248,6 +248,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   });
 
   const handleLanguageChange = (newLanguage: string) => {
+    console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
     updateLanguageMutation.mutate(newLanguage);
   };
 
