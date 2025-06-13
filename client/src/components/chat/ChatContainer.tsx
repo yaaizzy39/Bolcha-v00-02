@@ -5,7 +5,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
-import { LanguageTestPanel } from './LanguageTestPanel';
+import { TranslationDemo } from './TranslationDemo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,18 +47,16 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       for (const message of messages) {
         // Only translate if auto-translate is enabled and the message is in a different language
         if (user.autoTranslate && message.originalLanguage !== user.preferredLanguage) {
-          console.log(`Translating message ${message.id}: "${message.originalText}" from ${message.originalLanguage} to ${user.preferredLanguage}`);
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
             user.preferredLanguage || 'ja'
           );
-          console.log(`Translation result: "${translatedText}"`);
           newTranslations.set(message.id, translatedText);
         }
       }
       
-      console.log('Setting translations:', Object.fromEntries(newTranslations));
+      // Update translations for display
       setTranslatedMessages(prev => {
         const updated = new Map(prev);
         newTranslations.forEach((value, key) => {
@@ -114,7 +112,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       {/* Translation Test Panel */}
       {showTestPanel && (
         <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-          <LanguageTestPanel />
+          <TranslationDemo />
         </div>
       )}
 

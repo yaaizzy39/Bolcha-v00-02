@@ -22,7 +22,8 @@ export function MessageBubble({
   const { t } = useI18n();
   const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
   
-  console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}`);
+  // Debug log for translation display
+  // console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}`);
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 

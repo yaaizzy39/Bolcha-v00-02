@@ -39,12 +39,10 @@ async function translateText(text: string, source: string, target: string): Prom
     }
     
     const resultText = await response.text();
-    console.log('Translation API response:', resultText.substring(0, 500));
     
-    // Try to parse as JSON first
+    // Parse JSON response from Google Apps Script
     try {
       const jsonResult = JSON.parse(resultText);
-      console.log('Parsed JSON result:', jsonResult);
       if (jsonResult.code === 200 && jsonResult.text) {
         return jsonResult.text;
       }
@@ -54,11 +52,8 @@ async function translateText(text: string, source: string, target: string): Prom
     } catch (parseError) {
       // If JSON parsing fails, check if it's a simple text response
       if (resultText && !resultText.includes('<HTML>') && !resultText.includes('<!DOCTYPE')) {
-        const cleanText = resultText.trim();
-        console.log('Using clean text response:', cleanText);
-        return cleanText;
+        return resultText.trim();
       }
-      console.log('Non-JSON response or HTML redirect detected');
     }
     
     return text; // Return original text if translation fails
