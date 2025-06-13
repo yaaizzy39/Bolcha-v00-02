@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuery } from '@tanstack/react-query';
-import { Languages, Users, TestTube } from 'lucide-react';
+import { Languages, Users, TestTube, ArrowDown } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
 interface ChatContainerProps {
@@ -28,6 +28,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -82,12 +83,22 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowScrollToBottom(false);
   };
 
-  // Scroll to bottom when messages change
+  // Check if user is near bottom of scroll area
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.target as HTMLDivElement;
+    const isNearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 100;
+    setShowScrollToBottom(!isNearBottom && roomMessages.length > 0);
+  };
+
+  // Auto-scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
-    scrollToBottom();
-  }, [roomMessages]);
+    if (!showScrollToBottom) {
+      scrollToBottom();
+    }
+  }, [roomMessages, showScrollToBottom]);
 
   // Translate messages based on user preference
   useEffect(() => {
@@ -210,8 +221,12 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       )}
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full px-4 py-4" ref={scrollAreaRef}>
+      <div className="flex-1 overflow-hidden relative">
+        <ScrollArea 
+          className="h-full px-4 py-4" 
+          ref={scrollAreaRef}
+          onScrollCapture={handleScroll}
+        >
           <div className="space-y-4 pb-4">
             {roomMessages
               .filter((message: Message, index: number, self: Message[]) => 
@@ -243,6 +258,19 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+
+        {/* Jump to Latest Button */}
+        {showScrollToBottom && (
+          <div className="absolute bottom-4 right-4 z-10">
+            <Button
+              onClick={scrollToBottom}
+              size="sm"
+              className="shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-3"
+            >
+              <ArrowDown className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Message Input - Fixed at bottom */}
