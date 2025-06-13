@@ -118,7 +118,10 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   // Improved room ownership check
   const isRoomOwner = (room: ChatRoom): boolean => {
-    if (!user) return false;
+    if (!user) {
+      console.log('No user found for room ownership check');
+      return false;
+    }
     
     const userId = (user as any)?.id;
     const createdBy = room.createdBy;
@@ -128,6 +131,14 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     const createdByStr = String(createdBy || '');
     
     const isOwner = userIdStr && createdByStr && userIdStr === createdByStr;
+    
+    console.log(`Room ownership check for "${room.name}":`, {
+      userId: userIdStr,
+      createdBy: createdByStr,
+      isOwner: Boolean(isOwner),
+      user: user
+    });
+    
     return Boolean(isOwner);
   };
 

@@ -59,8 +59,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     mutationFn: async (newSettings: typeof settings) => {
       return await apiRequest('PATCH', '/api/user/settings', newSettings);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    onSuccess: (data) => {
+      // Update the user data in cache instead of invalidating
+      queryClient.setQueryData(['/api/auth/user'], data);
       toast({
         title: "Settings updated",
         description: "Your preferences have been saved successfully.",
@@ -112,7 +113,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     onValueChange={(value) => setSettings(prev => ({ ...prev, interfaceLanguage: value }))}
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue />
+                      <SelectValue placeholder="言語を選択" />
                     </SelectTrigger>
                     <SelectContent>
                       {getSupportedLanguages().map((lang) => (
@@ -131,7 +132,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     onValueChange={(value) => setSettings(prev => ({ ...prev, preferredLanguage: value }))}
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue />
+                      <SelectValue placeholder="言語を選択" />
                     </SelectTrigger>
                     <SelectContent>
                       {getSupportedLanguages().map((lang) => (
