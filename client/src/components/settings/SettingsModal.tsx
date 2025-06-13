@@ -152,11 +152,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
           {/* Translation Settings */}
           <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Translation Settings</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">{t('settings.translationSettings')}</h4>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label htmlFor="showOriginal" className="text-sm">
-                  Show original text with translations
+                  {t('settings.showOriginal')}
                 </Label>
                 <Switch
                   id="showOriginal"
@@ -167,7 +167,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               
               <div className="flex items-center justify-between">
                 <Label htmlFor="autoTranslate" className="text-sm">
-                  Enable automatic translation
+                  {t('settings.autoTranslate')}
                 </Label>
                 <Switch
                   id="autoTranslate"
@@ -182,9 +182,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
           {/* Account Actions */}
           <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Account</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">{t('settings.account')}</h4>
             <Button variant="outline" onClick={handleLogout} className="w-full">
-              Sign Out
+              {t('nav.signOut')}
             </Button>
           </div>
         </div>
@@ -195,14 +195,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             disabled={updateSettingsMutation.isPending}
             className="flex-1"
           >
-            {updateSettingsMutation.isPending ? 'Saving...' : 'Save'}
+            {updateSettingsMutation.isPending ? t('settings.saving') : t('settings.save')}
           </Button>
           <Button 
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="flex-1"
           >
-            Cancel
+            {t('settings.cancel')}
           </Button>
         </div>
       </DialogContent>
