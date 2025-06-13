@@ -311,6 +311,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete message route
+  app.delete('/api/messages/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      if (isNaN(messageId)) {
+        return res.status(400).json({ message: "Invalid message ID" });
+      }
+      
+      const deleted = await storage.deleteMessage(messageId, userId);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Message not found or not authorized to delete" });
+      }
+
+      // Broadcast message deletion to all connected clients
+      broadcastToAll(wss, {
+        type: 'message_deleted',
+        messageId: messageId,
+        timestamp: new Date().toISOString(),
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
   // Cleanup job for inactive rooms (runs every hour)
   setInterval(async () => {
     try {

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Languages, Check, CheckCheck, Reply } from 'lucide-react';
+import { Languages, Check, CheckCheck, Reply, Trash2 } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import type { Message } from '@shared/schema';
 
@@ -13,6 +13,7 @@ interface MessageBubbleProps {
   currentUserLanguage: string;
   onReply?: (message: Message) => void;
   onNavigateToMessage?: (messageId: number) => void;
+  onDelete?: (messageId: number) => void;
   isHighlighted?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function MessageBubble({
   currentUserLanguage,
   onReply,
   onNavigateToMessage,
+  onDelete,
   isHighlighted
 }: MessageBubbleProps) {
   const { t } = useI18n();

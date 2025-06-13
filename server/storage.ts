@@ -30,6 +30,7 @@ export interface IStorage {
   // Message operations
   getMessages(roomId: number, limit?: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  deleteMessage(messageId: number, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -145,6 +146,17 @@ export class DatabaseStorage implements IStorage {
     }
     
     return message;
+  }
+
+  async deleteMessage(messageId: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(messages)
+      .where(and(
+        eq(messages.id, messageId),
+        eq(messages.senderId, userId)
+      ));
+    
+    return result.rowCount > 0;
   }
 
   async updateUserProfileImage(id: string, customImageUrl: string, useCustom: boolean): Promise<User> {
