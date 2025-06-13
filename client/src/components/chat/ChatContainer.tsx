@@ -287,7 +287,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <Select
-                value={(user as any)?.preferredLanguage || 'ja'}
+                value={currentLanguage}
                 onValueChange={handleLanguageChange}
               >
                 <SelectTrigger className="w-[200px] h-8 text-xs">
