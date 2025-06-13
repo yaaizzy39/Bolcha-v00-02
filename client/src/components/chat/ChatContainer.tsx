@@ -223,12 +223,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Language change mutation
   const updateLanguageMutation = useMutation({
     mutationFn: async (newLanguage: string) => {
-      return apiRequest('POST', '/api/auth/settings', { 
+      return apiRequest('PATCH', '/api/user/settings', { 
         preferredLanguage: newLanguage 
       });
     },
     onSuccess: () => {
+      // Invalidate user data to refresh language preference
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Clear translation cache to force re-translation with new language
+      setTranslatedMessages(new Map());
     },
   });
 
