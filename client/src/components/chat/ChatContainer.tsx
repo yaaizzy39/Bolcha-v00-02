@@ -53,17 +53,11 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const userLanguage = (user as any)?.preferredLanguage || 
                       localStorage.getItem('selectedLanguage') || 
                       'ja';
-  console.log('ChatContainer user data:', { user, userLanguage, localStorage: localStorage.getItem('selectedLanguage') });
-
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
-    console.log('ChatContainer translateRoomName called:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
     if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
-      const translated = roomNameTranslations[roomName][userLanguage];
-      console.log('ChatContainer room name translated:', { original: roomName, translated, language: userLanguage });
-      return translated;
+      return roomNameTranslations[roomName][userLanguage];
     }
-    console.log('ChatContainer no translation found for room:', roomName, 'language:', userLanguage);
     return roomName; // Return original if no translation found
   };
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
