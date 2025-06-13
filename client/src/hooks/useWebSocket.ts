@@ -18,9 +18,20 @@ export function useWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectingRef = useRef(false);
+  const userDataRef = useRef<any>(null);
+
+  // Store user data in ref when available
+  useEffect(() => {
+    if (user) {
+      userDataRef.current = user;
+    }
+  }, [user]);
 
   const connect = useCallback(() => {
-    if (!isAuthenticated || !user || isConnectingRef.current) return;
+    if (!isAuthenticated || (!user && !userDataRef.current) || isConnectingRef.current) {
+      console.log('WebSocket connect blocked:', { isAuthenticated, hasUser: !!user, hasStoredUser: !!userDataRef.current, isConnecting: isConnectingRef.current });
+      return;
+    }
     
     // Clear any pending reconnect timeouts
     if (reconnectTimeoutRef.current) {
@@ -46,13 +57,19 @@ export function useWebSocket() {
       isConnectingRef.current = false;
       setIsConnected(true);
       
-      // Authenticate WebSocket connection
+      // Authenticate WebSocket connection - use current or stored user data
+      const currentUser = user || userDataRef.current;
+      const userId = (currentUser as any)?.id;
+      const userName = (currentUser as any)?.firstName && (currentUser as any)?.lastName 
+        ? `${(currentUser as any).firstName} ${(currentUser as any).lastName}` 
+        : (currentUser as any)?.email?.split('@')[0] || 'Anonymous';
+      
+      console.log('Sending WebSocket auth:', { userId, userName, hasUser: !!user, hasStoredUser: !!userDataRef.current });
+      
       ws.send(JSON.stringify({
         type: 'auth',
-        userId: (user as any)?.id || null,
-        userName: (user as any)?.firstName && (user as any)?.lastName 
-          ? `${(user as any).firstName} ${(user as any).lastName}` 
-          : (user as any)?.email?.split('@')[0] || 'Anonymous'
+        userId: userId,
+        userName: userName
       }));
     };
 
