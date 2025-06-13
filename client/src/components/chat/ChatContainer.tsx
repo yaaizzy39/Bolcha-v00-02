@@ -112,8 +112,16 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     }
   }, [roomMessages, showScrollToBottom]);
 
-  // Simple language-based translation management
-  const currentLanguage = (user as any)?.preferredLanguage || 'ja';
+  // Language state with local management for UI responsiveness
+  const [localLanguage, setLocalLanguage] = useState<string>('ja');
+  const currentLanguage = localLanguage;
+
+  // Sync local language with user data
+  useEffect(() => {
+    if (user && (user as any).preferredLanguage) {
+      setLocalLanguage((user as any).preferredLanguage);
+    }
+  }, [user]);
   
   // Clear translations when language changes
   useEffect(() => {
@@ -237,7 +245,12 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
       });
     },
     onSuccess: (updatedUser) => {
-      console.log('Language updated successfully to:', updatedUser.preferredLanguage);
+      const newLang = (updatedUser as any)?.preferredLanguage;
+      console.log('Language updated successfully to:', newLang);
+      // Immediately update local language state for UI responsiveness
+      if (newLang) {
+        setLocalLanguage(newLang);
+      }
       // Update the query cache with new user data
       queryClient.setQueryData(['/api/auth/user'], updatedUser);
     },
@@ -248,6 +261,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   const handleLanguageChange = (newLanguage: string) => {
     console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
+    // Immediately update local state for responsive UI
+    setLocalLanguage(newLanguage);
+    // Then update on server
     updateLanguageMutation.mutate(newLanguage);
   };
 
@@ -285,7 +301,9 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                 onValueChange={handleLanguageChange}
               >
                 <SelectTrigger className="w-[200px] h-8 text-xs">
-                  <SelectValue />
+                  <SelectValue placeholder={
+                    getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || currentLanguage
+                  } />
                 </SelectTrigger>
                 <SelectContent>
                   {getSupportedLanguages().map((lang) => (
