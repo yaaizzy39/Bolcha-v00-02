@@ -365,13 +365,14 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                 const translation = translatedMessages.get(message.id);
                 const isOwnMessage = message.senderId === (user as any)?.id;
                 
-                // Debug logging for layout issues
-                if (message.id === 82 || message.id === 83) {
+                // Debug logging for layout issues - check all messages from current user
+                if (message.senderId === "19464369") {
                   console.log(`Message ${message.id} layout check:`, {
                     senderId: message.senderId,
                     userId: (user as any)?.id,
                     isOwnMessage,
-                    senderName: message.senderName
+                    senderName: message.senderName,
+                    userObject: user
                   });
                 }
                 
