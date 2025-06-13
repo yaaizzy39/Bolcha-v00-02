@@ -4,6 +4,7 @@ import { useI18n } from '@/hooks/useI18n';
 import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { RoomsList } from '@/components/rooms/RoomsList';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<number>(1); // Default to general chat
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
@@ -31,7 +33,7 @@ export default function Home() {
     <div className="h-screen flex flex-col overflow-hidden">
       {/* Top Navigation */}
       <header className="bg-background shadow-sm border-b border-border flex-shrink-0">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
             <div className="flex items-center gap-3">
@@ -94,9 +96,23 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Chat Interface */}
-      <div className="flex-1 overflow-hidden">
-        <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
+      {/* Main Content with Sidebar */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Rooms Sidebar */}
+        <div className="w-80 bg-muted/30 border-r border-border flex-shrink-0 overflow-hidden">
+          <RoomsList 
+            onRoomSelect={setSelectedRoomId}
+            selectedRoomId={selectedRoomId}
+          />
+        </div>
+
+        {/* Chat Interface */}
+        <div className="flex-1 overflow-hidden">
+          <ChatContainer 
+            roomId={selectedRoomId}
+            onOpenSettings={() => setSettingsOpen(true)} 
+          />
+        </div>
       </div>
 
       {/* Settings Modal */}

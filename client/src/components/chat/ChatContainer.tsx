@@ -14,10 +14,11 @@ import { Languages, Users, TestTube } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
 interface ChatContainerProps {
+  roomId: number;
   onOpenSettings: () => void;
 }
 
-export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
+export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
   const { isConnected, messages, sendMessage, setMessages } = useWebSocket();
