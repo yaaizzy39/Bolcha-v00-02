@@ -20,12 +20,25 @@ export function useWebSocket() {
   const isConnectingRef = useRef(false);
   const userDataRef = useRef<any>(null);
 
-  // Store user data in ref when available
+  // Store user data in ref when available and also in localStorage for persistence
   useEffect(() => {
     if (user) {
       userDataRef.current = user;
+      localStorage.setItem('wsUserData', JSON.stringify(user));
     }
   }, [user]);
+
+  // Initialize user data from localStorage on mount
+  useEffect(() => {
+    const storedUserData = localStorage.getItem('wsUserData');
+    if (storedUserData && !userDataRef.current) {
+      try {
+        userDataRef.current = JSON.parse(storedUserData);
+      } catch (e) {
+        console.error('Failed to parse stored user data:', e);
+      }
+    }
+  }, []);
 
   const connect = useCallback(() => {
     if (!isAuthenticated || (!user && !userDataRef.current) || isConnectingRef.current) {
@@ -57,14 +70,42 @@ export function useWebSocket() {
       isConnectingRef.current = false;
       setIsConnected(true);
       
-      // Authenticate WebSocket connection - use current or stored user data
-      const currentUser = user || userDataRef.current;
+      // Authenticate WebSocket connection - use current, stored, or localStorage user data
+      let currentUser = user || userDataRef.current;
+      
+      // Fallback to localStorage if both are unavailable
+      if (!currentUser) {
+        const storedUserData = localStorage.getItem('wsUserData');
+        if (storedUserData) {
+          try {
+            currentUser = JSON.parse(storedUserData);
+            userDataRef.current = currentUser;
+          } catch (e) {
+            console.error('Failed to parse stored user data:', e);
+          }
+        }
+      }
+      
       const userId = (currentUser as any)?.id;
       const userName = (currentUser as any)?.firstName && (currentUser as any)?.lastName 
         ? `${(currentUser as any).firstName} ${(currentUser as any).lastName}` 
         : (currentUser as any)?.email?.split('@')[0] || 'Anonymous';
       
-      console.log('Sending WebSocket auth:', { userId, userName, hasUser: !!user, hasStoredUser: !!userDataRef.current });
+      console.log('Sending WebSocket auth:', { 
+        userId, 
+        userName, 
+        hasUser: !!user, 
+        hasStoredUser: !!userDataRef.current,
+        currentUserData: currentUser,
+        userEmail: (currentUser as any)?.email
+      });
+      
+      // Don't send auth if we don't have a valid userId
+      if (!userId) {
+        console.error('No valid userId available for WebSocket auth - closing connection');
+        ws.close();
+        return;
+      }
       
       ws.send(JSON.stringify({
         type: 'auth',
