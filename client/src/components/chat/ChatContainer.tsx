@@ -360,20 +360,19 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
               )
               .map((message: Message) => {
                 const translation = translatedMessages.get(message.id);
-                console.log(`Rendering message ${message.id}, translation: "${translation}"`);
                 return (
-                <MessageBubble
-                  key={`msg-${message.id}`}
-                  message={message}
-                  translatedText={translation}
-                  isOwnMessage={message.senderId === (user as any)?.id}
-                  showOriginal={(user as any)?.showOriginalText || false}
-                  currentUserLanguage={currentLanguage}
-                  onReply={handleReply}
-                  onNavigateToMessage={handleNavigateToMessage}
-                  onDelete={message.senderId === (user as any)?.id || (user as any)?.isAdmin ? handleDeleteMessage : undefined}
-                  isHighlighted={highlightedMessageId === message.id}
-                />
+                  <MessageBubble
+                    key={`msg-${message.id}`}
+                    message={message}
+                    translatedText={translation}
+                    isOwnMessage={message.senderId === (user as any)?.id}
+                    showOriginal={(user as any)?.showOriginalText || false}
+                    currentUserLanguage={currentLanguage}
+                    onReply={handleReply}
+                    onNavigateToMessage={handleNavigateToMessage}
+                    onDelete={message.senderId === (user as any)?.id || (user as any)?.isAdmin ? handleDeleteMessage : undefined}
+                    isHighlighted={highlightedMessageId === message.id}
+                  />
                 );
               })}
             
