@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Camera, Globe, Upload, RotateCcw, RefreshCw } from 'lucide-react';
+import { Camera, Globe, Upload, RotateCcw, Link } from 'lucide-react';
 
 export function ProfileImageUpload() {
   const { user } = useAuth();
@@ -18,6 +18,8 @@ export function ProfileImageUpload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [googleImageUrl, setGoogleImageUrl] = useState('');
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   // Get the current profile image to display
   const currentUser = user as any;
@@ -50,22 +52,27 @@ export function ProfileImageUpload() {
     },
   });
 
-  // Mutation to refresh Google profile image
-  const refreshGoogleProfileMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('POST', '/api/user/refresh-google-profile');
+  // Mutation to set Google profile URL manually
+  const setGoogleProfileMutation = useMutation({
+    mutationFn: async (imageUrl: string) => {
+      return await apiRequest('POST', '/api/user/set-google-profile-url', {
+        body: JSON.stringify({ imageUrl }),
+        headers: { 'Content-Type': 'application/json' }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      setGoogleImageUrl('');
+      setShowUrlInput(false);
       toast({
-        title: "Google profile refreshed",
-        description: "Your Google profile image has been updated.",
+        title: "プロフィール画像を更新しました",
+        description: "Googleプロフィール画像が設定されました",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error",
-        description: "Failed to refresh Google profile. Please try again or re-login.",
+        title: "更新に失敗しました",
+        description: error.message || "もう一度お試しください",
         variant: "destructive",
       });
     },
@@ -205,8 +212,10 @@ export function ProfileImageUpload() {
     toggleImageMutation.mutate();
   };
 
-  const handleRefreshGoogleProfile = () => {
-    refreshGoogleProfileMutation.mutate();
+  const handleSetGoogleProfile = () => {
+    if (googleImageUrl.trim()) {
+      setGoogleProfileMutation.mutate(googleImageUrl.trim());
+    }
   };
 
   return (
@@ -301,12 +310,11 @@ export function ProfileImageUpload() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleRefreshGoogleProfile}
-                disabled={refreshGoogleProfileMutation.isPending}
+                onClick={() => setShowUrlInput(!showUrlInput)}
                 className="flex items-center gap-2"
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
+                <Link className="w-4 h-4" />
+                URL設定
               </Button>
             )}
             <Button
@@ -321,6 +329,31 @@ export function ProfileImageUpload() {
             </Button>
           </div>
         </div>
+
+        {/* Google Profile URL Input */}
+        {showUrlInput && !currentUser?.useCustomProfileImage && (
+          <div className="p-4 border rounded-lg bg-muted/50">
+            <Label className="text-sm font-medium">GoogleプロフィールURL</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Google画像URLを手動で入力してください（例: https://lh3.googleusercontent.com/...）
+            </p>
+            <div className="flex gap-2">
+              <Input
+                value={googleImageUrl}
+                onChange={(e) => setGoogleImageUrl(e.target.value)}
+                placeholder="https://lh3.googleusercontent.com/..."
+                className="flex-1"
+              />
+              <Button
+                onClick={handleSetGoogleProfile}
+                disabled={setGoogleProfileMutation.isPending || !googleImageUrl.trim()}
+                size="sm"
+              >
+                設定
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -126,44 +126,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Refresh Google profile image endpoint
-  app.post('/api/user/refresh-google-profile', isAuthenticated, async (req: any, res) => {
+  // Manual Google profile image URL input endpoint
+  app.post('/api/user/set-google-profile-url', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const refreshToken = req.user.refresh_token;
+      const { imageUrl } = req.body;
       
-      console.log('Debug: User session data:', {
-        hasAccessToken: !!req.user.access_token,
-        hasRefreshToken: !!refreshToken,
-        expiresAt: req.user.expires_at,
-        currentTime: Math.floor(Date.now() / 1000)
-      });
-
-      // For now, we'll use the user claims data which should have the profile info
-      const claims = req.user.claims;
-      const profileImageUrl = claims.picture || claims.profile_image_url;
-      
-      if (!profileImageUrl) {
+      if (!imageUrl || !imageUrl.includes('googleusercontent.com')) {
         return res.status(400).json({ 
-          message: 'プロフィール画像URLが見つかりません。再ログインしてください。' 
+          message: 'Google画像URLを入力してください' 
         });
       }
-
-      console.log('Updating profile with image URL from claims:', profileImageUrl);
       
-      // Update user with Google profile image from claims
+      // Update user with provided Google profile image URL
       const [updatedUser] = await db
         .update(users)
         .set({
-          profileImageUrl: profileImageUrl,
-          firstName: claims.given_name || claims.first_name || null,
-          lastName: claims.family_name || claims.last_name || null,
+          profileImageUrl: imageUrl,
+          useCustomProfileImage: false,
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId))
         .returning();
 
       res.json(updatedUser);
+    } catch (error) {
+      console.error('Error setting Google profile URL:', error);
+      res.status(500).json({ message: 'Googleプロフィール画像の設定に失敗しました' });
+    }
+  });
+
+  // Refresh Google profile image endpoint  
+  app.post('/api/user/refresh-google-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      console.log('Debug: Full user claims:', JSON.stringify(req.user.claims, null, 2));
+      
+      return res.status(400).json({ 
+        message: 'Googleプロフィール画像の自動取得は現在利用できません。設定画面で手動でURLを入力してください。' 
+      });
     } catch (error) {
       console.error('Error refreshing Google profile:', error);
       res.status(500).json({ message: 'Googleプロフィールの更新に失敗しました' });
