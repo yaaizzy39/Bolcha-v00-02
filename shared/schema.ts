@@ -56,7 +56,7 @@ export const chatRooms = pgTable("chat_rooms", {
 // Messages table for chat history
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
-  roomId: integer("room_id").references(() => chatRooms.id, { onDelete: "cascade" }),
+  roomId: integer("room_id").notNull().references(() => chatRooms.id, { onDelete: "cascade" }),
   senderId: varchar("sender_id").notNull().references(() => users.id),
   senderName: varchar("sender_name").notNull(),
   senderProfileImageUrl: varchar("sender_profile_image_url"),
