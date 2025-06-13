@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async cleanupInactiveRooms(): Promise<number> {
-    const cutoffTime = new Date(Date.now() - 48 * 60 * 60 * 1000); // 48 hours ago
+    const cutoffTime = new Date(Date.now() - 1 * 60 * 1000); // 1 minute ago (for testing)
     
     const result = await db
       .update(chatRooms)
