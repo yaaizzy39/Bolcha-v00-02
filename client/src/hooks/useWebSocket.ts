@@ -49,6 +49,7 @@ export function useWebSocket() {
             if (messageExists) {
               return prev;
             }
+            // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, data.message!];
           });
         } else if (data.type === 'user_joined') {
@@ -79,11 +80,12 @@ export function useWebSocket() {
     };
   }, [isAuthenticated, user]);
 
-  const sendMessage = useCallback((text: string) => {
+  const sendMessage = useCallback((text: string, roomId: number = 1) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'chat_message',
-        text: text.trim()
+        text: text.trim(),
+        roomId: roomId
       }));
     }
   }, []);

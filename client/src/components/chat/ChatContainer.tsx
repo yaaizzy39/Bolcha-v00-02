@@ -21,7 +21,8 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, messages, sendMessage, setMessages } = useWebSocket();
+  const { isConnected, messages: allMessages, sendMessage, setMessages: setAllMessages } = useWebSocket();
+  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
   const [showTestPanel, setShowTestPanel] = useState(false);
@@ -29,13 +30,22 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load initial messages for the current room
-  const { data: initialMessages } = useQuery({
+  const { data: initialMessages, refetch: refetchMessages } = useQuery({
     queryKey: ['/api/messages', roomId],
+    queryFn: () => fetch(`/api/messages/${roomId}`, { credentials: 'include' }).then(res => res.json()),
     enabled: !!user && !!roomId,
   });
 
+  // Clear messages and reload when room changes
   useEffect(() => {
-    if (initialMessages && Array.isArray(initialMessages) && initialMessages.length > 0) {
+    setMessages([]);
+    if (roomId) {
+      refetchMessages();
+    }
+  }, [roomId, refetchMessages, setMessages]);
+
+  useEffect(() => {
+    if (initialMessages && Array.isArray(initialMessages)) {
       setMessages(initialMessages);
     }
   }, [initialMessages, setMessages]);
@@ -87,7 +97,11 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   }, [messages, user, translateText, translatedMessages]);
 
   const handleSendMessage = (text: string) => {
-    sendMessage(text);
+    if (!text.trim()) return;
+    
+    // Send message with the current room ID
+    sendMessage(text.trim(), roomId);
+    
     // Scroll to bottom after sending message with a slight delay
     setTimeout(() => {
       scrollToBottom();
