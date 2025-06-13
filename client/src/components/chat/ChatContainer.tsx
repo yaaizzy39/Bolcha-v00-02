@@ -102,7 +102,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
               className="flex items-center gap-1"
             >
               <TestTube className="w-4 h-4" />
-              テスト
+              {showTestPanel ? 'テスト非表示' : 'テスト'}
             </Button>
             <Button variant="ghost" size="sm" onClick={onOpenSettings}>
               {t('chat.settings')}

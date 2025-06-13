@@ -99,9 +99,17 @@ export function LanguageTestPanel() {
           {isTranslating ? '翻訳中...' : '翻訳する / Translate'}
         </Button>
 
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-muted-foreground space-y-2">
           <p>このパネルを使用して翻訳機能をテストできます。</p>
           <p>Use this panel to test the translation functionality.</p>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+            <p className="font-medium text-blue-800 dark:text-blue-200 mb-1">実際のチャットテスト方法:</p>
+            <p className="text-blue-700 dark:text-blue-300">
+              1. 設定で言語を「English」に変更<br/>
+              2. 日本語でメッセージを送信<br/>
+              3. 自動的に英語に翻訳されて表示されることを確認
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -21,6 +21,8 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
+  
+  console.log(`Message ${message.id}: shouldShowTranslation=${shouldShowTranslation}, translatedText="${translatedText}", originalLang=${message.originalLanguage}, userLang=${currentUserLanguage}`);
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
@@ -31,7 +33,13 @@ export function MessageBubble({
       <div className="flex items-start gap-3 justify-end">
         <div className="flex-1 max-w-lg">
           <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 ml-auto">
-            <p>{message.originalText}</p>
+            {shouldShowTranslation && showOriginal && (
+              <div className="text-xs text-primary-foreground/70 mb-2 flex items-center gap-1">
+                <Languages className="w-3 h-3" />
+                {t('chat.original')} ({message.originalLanguage}): {message.originalText}
+              </div>
+            )}
+            <p>{shouldShowTranslation ? translatedText : message.originalText}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
             <span>{timestamp}</span>
