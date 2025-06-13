@@ -76,14 +76,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
-    console.log('ChatContainer translateRoomName:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
     if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
-      const translated = roomNameTranslations[roomName][userLanguage];
-      console.log('ChatContainer translated:', roomName, 'to', translated);
-      return translated;
+      return roomNameTranslations[roomName][userLanguage];
     }
-    console.log('ChatContainer no translation for:', roomName);
-    return roomName; // Return original if no translation found
+    return roomName;
   };
   
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
