@@ -1,0 +1,107 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from './useAuth';
+import type { Message } from '@shared/schema';
+
+interface WebSocketMessage {
+  type: string;
+  message?: Message;
+  userName?: string;
+  timestamp: string;
+}
+
+export function useWebSocket() {
+  const { user, isAuthenticated } = useAuth();
+  const [isConnected, setIsConnected] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  const connect = useCallback(() => {
+    if (!isAuthenticated || !user) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      setIsConnected(true);
+      
+      // Authenticate WebSocket connection
+      ws.send(JSON.stringify({
+        type: 'auth',
+        userId: user.id,
+        userName: user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user.email?.split('@')[0] || 'Anonymous'
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+        
+        if (data.type === 'new_message' && data.message) {
+          setMessages(prev => [...prev, data.message!]);
+        } else if (data.type === 'user_joined') {
+          console.log(`${data.userName} joined the chat`);
+        } else if (data.type === 'user_left') {
+          console.log(`${data.userName} left the chat`);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+      setIsConnected(false);
+      
+      // Attempt to reconnect after 3 seconds
+      setTimeout(() => {
+        if (isAuthenticated) {
+          connect();
+        }
+      }, 3000);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setIsConnected(false);
+    };
+  }, [isAuthenticated, user]);
+
+  const sendMessage = useCallback((text: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'chat_message',
+        text: text.trim()
+      }));
+    }
+  }, []);
+
+  const disconnect = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      connect();
+    }
+
+    return () => {
+      disconnect();
+    };
+  }, [isAuthenticated, user, connect, disconnect]);
+
+  return {
+    isConnected,
+    messages,
+    sendMessage,
+    setMessages,
+  };
+}

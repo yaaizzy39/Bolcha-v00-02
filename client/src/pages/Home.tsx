@@ -1,0 +1,102 @@
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { ChatContainer } from '@/components/chat/ChatContainer';
+import { SettingsModal } from '@/components/settings/SettingsModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-react';
+
+export default function Home() {
+  const { user } = useAuth();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const handleLogout = () => {
+    window.location.href = '/api/logout';
+  };
+
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.email?.split('@')[0] || 'User';
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Top Navigation */}
+      <header className="bg-background shadow-sm sticky top-0 z-40 border-b border-border">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <MessageCircle className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <h1 className="text-xl font-medium text-foreground">
+                Multi-Language Chat
+              </h1>
+            </div>
+
+            {/* User Actions */}
+            <div className="flex items-center gap-4">
+              {/* Language Indicator */}
+              <div className="hidden sm:flex items-center gap-2">
+                <Globe className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {user?.preferredLanguage === 'ja' ? '日本語' : 'English'}
+                </span>
+              </div>
+
+              {/* Online Status */}
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Online
+              </Badge>
+
+              {/* User Profile */}
+              <div className="flex items-center gap-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user?.profileImageUrl} />
+                  <AvatarFallback>
+                    {displayName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-foreground hidden sm:block">
+                  {displayName}
+                </span>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Chat Interface */}
+      <ChatContainer onOpenSettings={() => setSettingsOpen(true)} />
+
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+    </div>
+  );
+}
