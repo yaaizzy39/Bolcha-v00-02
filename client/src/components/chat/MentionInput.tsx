@@ -31,6 +31,18 @@ export function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId 
   const [mentionStart, setMentionStart] = useState(-1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-resize textarea
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [message]);
+
   // Fetch room participants
   const { data: participants = [] } = useQuery({
     queryKey: ['/api/rooms', roomId, 'participants'],
@@ -105,6 +117,12 @@ export function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId 
       setMessage('');
       setShowParticipants(false);
       setMentionStart(-1);
+      // Reset textarea height
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+        }
+      }, 0);
     }
   };
 
@@ -189,7 +207,7 @@ export function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId 
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="メッセージを入力... (@でメンション)"
-          className="flex-1 min-h-[40px] max-h-32 resize-none"
+          className="flex-1 min-h-[40px] max-h-48 resize-none overflow-hidden"
           rows={1}
         />
         <Button type="submit" disabled={!message.trim()} size="sm">
