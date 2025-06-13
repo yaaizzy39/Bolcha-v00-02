@@ -32,9 +32,11 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Set default room when rooms are loaded
+  // Don't auto-select a room on mobile to show room list first
   useEffect(() => {
-    if (rooms.length > 0 && selectedRoomId === undefined) {
+    // Only auto-select on desktop (lg screens and up)
+    const isDesktop = window.innerWidth >= 1024;
+    if (rooms.length > 0 && selectedRoomId === undefined && isDesktop) {
       setSelectedRoomId(rooms[0].id);
     }
   }, [rooms, selectedRoomId]);
@@ -145,15 +147,28 @@ export default function Home() {
               onRoomSelect={setSelectedRoomId}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                  No chat rooms available
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Create your first room to start chatting
-                </p>
+            <div className="flex-1 overflow-hidden lg:hidden">
+              {/* Mobile Room List */}
+              <div className="h-full flex flex-col">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ルーム一覧</h2>
+                    <Button
+                      onClick={() => setCreateRoomOpen(true)}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      新規作成
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">
+                  <RoomsList 
+                    onRoomSelect={setSelectedRoomId} 
+                    selectedRoomId={selectedRoomId || undefined}
+                  />
+                </div>
               </div>
             </div>
           )}

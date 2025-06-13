@@ -39,7 +39,7 @@ const roomNameTranslations: Record<string, Record<string, string>> = {
 interface ChatContainerProps {
   roomId: number;
   onOpenSettings: () => void;
-  onRoomSelect?: (roomId: number) => void;
+  onRoomSelect?: (roomId: number | undefined) => void;
 }
 
 export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
@@ -390,7 +390,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onRoomSelect?.(0)}
+              onClick={() => onRoomSelect?.(undefined)}
               className="sm:hidden h-8 px-2 text-xs"
             >
               <MessageSquare className="w-4 h-4 mr-1" />
