@@ -18,8 +18,7 @@ export function ProfileImageUpload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [googleImageUrl, setGoogleImageUrl] = useState('');
-  const [showUrlInput, setShowUrlInput] = useState(false);
+
 
   // Get the current profile image to display
   const currentUser = user as any;
@@ -52,31 +51,7 @@ export function ProfileImageUpload() {
     },
   });
 
-  // Mutation to set Google profile URL manually
-  const setGoogleProfileMutation = useMutation({
-    mutationFn: async (imageUrl: string) => {
-      return await apiRequest('POST', '/api/user/set-google-profile-url', {
-        body: JSON.stringify({ imageUrl }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      setGoogleImageUrl('');
-      setShowUrlInput(false);
-      toast({
-        title: "プロフィール画像を更新しました",
-        description: "Googleプロフィール画像が設定されました",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "更新に失敗しました",
-        description: error.message || "もう一度お試しください",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Mutation to toggle between Google and custom image
   const toggleImageMutation = useMutation({
@@ -212,11 +187,7 @@ export function ProfileImageUpload() {
     toggleImageMutation.mutate();
   };
 
-  const handleSetGoogleProfile = () => {
-    if (googleImageUrl.trim()) {
-      setGoogleProfileMutation.mutate(googleImageUrl.trim());
-    }
-  };
+
 
   return (
     <div className="space-y-6">
@@ -306,17 +277,6 @@ export function ProfileImageUpload() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!currentUser?.useCustomProfileImage && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowUrlInput(!showUrlInput)}
-                className="flex items-center gap-2"
-              >
-                <Link className="w-4 h-4" />
-                URL設定
-              </Button>
-            )}
             <Button
               variant="outline"
               size="sm"
@@ -330,30 +290,7 @@ export function ProfileImageUpload() {
           </div>
         </div>
 
-        {/* Google Profile URL Input */}
-        {showUrlInput && !currentUser?.useCustomProfileImage && (
-          <div className="p-4 border rounded-lg bg-muted/50">
-            <Label className="text-sm font-medium">GoogleプロフィールURL</Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Google画像URLを手動で入力してください（例: https://lh3.googleusercontent.com/...）
-            </p>
-            <div className="flex gap-2">
-              <Input
-                value={googleImageUrl}
-                onChange={(e) => setGoogleImageUrl(e.target.value)}
-                placeholder="https://lh3.googleusercontent.com/..."
-                className="flex-1"
-              />
-              <Button
-                onClick={handleSetGoogleProfile}
-                disabled={setGoogleProfileMutation.isPending || !googleImageUrl.trim()}
-                size="sm"
-              >
-                設定
-              </Button>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );
