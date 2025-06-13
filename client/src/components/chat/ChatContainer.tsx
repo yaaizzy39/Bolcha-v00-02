@@ -23,6 +23,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
   const { isConnected, messages, sendMessage, setMessages } = useWebSocket();
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
+  const [showTestPanel, setShowTestPanel] = useState(false);
 
   // Load initial messages
   const { data: initialMessages } = useQuery({
@@ -57,8 +58,14 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
         }
       }
       
-      console.log('Setting translations:', newTranslations);
-      setTranslatedMessages(newTranslations);
+      console.log('Setting translations:', Object.fromEntries(newTranslations));
+      setTranslatedMessages(prev => {
+        const updated = new Map(prev);
+        newTranslations.forEach((value, key) => {
+          updated.set(key, value);
+        });
+        return updated;
+      });
     };
 
     translateMessages();
@@ -88,12 +95,28 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
               <Languages className="w-4 h-4" />
               <span>{t('chat.autoTranslate')}: {user?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowTestPanel(!showTestPanel)}
+              className="flex items-center gap-1"
+            >
+              <TestTube className="w-4 h-4" />
+              テスト
+            </Button>
             <Button variant="ghost" size="sm" onClick={onOpenSettings}>
               {t('chat.settings')}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Translation Test Panel */}
+      {showTestPanel && (
+        <div className="border-b border-gray-200 dark:border-gray-700 p-4">
+          <LanguageTestPanel />
+        </div>
+      )}
 
       {/* Messages Container */}
       <ScrollArea className="flex-1 px-4 py-4">
