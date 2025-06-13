@@ -143,6 +143,8 @@ Chat without border is a real-time multilingual chat application that enables us
   - Fixed mobile room list layout with flexible header and scrollable content area
   - Prevented automatic room selection after deletion to avoid unwanted Global Chat display
   - Ensured room deletion returns user to room list instead of auto-selecting other rooms
+  - Fixed delete button disappearing after language settings changes with robust user authentication checks
+  - Implemented defensive programming patterns for user state management during settings updates
 
 ## Changelog
 

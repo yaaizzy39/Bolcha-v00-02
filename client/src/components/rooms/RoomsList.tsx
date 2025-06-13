@@ -254,40 +254,45 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                 </div>
                 
                 {/* Always show delete button for owned rooms */}
-                {user && room.createdBy === (user as any)?.id && (
-                  <div className="w-full">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="w-full h-9 text-sm font-medium"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          このルームを削除
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>このルームを削除してもよろしいですか？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            この操作は取り消せません。ルーム "{room.name}" とすべてのメッセージが削除されます。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteMutation.mutate(room.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                {(() => {
+                  const currentUserId = user && typeof user === 'object' && 'id' in user ? (user as any).id : null;
+                  const canDelete = currentUserId && room.createdBy === currentUserId;
+                  
+                  return canDelete ? (
+                    <div className="w-full">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full h-9 text-sm font-medium"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            削除
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            このルームを削除
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>このルームを削除してもよろしいですか？</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              この操作は取り消せません。ルーム "{room.name}" とすべてのメッセージが削除されます。
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteMutation.mutate(room.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              削除
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ) : null;
+                })()}
               </div>
             </CardContent>
           </Card>
