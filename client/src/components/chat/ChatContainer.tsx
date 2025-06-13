@@ -101,7 +101,10 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   // Auto-scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
     if (!showScrollToBottom) {
-      scrollToBottom();
+      // Use multiple scroll attempts to ensure it works with dynamic content
+      setTimeout(() => scrollToBottom(), 50);
+      setTimeout(() => scrollToBottom(), 150);
+      setTimeout(() => scrollToBottom(), 300);
     }
   }, [roomMessages, showScrollToBottom]);
 
@@ -155,10 +158,19 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     // Clear reply state after sending
     setReplyingTo(null);
     
-    // Scroll to bottom after sending message with a slight delay
+    // Force scroll to bottom after sending message
+    // Use multiple timeouts to ensure scroll happens after DOM updates
     setTimeout(() => {
       scrollToBottom();
-    }, 100);
+    }, 50);
+    
+    setTimeout(() => {
+      scrollToBottom();
+    }, 200);
+    
+    setTimeout(() => {
+      scrollToBottom();
+    }, 500);
   };
 
   const handleReply = (message: Message) => {
