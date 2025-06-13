@@ -133,6 +133,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'User not found' });
       }
 
+      // If switching to Google profile and no Google profile image URL exists, try to fetch it
+      if (user.useCustomProfileImage && !user.profileImageUrl) {
+        const accessToken = req.user.access_token;
+        if (accessToken) {
+          try {
+            const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
+            if (googleResponse.ok) {
+              const googleProfile = await googleResponse.json();
+              if (googleProfile.picture) {
+                await db
+                  .update(users)
+                  .set({ 
+                    profileImageUrl: googleProfile.picture,
+                    firstName: googleProfile.given_name || user.firstName,
+                    lastName: googleProfile.family_name || user.lastName,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(users.id, userId));
+              }
+            }
+          } catch (error) {
+            console.log('Could not refresh Google profile image:', error);
+          }
+        }
+      }
+
       const updatedUser = await storage.updateUserProfileImage(
         userId, 
         user.customProfileImageUrl || '', 
