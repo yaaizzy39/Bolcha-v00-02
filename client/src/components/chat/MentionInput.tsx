@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -24,12 +24,26 @@ interface MentionInputProps {
   roomId: number;
 }
 
-export function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId }: MentionInputProps) {
+export interface MentionInputRef {
+  focus: () => void;
+}
+
+export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
+  function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId }, ref) {
   const [message, setMessage] = useState('');
   const [showParticipants, setShowParticipants] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [mentionStart, setMentionStart] = useState(-1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Expose focus method to parent component
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }
+  }));
 
   // Auto-resize textarea
   const adjustTextareaHeight = () => {
@@ -216,4 +230,5 @@ export function MentionInput({ onSendMessage, replyingTo, onCancelReply, roomId 
       </form>
     </div>
   );
-}
+  }
+);

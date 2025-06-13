@@ -4,7 +4,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
-import { MentionInput } from './MentionInput';
+import { MentionInput, type MentionInputRef } from './MentionInput';
 import { TranslationDemo } from './TranslationDemo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mentionInputRef = useRef<MentionInputRef>(null);
 
   // Load initial messages for the current room
   const { data: initialMessages, refetch: refetchMessages } = useQuery({
@@ -162,6 +163,10 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   const handleReply = (message: Message) => {
     setReplyingTo(message);
+    // Focus the message input after setting reply
+    setTimeout(() => {
+      mentionInputRef.current?.focus();
+    }, 100);
   };
 
   const handleDeleteMessage = async (messageId: number) => {
