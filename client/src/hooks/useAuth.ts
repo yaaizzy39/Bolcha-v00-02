@@ -8,14 +8,7 @@ export function useAuth() {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Debug logging for authentication state
-  console.log('Auth state:', {
-    user,
-    isLoading,
-    error,
-    isAuthenticated: !!user,
-    userId: user && typeof user === 'object' && 'id' in user ? (user as any).id : null
-  });
+
 
   return {
     user,

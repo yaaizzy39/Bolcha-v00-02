@@ -253,61 +253,41 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                   </div>
                 </div>
                 
-                {/* Always show delete button for owned rooms */}
-                {(() => {
-                  const currentUserId = user && typeof user === 'object' && 'id' in user ? String((user as any).id) : null;
-                  const roomCreatedBy = String(room.createdBy);
-                  const canDelete = currentUserId && roomCreatedBy === currentUserId;
-                  
-                  // Debug logging
-                  console.log('Delete button check:', {
-                    user,
-                    currentUserId,
-                    roomCreatedBy,
-                    canDelete,
-                    roomName: room.name,
-                    comparison: `"${roomCreatedBy}" === "${currentUserId}"`,
-                    types: {
-                      currentUserId: typeof currentUserId,
-                      roomCreatedBy: typeof roomCreatedBy
-                    }
-                  });
-                  
-                  return canDelete ? (
-                    <div className="w-full">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="w-full h-9 text-sm font-medium"
-                            onClick={(e) => e.stopPropagation()}
+                {/* Delete button for room owner */}
+                {user && (user as any)?.id === room.createdBy && (
+                  <div className="w-full">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="w-full h-9 text-sm font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          このルームを削除
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>このルームを削除してもよろしいですか？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            この操作は取り消せません。ルーム "{room.name}" とすべてのメッセージが削除されます。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteMutation.mutate(room.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            このルームを削除
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>このルームを削除してもよろしいですか？</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              この操作は取り消せません。ルーム "{room.name}" とすべてのメッセージが削除されます。
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMutation.mutate(room.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              削除
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  ) : null;
-                })()}
+                            削除
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
