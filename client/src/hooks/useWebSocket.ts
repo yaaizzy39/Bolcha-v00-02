@@ -16,15 +16,25 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isConnectingRef = useRef(false);
 
   const connect = useCallback(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user || isConnectingRef.current) return;
+    
+    // Clear any pending reconnect timeouts
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
     
     // Close existing connection if any
-    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+    if (wsRef.current) {
       wsRef.current.close();
+      wsRef.current = null;
     }
 
+    isConnectingRef.current = true;
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
@@ -33,6 +43,7 @@ export function useWebSocket() {
 
     ws.onopen = () => {
       console.log('WebSocket connected');
+      isConnectingRef.current = false;
       setIsConnected(true);
       
       // Authenticate WebSocket connection
@@ -83,14 +94,13 @@ export function useWebSocket() {
 
     ws.onclose = () => {
       console.log('WebSocket disconnected');
+      isConnectingRef.current = false;
       setIsConnected(false);
       
-      // Attempt to reconnect after 1 second for faster recovery
-      setTimeout(() => {
-        if (isAuthenticated && user) {
-          connect();
-        }
-      }, 1000);
+      // Clear the reference if this was the current connection
+      if (wsRef.current === ws) {
+        wsRef.current = null;
+      }
     };
 
     ws.onerror = (error) => {
@@ -126,14 +136,17 @@ export function useWebSocket() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !wsRef.current) {
       connect();
     }
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       disconnect();
     };
-  }, [isAuthenticated, (user as any)?.id, connect, disconnect]);
+  }, [isAuthenticated, connect, disconnect]);
 
   return {
     isConnected,
