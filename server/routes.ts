@@ -54,14 +54,16 @@ async function translateText(text: string, source: string, target: string): Prom
       if (jsonResult.code === 200 && jsonResult.text) {
         const translatedText = jsonResult.text.trim();
         // If translation is identical to original (failed translation), try alternative approach
-        if (translatedText === text.trim()) {
+        if (translatedText === text.trim() || translatedText === text) {
+          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
           return getSimpleTranslation(text, target);
         }
         return translatedText;
       }
       if (jsonResult.text) {
         const translatedText = jsonResult.text.trim();
-        if (translatedText === text.trim()) {
+        if (translatedText === text.trim() || translatedText === text) {
+          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
           return getSimpleTranslation(text, target);
         }
         return translatedText;
@@ -70,7 +72,8 @@ async function translateText(text: string, source: string, target: string): Prom
       // If JSON parsing fails, check if it's a simple text response
       if (resultText && !resultText.includes('<HTML>') && !resultText.includes('<!DOCTYPE')) {
         const translatedText = resultText.trim();
-        if (translatedText === text.trim()) {
+        if (translatedText === text.trim() || translatedText === text) {
+          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
           return getSimpleTranslation(text, target);
         }
         return translatedText;
@@ -86,6 +89,7 @@ async function translateText(text: string, source: string, target: string): Prom
 
 // Simple fallback translation for common phrases
 function getSimpleTranslation(text: string, target: string): string {
+  console.log(`Fallback translation called for "${text}" to language "${target}"`);
   const translations: Record<string, Record<string, string>> = {
     'こんにちは': {
       'en': 'Hello',
@@ -157,16 +161,19 @@ function getSimpleTranslation(text: string, target: string): string {
   
   // Check exact matches first
   if (translations[text] && translations[text][target]) {
+    console.log(`Found exact match translation: "${text}" -> "${translations[text][target]}"`);
     return translations[text][target];
   }
   
   // Check lowercase matches
   for (const [key, langMap] of Object.entries(translations)) {
     if (key.toLowerCase() === normalizedText && langMap[target]) {
+      console.log(`Found lowercase match translation: "${text}" -> "${langMap[target]}"`);
       return langMap[target];
     }
   }
   
+  console.log(`No fallback translation found for "${text}" to "${target}"`);
   return text; // Return original if no fallback translation found
 }
 
