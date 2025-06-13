@@ -112,6 +112,18 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     }
   }, [roomMessages, showScrollToBottom]);
 
+  // Keep track of current language for cache invalidation
+  const currentLanguage = (user as any)?.preferredLanguage || 'ja';
+  const [lastLanguage, setLastLanguage] = useState(currentLanguage);
+
+  // Clear translations when language changes
+  useEffect(() => {
+    if (lastLanguage !== currentLanguage) {
+      setTranslatedMessages(new Map());
+      setLastLanguage(currentLanguage);
+    }
+  }, [currentLanguage, lastLanguage]);
+
   // Translate messages based on user preference
   useEffect(() => {
     if (!user || !roomMessages.length) return;
@@ -119,27 +131,26 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     const translateMessages = async () => {
       const newTranslations = new Map<number, string>();
       
-      // console.log('User auto-translate setting:', (user as any).autoTranslate);
-      // console.log('User preferred language:', (user as any).preferredLanguage);
-      
       for (const message of roomMessages) {
-        // Only translate if auto-translate is enabled, message is in a different language, and not already translated
+        // Only translate if auto-translate is enabled and message is in a different language
         if ((user as any).autoTranslate && 
-            message.originalLanguage !== (user as any).preferredLanguage &&
-            !translatedMessages.has(message.id)) {
-          // console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${(user as any).preferredLanguage}`);
-          const translatedText = await translateText(
-            message.originalText,
-            message.originalLanguage,
-            (user as any).preferredLanguage || 'ja'
-          );
-          newTranslations.set(message.id, translatedText);
+            message.originalLanguage !== currentLanguage) {
+          
+          // Check if we already have a translation for this message in the current language
+          const existingTranslation = translatedMessages.get(message.id);
+          if (!existingTranslation) {
+            const translatedText = await translateText(
+              message.originalText,
+              message.originalLanguage,
+              currentLanguage
+            );
+            newTranslations.set(message.id, translatedText);
+          }
         }
       }
       
       // Only update if we have new translations
       if (newTranslations.size > 0) {
-        // console.log('Setting new translations:', newTranslations);
         setTranslatedMessages(prev => {
           const updated = new Map(prev);
           newTranslations.forEach((value, key) => {
@@ -151,7 +162,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
     };
 
     translateMessages();
-  }, [roomMessages, user, translateText, translatedMessages]);
+  }, [roomMessages, user, translateText, translatedMessages, currentLanguage]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
