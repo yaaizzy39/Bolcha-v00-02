@@ -43,7 +43,14 @@ export function useWebSocket() {
         const data: WebSocketMessage = JSON.parse(event.data);
         
         if (data.type === 'new_message' && data.message) {
-          setMessages(prev => [...prev, data.message!]);
+          setMessages(prev => {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prev.some(msg => msg.id === data.message!.id);
+            if (messageExists) {
+              return prev;
+            }
+            return [...prev, data.message!];
+          });
         } else if (data.type === 'user_joined') {
           console.log(`${data.userName} joined the chat`);
         } else if (data.type === 'user_left') {

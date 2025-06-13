@@ -32,7 +32,7 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
   });
 
   useEffect(() => {
-    if (initialMessages) {
+    if (initialMessages && Array.isArray(initialMessages) && initialMessages.length > 0) {
       setMessages(initialMessages);
     }
   }, [initialMessages, setMessages]);
@@ -45,29 +45,33 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       const newTranslations = new Map<number, string>();
       
       for (const message of messages) {
-        // Only translate if auto-translate is enabled and the message is in a different language
-        if (user.autoTranslate && message.originalLanguage !== user.preferredLanguage) {
+        // Only translate if auto-translate is enabled, message is in a different language, and not already translated
+        if ((user as any).autoTranslate && 
+            message.originalLanguage !== (user as any).preferredLanguage &&
+            !translatedMessages.has(message.id)) {
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
-            user.preferredLanguage || 'ja'
+            (user as any).preferredLanguage || 'ja'
           );
           newTranslations.set(message.id, translatedText);
         }
       }
       
-      // Update translations for display
-      setTranslatedMessages(prev => {
-        const updated = new Map(prev);
-        newTranslations.forEach((value, key) => {
-          updated.set(key, value);
+      // Only update if we have new translations
+      if (newTranslations.size > 0) {
+        setTranslatedMessages(prev => {
+          const updated = new Map(prev);
+          newTranslations.forEach((value, key) => {
+            updated.set(key, value);
+          });
+          return updated;
         });
-        return updated;
-      });
+      }
     };
 
     translateMessages();
-  }, [messages, user, translateText]);
+  }, [messages, user, translateText, translatedMessages]);
 
   const handleSendMessage = (text: string) => {
     sendMessage(text);
@@ -119,16 +123,20 @@ export function ChatContainer({ onOpenSettings }: ChatContainerProps) {
       {/* Messages Container */}
       <ScrollArea className="flex-1 px-4 py-4">
         <div className="space-y-4">
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              translatedText={translatedMessages.get(message.id)}
-              isOwnMessage={message.senderId === user?.id}
-              showOriginal={user?.showOriginalText || false}
-              currentUserLanguage={user?.preferredLanguage || 'en'}
-            />
-          ))}
+          {messages
+            .filter((message, index, self) => 
+              index === self.findIndex(m => m.id === message.id)
+            )
+            .map((message) => (
+              <MessageBubble
+                key={`msg-${message.id}`}
+                message={message}
+                translatedText={translatedMessages.get(message.id)}
+                isOwnMessage={message.senderId === (user as any)?.id}
+                showOriginal={(user as any)?.showOriginalText || false}
+                currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
+              />
+            ))}
           
           {!isConnected && (
             <div className="flex justify-center">
