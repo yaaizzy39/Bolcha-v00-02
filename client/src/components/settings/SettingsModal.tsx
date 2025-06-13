@@ -60,10 +60,17 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       return await apiRequest('PATCH', '/api/user/settings', newSettings);
     },
     onSuccess: (data) => {
-      // Update the user data in cache instead of invalidating
-      queryClient.setQueryData(['/api/auth/user'], data);
+      // Keep user authenticated by preserving all user data
+      const currentUser = queryClient.getQueryData(['/api/auth/user']);
+      if (currentUser) {
+        queryClient.setQueryData(['/api/auth/user'], {
+          ...currentUser,
+          ...data
+        });
+      }
+      
       toast({
-        title: "Settings updated",
+        title: "Settings updated", 
         description: "Your preferences have been saved successfully.",
       });
     },

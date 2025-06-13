@@ -116,29 +116,43 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     },
   });
 
-  // Improved room ownership check
+  // Improved room ownership check with fallback authentication
   const isRoomOwner = (room: ChatRoom): boolean => {
-    if (!user) {
-      console.log('No user found for room ownership check');
-      return false;
+    // First check current user from auth hook
+    if (user && (user as any)?.id) {
+      const userId = String((user as any).id);
+      const createdBy = String(room.createdBy);
+      const isOwner = userId === createdBy;
+      
+      console.log(`Room ownership check for "${room.name}":`, {
+        userId,
+        createdBy,
+        isOwner,
+        source: 'auth-hook'
+      });
+      
+      return isOwner;
     }
     
-    const userId = (user as any)?.id;
-    const createdBy = room.createdBy;
+    // Fallback: check cached user data directly
+    const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
+    if (cachedUser && cachedUser.id) {
+      const userId = String(cachedUser.id);
+      const createdBy = String(room.createdBy);
+      const isOwner = userId === createdBy;
+      
+      console.log(`Room ownership check for "${room.name}":`, {
+        userId,
+        createdBy,
+        isOwner,
+        source: 'cache-fallback'
+      });
+      
+      return isOwner;
+    }
     
-    // Convert both to strings for comparison
-    const userIdStr = String(userId || '');
-    const createdByStr = String(createdBy || '');
-    
-    const isOwner = userIdStr && createdByStr && userIdStr === createdByStr;
-    
-    console.log(`Room ownership check for "${room.name}":`, {
-      userId: userIdStr,
-      createdBy: createdByStr,
-      isOwner: Boolean(isOwner)
-    });
-    
-    return Boolean(isOwner);
+    console.log(`No user found for room ownership check: "${room.name}"`);
+    return false;
   };
 
   const formatLastActivity = (timestamp: string | Date | null) => {
