@@ -364,9 +364,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 function broadcastToAll(wss: WebSocketServer, data: any) {
   const message = JSON.stringify(data);
+  let sentCount = 0;
   wss.clients.forEach((client: WebSocketClient) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
+      sentCount++;
     }
   });
+  console.log(`Broadcast message sent to ${sentCount} clients out of ${wss.clients.size} total`);
 }

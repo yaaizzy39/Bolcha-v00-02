@@ -41,14 +41,18 @@ export function useWebSocket() {
     ws.onmessage = (event) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
+        console.log('Received WebSocket message:', data);
         
         if (data.type === 'new_message' && data.message) {
+          console.log('Processing new message:', data.message);
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
             const messageExists = prev.some(msg => msg.id === data.message!.id);
             if (messageExists) {
+              console.log('Message already exists, skipping:', data.message.id);
               return prev;
             }
+            console.log('Adding new message to state:', data.message);
             // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, data.message!];
           });
@@ -56,6 +60,8 @@ export function useWebSocket() {
           console.log(`${data.userName} joined the chat`);
         } else if (data.type === 'user_left') {
           console.log(`${data.userName} left the chat`);
+        } else if (data.type === 'error') {
+          console.error('WebSocket error:', data.message);
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
