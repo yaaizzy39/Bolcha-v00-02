@@ -29,7 +29,7 @@ export function MessageBubble({
   isHighlighted
 }: MessageBubbleProps) {
   const { t } = useI18n();
-  const shouldShowTranslation = translatedText && message.originalLanguage !== currentUserLanguage;
+  const shouldShowTranslation = translatedText && translatedText !== message.originalText;
 
   // Function to handle link click with warning
   const handleLinkClick = (e: React.MouseEvent, url: string) => {

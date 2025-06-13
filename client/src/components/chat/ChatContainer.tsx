@@ -359,7 +359,7 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
                   translatedText={translatedMessages.get(message.id)}
                   isOwnMessage={message.senderId === (user as any)?.id}
                   showOriginal={(user as any)?.showOriginalText || false}
-                  currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
+                  currentUserLanguage={currentLanguage}
                   onReply={handleReply}
                   onNavigateToMessage={handleNavigateToMessage}
                   onDelete={message.senderId === (user as any)?.id || (user as any)?.isAdmin ? handleDeleteMessage : undefined}
