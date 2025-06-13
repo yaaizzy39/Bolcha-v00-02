@@ -48,6 +48,7 @@ export function MessageBubble({
           </div>
         </div>
         <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage src={message.senderProfileImageUrl || undefined} />
           <AvatarFallback>
             {message.senderName.charAt(0).toUpperCase()}
           </AvatarFallback>
@@ -59,6 +60,7 @@ export function MessageBubble({
   return (
     <div className="flex items-start gap-3">
       <Avatar className="w-8 h-8 flex-shrink-0">
+        <AvatarImage src={message.senderProfileImageUrl || undefined} />
         <AvatarFallback>
           {message.senderName.charAt(0).toUpperCase()}
         </AvatarFallback>
