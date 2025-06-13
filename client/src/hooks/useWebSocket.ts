@@ -80,12 +80,12 @@ export function useWebSocket() {
       console.log('WebSocket disconnected');
       setIsConnected(false);
       
-      // Attempt to reconnect after 3 seconds
+      // Attempt to reconnect after 1 second for faster recovery
       setTimeout(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && user) {
           connect();
         }
-      }, 3000);
+      }, 1000);
     };
 
     ws.onerror = (error) => {
