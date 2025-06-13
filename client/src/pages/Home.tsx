@@ -5,6 +5,7 @@ import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { RoomsList } from '@/components/rooms/RoomsList';
+import { CreateRoomModal } from '@/components/rooms/CreateRoomModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +16,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
-import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-react';
+import { MessageCircle, MoreVertical, Settings, LogOut, Globe, Plus } from 'lucide-react';
 import type { ChatRoom } from '@shared/schema';
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<number | undefined>(undefined);
 
   // Fetch available rooms
@@ -62,6 +64,16 @@ export default function Home() {
 
             {/* User Actions */}
             <div className="flex items-center gap-4">
+              {/* Mobile Create Room Button */}
+              <Button 
+                onClick={() => setCreateRoomOpen(true)}
+                size="sm"
+                className="lg:hidden"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+
               {/* Language Indicator */}
               <div className="hidden sm:flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
@@ -150,6 +162,16 @@ export default function Home() {
 
       {/* Settings Modal */}
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+      
+      {/* Create Room Modal */}
+      <CreateRoomModal 
+        open={createRoomOpen} 
+        onOpenChange={setCreateRoomOpen}
+        onRoomCreated={(room) => {
+          setSelectedRoomId(room.id);
+          setCreateRoomOpen(false);
+        }}
+      />
     </div>
   );
 }
