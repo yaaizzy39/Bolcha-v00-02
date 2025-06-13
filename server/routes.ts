@@ -468,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start periodic cleanup of inactive rooms (every minute for testing)
+  // Start periodic cleanup of inactive rooms (every 6 hours)
   setInterval(async () => {
     try {
       const deletedCount = await storage.cleanupInactiveRooms();
@@ -478,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error during room cleanup:', error);
     }
-  }, 60 * 1000); // Run every minute
+  }, 6 * 60 * 60 * 1000); // Run every 6 hours
 
   return httpServer;
 }
