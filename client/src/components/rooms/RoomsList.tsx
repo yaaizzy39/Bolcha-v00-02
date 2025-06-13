@@ -52,11 +52,16 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   const userLanguage = (user as any)?.preferredLanguage || 
                       localStorage.getItem('selectedLanguage') || 
                       'ja';
+  console.log('RoomsList current user language:', userLanguage, 'localStorage:', localStorage.getItem('selectedLanguage'));
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
+    console.log('RoomsList translateRoomName:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
     if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
-      return roomNameTranslations[roomName][userLanguage];
+      const translated = roomNameTranslations[roomName][userLanguage];
+      console.log('RoomsList translated:', roomName, 'to', translated);
+      return translated;
     }
+    console.log('RoomsList no translation for:', roomName);
     return roomName; // Return original if no translation found
   };
 

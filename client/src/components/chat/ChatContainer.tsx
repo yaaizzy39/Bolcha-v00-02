@@ -53,11 +53,16 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const userLanguage = (user as any)?.preferredLanguage || 
                       localStorage.getItem('selectedLanguage') || 
                       'ja';
+  console.log('ChatContainer userLanguage detected:', userLanguage, 'room data:', currentRoom);
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
+    console.log('ChatContainer translateRoomName:', { roomName, userLanguage, hasTranslation: !!roomNameTranslations[roomName] });
     if (roomNameTranslations[roomName] && roomNameTranslations[roomName][userLanguage]) {
-      return roomNameTranslations[roomName][userLanguage];
+      const translated = roomNameTranslations[roomName][userLanguage];
+      console.log('ChatContainer translated:', roomName, 'to', translated);
+      return translated;
     }
+    console.log('ChatContainer no translation for:', roomName);
     return roomName; // Return original if no translation found
   };
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
@@ -344,7 +349,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               <SelectItem key={room.id} value={room.id.toString()}>
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4" />
-                  <span>{translateRoomName(room.name)}</span>
+                  <span>{(() => {
+                console.log('Mobile room translation called for:', room.name);
+                return translateRoomName(room.name);
+              })()}</span>
                   {room.adminOnly && (
                     <Badge variant="destructive" className="text-xs">
                       <Shield className="w-3 h-3" />
@@ -363,7 +371,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           {/* Room Info */}
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {currentRoom?.name ? translateRoomName(currentRoom.name) : t('chat.title')}
+              {currentRoom?.name ? (() => {
+                console.log('Header room translation called for:', currentRoom.name);
+                return translateRoomName(currentRoom.name);
+              })() : t('chat.title')}
             </h2>
             {currentRoom?.description && (
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
