@@ -255,16 +255,22 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
                 
                 {/* Always show delete button for owned rooms */}
                 {(() => {
-                  const currentUserId = user && typeof user === 'object' && 'id' in user ? (user as any).id : null;
-                  const canDelete = currentUserId && room.createdBy === currentUserId;
+                  const currentUserId = user && typeof user === 'object' && 'id' in user ? String((user as any).id) : null;
+                  const roomCreatedBy = String(room.createdBy);
+                  const canDelete = currentUserId && roomCreatedBy === currentUserId;
                   
                   // Debug logging
                   console.log('Delete button check:', {
                     user,
                     currentUserId,
-                    roomCreatedBy: room.createdBy,
+                    roomCreatedBy,
                     canDelete,
-                    roomName: room.name
+                    roomName: room.name,
+                    comparison: `"${roomCreatedBy}" === "${currentUserId}"`,
+                    types: {
+                      currentUserId: typeof currentUserId,
+                      roomCreatedBy: typeof roomCreatedBy
+                    }
                   });
                   
                   return canDelete ? (
