@@ -53,11 +53,17 @@ export function ChatContainer({ roomId, onOpenSettings }: ChatContainerProps) {
 
   // Filter WebSocket messages for current room
   useEffect(() => {
+    console.log('Filtering messages for room:', roomId, 'allMessages:', allMessages.length);
     const newRoomMessages = allMessages.filter(msg => msg.roomId === roomId);
-    if (newRoomMessages.length > roomMessages.length) {
+    console.log('Filtered messages for room', roomId, ':', newRoomMessages.length, 'messages');
+    console.log('Current roomMessages count:', roomMessages.length);
+    
+    if (newRoomMessages.length !== roomMessages.length || 
+        !newRoomMessages.every(msg => roomMessages.some(rm => rm.id === msg.id))) {
+      console.log('Updating room messages:', newRoomMessages);
       setRoomMessages(newRoomMessages);
     }
-  }, [allMessages, roomId, roomMessages.length]);
+  }, [allMessages, roomId]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
