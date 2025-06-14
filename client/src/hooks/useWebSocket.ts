@@ -124,10 +124,15 @@ export function useWebSocket() {
     
     // Properly close any existing connection before creating new one
     if (wsRef.current) {
-      console.log('Closing existing WebSocket connection gracefully');
+      const currentState = wsRef.current.readyState;
+      console.log('Closing existing WebSocket connection gracefully, state:', currentState);
       wsRef.current.onclose = null; // Prevent reconnect loops
       wsRef.current.onerror = null; // Prevent error handling
-      wsRef.current.close();
+      wsRef.current.onopen = null;
+      wsRef.current.onmessage = null;
+      if (currentState === WebSocket.OPEN || currentState === WebSocket.CONNECTING) {
+        wsRef.current.close(1000, 'New connection requested');
+      }
       wsRef.current = null;
       setIsConnected(false);
     }
@@ -148,10 +153,16 @@ export function useWebSocket() {
         return;
       }
       
-      console.log('WebSocket connected');
+      console.log('WebSocket connected successfully');
       isConnectingRef.current = false;
       setIsConnected(true);
       setIsReconnecting(false);
+      
+      // Clear any reconnecting timeout since we're now connected
+      if (reconnectingTimeoutRef.current) {
+        clearTimeout(reconnectingTimeoutRef.current);
+        reconnectingTimeoutRef.current = null;
+      }
       
       // Use the effective user from connect function
       const userId = (effectiveUser as any)?.id;
@@ -187,9 +198,9 @@ export function useWebSocket() {
         const data: WebSocketMessage = JSON.parse(event.data);
         console.log('Received WebSocket message:', data);
         
-        if (data.type === 'new_message' && data.message && typeof data.message === 'object') {
+        if (data.type === 'new_message') {
           console.log('Processing new message:', data.message);
-          const newMessage = data.message as Message;
+          const newMessage = data.message;
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
             const messageExists = prev.some(msg => msg.id === newMessage.id);
@@ -201,15 +212,13 @@ export function useWebSocket() {
             // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, newMessage];
           });
-        } else if (data.type === 'message_deleted' && typeof data.messageId === 'number') {
+        } else if (data.type === 'message_deleted') {
           console.log('Message deleted:', data.messageId);
           const messageId = data.messageId;
           setDeletedMessageIds(prev => new Set(prev).add(messageId));
           setMessages(prev => prev.filter(msg => msg.id !== messageId));
-        } else if (data.type === 'user_joined') {
-          console.log(`${data.userName} joined the chat`);
-        } else if (data.type === 'user_left') {
-          console.log(`${data.userName} left the chat`);
+        } else if (data.type === 'user_joined' || data.type === 'user_left') {
+          console.log(`${data.userName} ${data.type === 'user_joined' ? 'joined' : 'left'} the chat`);
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           
@@ -322,18 +331,22 @@ export function useWebSocket() {
     };
 
     if (shouldConnect()) {
+      console.log('Initiating WebSocket connection...');
       connect();
     }
 
     return () => {
+      console.log('Cleaning up WebSocket timeouts...');
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
       if (reconnectingTimeoutRef.current) {
         clearTimeout(reconnectingTimeoutRef.current);
+        reconnectingTimeoutRef.current = null;
       }
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, connect]);
 
   // Separate effect for handling user data persistence
   useEffect(() => {
