@@ -241,10 +241,9 @@ export function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={() => onReply(message)}
-                className="h-6 px-2 text-xs hover:bg-muted/50"
+                className="h-6 w-6 p-0 text-xs hover:bg-muted/50"
               >
-                <Reply className="w-3 h-3 mr-1" />
-                返信
+                <Reply className="w-3 h-3" />
               </Button>
             )}
             {onToggleLike && (
@@ -252,14 +251,18 @@ export function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={onToggleLike}
-                className={`h-6 px-2 text-xs ${
+                className={`h-6 w-6 p-0 text-xs relative ${
                   userLiked 
                     ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300' 
                     : 'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300'
                 }`}
               >
-                <Heart className={`w-3 h-3 mr-1 ${userLiked ? 'fill-current' : ''}`} />
-                {totalLikes > 0 ? totalLikes : 'いいね'}
+                <Heart className={`w-3 h-3 ${userLiked ? 'fill-current' : ''}`} />
+                {totalLikes > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                    {totalLikes}
+                  </span>
+                )}
               </Button>
             )}
             {onDelete && (
