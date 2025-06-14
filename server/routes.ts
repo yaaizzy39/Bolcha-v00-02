@@ -22,6 +22,7 @@ interface AuthenticatedUser {
 interface WebSocketClient extends WebSocket {
   userId?: string;
   userName?: string;
+  roomId?: number;
 }
 
 // Translation API function
@@ -648,6 +649,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     server: httpServer,
     path: '/websocket'
   });
+
+  // Track online users per room
+  const roomOnlineUsers = new Map<number, Set<string>>();
+
+  // Helper function to get online user count for a room
+  function getOnlineUserCount(roomId: number): number {
+    return roomOnlineUsers.get(roomId)?.size || 0;
+  }
+
+  // Helper function to broadcast online user count updates
+  function broadcastOnlineCount(roomId: number) {
+    const count = getOnlineUserCount(roomId);
+    broadcastToRoom(wss, roomId, {
+      type: 'online_count_updated',
+      roomId,
+      onlineCount: count,
+      timestamp: new Date().toISOString(),
+    });
+  }
   
   wss.on('connection', (ws: WebSocketClient, req) => {
     console.log('WebSocket client connected');
@@ -671,6 +691,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             timestamp: new Date().toISOString(),
           });
           
+          return;
+        }
+
+        if (message.type === 'join_room') {
+          // Handle room joining
+          const roomId = message.roomId;
+          if (roomId && ws.userId) {
+            // Remove user from previous room
+            if (ws.roomId) {
+              const prevRoomUsers = roomOnlineUsers.get(ws.roomId);
+              if (prevRoomUsers) {
+                prevRoomUsers.delete(ws.userId);
+                if (prevRoomUsers.size === 0) {
+                  roomOnlineUsers.delete(ws.roomId);
+                }
+                // Broadcast updated count for previous room
+                broadcastOnlineCount(ws.roomId);
+              }
+            }
+
+            // Add user to new room
+            ws.roomId = roomId;
+            if (!roomOnlineUsers.has(roomId)) {
+              roomOnlineUsers.set(roomId, new Set());
+            }
+            roomOnlineUsers.get(roomId)!.add(ws.userId);
+            
+            // Broadcast updated count for new room
+            broadcastOnlineCount(roomId);
+            
+            console.log(`User ${ws.userId} joined room ${roomId}, online count: ${getOnlineUserCount(roomId)}`);
+          }
           return;
         }
 
@@ -764,6 +816,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
+      // Remove user from online count when disconnecting
+      if (ws.userId && ws.roomId) {
+        const roomUsers = roomOnlineUsers.get(ws.roomId);
+        if (roomUsers) {
+          roomUsers.delete(ws.userId);
+          if (roomUsers.size === 0) {
+            roomOnlineUsers.delete(ws.roomId);
+          }
+          // Broadcast updated count
+          broadcastOnlineCount(ws.roomId);
+          console.log(`User ${ws.userId} left room ${ws.roomId}, online count: ${getOnlineUserCount(ws.roomId)}`);
+        }
+      }
+
       if (ws.userName) {
         broadcastToAll(wss, {
           type: 'user_left',
@@ -844,6 +910,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get online user count for a room
+  app.get('/api/rooms/:roomId/online-count', isAuthenticated, (req, res) => {
+    try {
+      const roomId = parseInt(req.params.roomId);
+      const count = getOnlineUserCount(roomId);
+      res.json({ onlineCount: count });
+    } catch (error) {
+      console.error("Error fetching online count:", error);
+      res.status(500).json({ message: "Failed to fetch online count" });
+    }
+  });
+
   // Start periodic cleanup of inactive rooms (every 6 hours)
   setInterval(async () => {
     try {
@@ -869,4 +947,16 @@ function broadcastToAll(wss: WebSocketServer, data: any) {
     }
   });
   console.log(`Broadcast message sent to ${sentCount} clients out of ${wss.clients.size} total`);
+}
+
+function broadcastToRoom(wss: WebSocketServer, roomId: number, data: any) {
+  const message = JSON.stringify(data);
+  let sentCount = 0;
+  wss.clients.forEach((client: WebSocketClient) => {
+    if (client.readyState === WebSocket.OPEN && client.roomId === roomId) {
+      client.send(message);
+      sentCount++;
+    }
+  });
+  console.log(`Broadcast message sent to ${sentCount} clients in room ${roomId}`);
 }
