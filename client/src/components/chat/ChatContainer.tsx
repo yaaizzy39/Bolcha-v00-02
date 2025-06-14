@@ -113,7 +113,16 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     if (!user || !message.originalText) return false;
     const currentUserName = getDisplayName(user);
     const mentionPattern = new RegExp(`@${currentUserName}\\b`, 'i');
-    return mentionPattern.test(message.originalText);
+    const isMentioned = mentionPattern.test(message.originalText);
+    
+    console.log('Checking mention:', {
+      messageText: message.originalText,
+      currentUserName,
+      pattern: `@${currentUserName}\\b`,
+      isMentioned
+    });
+    
+    return isMentioned;
   };
 
   // Function to play notification sound
@@ -122,6 +131,18 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(err => {
         console.log('Could not play notification sound:', err);
+      });
+    }
+  };
+
+  // Test function for notification
+  const testNotification = () => {
+    console.log('Testing notification...');
+    playNotificationSound();
+    if (Notification.permission === 'granted') {
+      new Notification('テスト通知', {
+        body: 'メンション機能のテストです',
+        icon: '/favicon.ico'
       });
     }
   };
@@ -166,11 +187,30 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     const previousMessageIds = new Set(roomMessages.map(msg => msg.id));
     const newMentions = new Set<number>();
     
+    console.log('Checking for mentions in merged messages:', {
+      currentUserId: (user as any)?.id,
+      previousMessageCount: previousMessageIds.size,
+      newMessageCount: mergedMessages.length
+    });
+    
     mergedMessages.forEach(message => {
+      const isNewMessage = message.id && !previousMessageIds.has(message.id);
+      const isNotFromSelf = message.senderId !== (user as any)?.id;
+      const isMentioned = isUserMentioned(message);
+      
+      console.log('Message check:', {
+        messageId: message.id,
+        senderId: message.senderId,
+        currentUserId: (user as any)?.id,
+        isNewMessage,
+        isNotFromSelf,
+        isMentioned,
+        messageText: message.originalText
+      });
+      
       // Only check new messages (not from initial load) and not from current user
-      if (message.id && !previousMessageIds.has(message.id) && 
-          message.senderId !== (user as any)?.id && 
-          isUserMentioned(message)) {
+      if (isNewMessage && isNotFromSelf && isMentioned) {
+        console.log('🔔 MENTION DETECTED! Playing notification sound and showing alert');
         newMentions.add(message.id);
         
         // Play notification sound for new mentions
@@ -183,6 +223,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             icon: message.senderProfileImageUrl || '/favicon.ico',
             tag: `mention-${message.id}`
           });
+        } else {
+          console.log('Notification permission not granted:', Notification.permission);
         }
       }
     });
@@ -199,7 +241,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     });
     
     setRoomMessages(mergedMessages);
-  }, [initialMessages, allMessages, roomId, deletedMessageIds]);
+  }, [initialMessages, allMessages, roomId, deletedMessageIds, user, playNotificationSound, isUserMentioned]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -466,6 +508,16 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Test notification button (temporary) */}
+            <Button
+              variant="outline" 
+              size="sm"
+              onClick={testNotification}
+              className="h-8 px-3 text-xs"
+            >
+              🔔 Test
+            </Button>
             
 
 
