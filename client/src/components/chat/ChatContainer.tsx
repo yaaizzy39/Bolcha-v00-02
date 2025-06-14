@@ -90,9 +90,41 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mentionInputRef = useRef<MentionInputRef>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio for notifications and request notification permission
+  useEffect(() => {
+    audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqJ0/LNgC4NLIzU8t2QQAoUXrTp66hVFApGn+DyvmAaAzqJ0/LNgC4N');
+    
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        console.log('Notification permission:', permission);
+      });
+    }
+  }, []);
+
+  // Function to check if current user is mentioned in a message
+  const isUserMentioned = (message: Message): boolean => {
+    if (!user || !message.originalText) return false;
+    const currentUserName = getDisplayName(user);
+    const mentionPattern = new RegExp(`@${currentUserName}\\b`, 'i');
+    return mentionPattern.test(message.originalText);
+  };
+
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.log('Could not play notification sound:', err);
+      });
+    }
+  };
 
   // Clear messages and reload when room changes
   useEffect(() => {
@@ -129,6 +161,43 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       .sort((a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime());
     
     console.log('Merged messages for room', roomId, ':', mergedMessages.length, 'total messages');
+    
+    // Check for new mentions and trigger notifications
+    const previousMessageIds = new Set(roomMessages.map(msg => msg.id));
+    const newMentions = new Set<number>();
+    
+    mergedMessages.forEach(message => {
+      // Only check new messages (not from initial load) and not from current user
+      if (message.id && !previousMessageIds.has(message.id) && 
+          message.senderId !== (user as any)?.id && 
+          isUserMentioned(message)) {
+        newMentions.add(message.id);
+        
+        // Play notification sound for new mentions
+        playNotificationSound();
+        
+        // Show browser notification if permission granted
+        if (Notification.permission === 'granted') {
+          new Notification(`メンション通知 - ${message.senderName}`, {
+            body: message.originalText,
+            icon: message.senderProfileImageUrl || '/favicon.ico',
+            tag: `mention-${message.id}`
+          });
+        }
+      }
+    });
+    
+    // Update mentioned message IDs
+    setMentionedMessageIds(prev => {
+      const updated = new Set(prev);
+      mergedMessages.forEach(message => {
+        if (message.id && isUserMentioned(message)) {
+          updated.add(message.id);
+        }
+      });
+      return updated;
+    });
+    
     setRoomMessages(mergedMessages);
   }, [initialMessages, allMessages, roomId, deletedMessageIds]);
 
@@ -444,6 +513,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     onNavigateToMessage={handleNavigateToMessage}
                     onDelete={message.senderId === currentUserId || (user as any)?.email === 'yaaizzy39@gmail.com' ? handleDeleteMessage : undefined}
                     isHighlighted={highlightedMessageId === message.id}
+                    isMentioned={mentionedMessageIds.has(message.id)}
                   />
                 );
               })}
