@@ -6,7 +6,7 @@ export const translations = {
     'landing.signIn': 'Sign in with Google',
     
     // Navigation
-    'nav.title': 'Bolcha',
+    'nav.title': 'Bolcha (borderless chat)',
     'nav.online': 'Online',
     'nav.settings': 'Settings',
     'nav.signOut': 'Sign Out',
@@ -70,7 +70,7 @@ export const translations = {
     'landing.signIn': 'Googleでサインイン',
     
     // Navigation
-    'nav.title': 'Bolcha',
+    'nav.title': 'Bolcha (borderless chat)',
     'nav.online': 'オンライン',
     'nav.settings': '設定',
     'nav.signOut': 'サインアウト',
