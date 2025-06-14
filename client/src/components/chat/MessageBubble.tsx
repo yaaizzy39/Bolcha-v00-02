@@ -105,9 +105,11 @@ export function MessageBubble({
               </div>
             )}
             {shouldShowTranslation && (
-              <div className="text-xs text-primary-foreground/70 mb-2 border-l-2 border-primary-foreground/30 pl-2">
-                <div className="font-medium mb-1">原文:</div>
-                {renderTextWithLinks(message.originalText || '', true)}
+              <div className="text-xs text-primary-foreground/50 mb-2 border-l-2 border-primary-foreground/20 pl-2">
+                <div className="font-medium mb-1 text-primary-foreground/60">原文:</div>
+                <div className="text-primary-foreground/50">
+                  {renderTextWithLinks(message.originalText || '', true)}
+                </div>
               </div>
             )}
             <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || '') : (message.originalText || ''), true)}</p>
@@ -184,9 +186,11 @@ export function MessageBubble({
             </div>
           )}
           {shouldShowTranslation && (
-            <div className="text-xs text-muted-foreground mb-2 border-l-2 border-border pl-2">
-              <div className="font-medium mb-1">原文:</div>
-              {renderTextWithLinks(message.originalText || '', false)}
+            <div className="text-xs text-muted-foreground/60 mb-2 border-l-2 border-border/40 pl-2">
+              <div className="font-medium mb-1 text-muted-foreground/70">原文:</div>
+              <div className="text-muted-foreground/60">
+                {renderTextWithLinks(message.originalText || '', false)}
+              </div>
             </div>
           )}
           <p className="text-foreground">
