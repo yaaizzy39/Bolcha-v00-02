@@ -369,97 +369,66 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   // Translate messages based on user preference
   useEffect(() => {
-    if (!user || !roomMessages.length) return;
+    if (!user || !roomMessages.length) {
+      console.log('Translation skipped:', { hasUser: !!user, messageCount: roomMessages.length });
+      return;
+    }
     
-    // Get user language from multiple sources with priority order
     // Force English as target language for testing
     const userLanguage = 'en';
     
-    console.log(`Translation check: userLanguage=${userLanguage}, autoTranslate=true (default)`);
-    console.log(`User object:`, user);
-    console.log(`Room messages:`, roomMessages.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
-    console.log(`Already translated:`, Array.from(translatedMessages.keys()));
+    console.log('=== TRANSLATION PROCESS START ===');
+    console.log(`Target language: ${userLanguage}`);
+    console.log(`Total messages: ${roomMessages.length}`);
+    console.log(`Already translated: ${translatedMessages.size}`);
 
-    let cancelled = false;
-    
     const translateMessages = async () => {
-      // Only translate messages that need translation and haven't been translated yet
-      const messagesToTranslate = roomMessages.filter(message => {
+      console.log('Analyzing messages for translation...');
+      
+      for (const message of roomMessages) {
         const hasOriginalLanguage = Boolean(message.originalLanguage);
         const isDifferentLanguage = message.originalLanguage !== userLanguage;
         const notAlreadyTranslated = !translatedMessages.has(message.id);
         const needsTranslation = hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated;
         
-        console.log(`Message ${message.id} translation check:`, {
-          text: message.originalText,
+        console.log(`Message ${message.id} analysis:`, {
+          text: message.originalText?.substring(0, 20) + '...',
           originalLang: message.originalLanguage,
-          userLang: userLanguage,
           hasOriginalLanguage,
           isDifferentLanguage,
           notAlreadyTranslated,
           needsTranslation
         });
         
-        return needsTranslation;
-      });
-      
-      // Sort by newest first (highest ID/timestamp first)
-      messagesToTranslate.sort((a, b) => b.id - a.id);
-      
-      console.log(`Found ${messagesToTranslate.length} messages to translate from ${roomMessages.length} total messages`);
-      
-      if (messagesToTranslate.length === 0) {
-        console.log('No messages need translation');
-        return;
-      }
-      
-      console.log('Messages to translate (newest first):', messagesToTranslate.map(m => ({ 
-        id: m.id, 
-        text: m.originalText, 
-        lang: m.originalLanguage,
-        targetLang: userLanguage 
-      })));
-      
-      // Translate messages in parallel but prioritize newest
-      const translationPromises = messagesToTranslate.map(async (message) => {
-        if (cancelled) return;
-        
-        try {
-          console.log(`Starting translation for message ${message.id}: "${message.originalText}" (${message.originalLanguage} -> ${userLanguage})`);
+        if (needsTranslation) {
+          console.log(`🔄 TRANSLATING message ${message.id}: "${message.originalText}"`);
           
-          const translatedText = await translateText(
-            message.originalText,
-            message.originalLanguage,
-            userLanguage
-          );
-          
-          if (!cancelled && translatedText && translatedText !== message.originalText) {
+          try {
+            const translatedText = await translateText(
+              message.originalText,
+              message.originalLanguage,
+              userLanguage
+            );
+            
+            console.log(`✅ Translation completed for message ${message.id}: "${translatedText}"`);
+            
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
               newMap.set(message.id, translatedText);
-              console.log(`Translation completed for message ${message.id}: "${message.originalText}" -> "${translatedText}"`);
               return newMap;
             });
-          } else {
-            console.log(`Translation result for message ${message.id}: unchanged or empty`);
+            
+          } catch (error) {
+            console.error(`❌ Translation failed for message ${message.id}:`, error);
           }
-        } catch (error) {
-          console.error(`Translation failed for message ${message.id}:`, error);
         }
-      });
+      }
       
-      // Process all translations in parallel
-      await Promise.allSettled(translationPromises);
+      console.log('=== TRANSLATION PROCESS END ===');
     };
 
-    // Add delay to prevent rapid re-execution
-    const timeoutId = setTimeout(translateMessages, 100);
-    
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
-  }, [roomMessages, user, translateText]);
+    translateMessages();
+  }, [roomMessages, translateText]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
