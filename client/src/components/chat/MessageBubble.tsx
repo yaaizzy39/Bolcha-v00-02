@@ -185,7 +185,7 @@ export function MessageBubble({
             </div>
           )}
           {shouldShowTranslation && (
-            <div className="text-xs text-muted-foreground/40 mb-2 border-l-2 border-border/30 pl-2">
+            <div className="text-xs text-gray-400 mb-2 border-l-2 border-gray-300 pl-2">
               {renderTextWithLinks(message.originalText || '', false)}
             </div>
           )}
