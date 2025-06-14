@@ -924,6 +924,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Translation API
+  app.post('/api/translate', isAuthenticated, async (req, res) => {
+    try {
+      const { text, source, target } = req.body;
+      
+      if (!text || !source || !target) {
+        return res.status(400).json({ message: 'Missing required fields: text, source, target' });
+      }
+
+      const translatedText = await translateText(text, source, target);
+      res.json({ translatedText });
+    } catch (error) {
+      console.error("Error translating text:", error);
+      res.status(500).json({ message: "Failed to translate text" });
+    }
+  });
+
   // Get online user count for a room
   app.get('/api/rooms/:roomId/online-count', isAuthenticated, (req, res) => {
     try {
