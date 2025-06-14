@@ -270,10 +270,9 @@ export function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteModal(true)}
-                className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                className="h-6 w-6 p-0 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
               >
-                <Trash2 className="w-3 h-3 mr-1" />
-                削除
+                <Trash2 className="w-3 h-3" />
               </Button>
             )}
           </div>
