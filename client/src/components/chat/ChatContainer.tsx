@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
+import { translationCache } from '@/lib/translationCache';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
 import { getDisplayName } from '@/lib/profileUtils';

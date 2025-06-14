@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { apiRequest } from '@/lib/queryClient';
+import { translationCache } from '@/lib/translationCache';
 
 export function useTranslation() {
   const [isTranslating, setIsTranslating] = useState(false);
@@ -10,6 +11,13 @@ export function useTranslation() {
     if (!text.trim() || source === target) {
       console.log(`⏭️ Translation skipped: empty text or same language`);
       return text;
+    }
+
+    // Check cache first
+    const cachedTranslation = translationCache.get(text, source, target);
+    if (cachedTranslation) {
+      console.log(`💾 Using cached translation for: "${text}"`);
+      return cachedTranslation;
     }
 
     setIsTranslating(true);
@@ -38,6 +46,9 @@ export function useTranslation() {
       } catch (parseError) {
         // If it's not JSON, use the text as-is
       }
+      
+      // Cache the successful translation
+      translationCache.set(text, translatedText, source, target);
       
       return translatedText;
     } catch (error) {
