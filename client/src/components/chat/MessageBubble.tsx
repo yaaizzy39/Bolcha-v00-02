@@ -105,9 +105,9 @@ export function MessageBubble({
               </div>
             )}
             {shouldShowTranslation && (
-              <div className="text-xs text-primary-foreground/30 mb-2 border-l-2 border-primary-foreground/15 pl-2">
-                <div className="font-medium mb-1 text-primary-foreground/40">原文:</div>
-                <div className="text-primary-foreground/30">
+              <div className="text-xs text-amber-200/70 mb-2 border-l-2 border-amber-200/40 pl-2">
+                <div className="font-medium mb-1 text-amber-200/80">原文:</div>
+                <div className="text-amber-200/70">
                   {renderTextWithLinks(message.originalText || '', true)}
                 </div>
               </div>
