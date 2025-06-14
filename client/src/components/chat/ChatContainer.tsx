@@ -155,18 +155,24 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   }, [roomMessages, showScrollToBottom]);
 
   // Language state with local management for UI responsiveness
-  const [localLanguage, setLocalLanguage] = useState<string>((user as any)?.preferredLanguage || 'ja');
+  const [localLanguage, setLocalLanguage] = useState<string>('ja');
   const currentLanguage = localLanguage;
 
-  // Sync local language with user data
+  // Initialize and sync local language with user data
   useEffect(() => {
     if (user && (user as any).preferredLanguage) {
-      const newLanguage = (user as any).preferredLanguage;
-      if (newLanguage !== localLanguage) {
-        setLocalLanguage(newLanguage);
+      const userLanguage = (user as any).preferredLanguage;
+      console.log('Syncing language from user data:', userLanguage);
+      setLocalLanguage(userLanguage);
+    } else if (!user) {
+      // If no user data, check localStorage for previously selected language
+      const savedLanguage = localStorage.getItem('selectedLanguage');
+      if (savedLanguage) {
+        console.log('Using saved language from localStorage:', savedLanguage);
+        setLocalLanguage(savedLanguage);
       }
     }
-  }, [user, localLanguage]);
+  }, [user]);
   
   // Clear translations when language changes
   useEffect(() => {
@@ -307,12 +313,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     onSuccess: (updatedUser) => {
       const newLang = (updatedUser as any)?.preferredLanguage;
       console.log('Language updated successfully to:', newLang);
-      // Immediately update local language state for UI responsiveness
-      if (newLang) {
-        setLocalLanguage(newLang);
-      }
       // Update the query cache with new user data
       queryClient.setQueryData(['/api/auth/user'], updatedUser);
+      // Note: Local state was already updated in handleLanguageChange for immediate UI response
     },
     onError: (error) => {
       console.error('Language update failed:', error);
@@ -321,8 +324,19 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   const handleLanguageChange = (newLanguage: string) => {
     console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
+    
+    // Skip if same language
+    if (newLanguage === currentLanguage) {
+      console.log('Same language selected, skipping update');
+      return;
+    }
+    
+    // Store in localStorage immediately for immediate persistence
+    localStorage.setItem('selectedLanguage', newLanguage);
+    
     // Immediately update local state for responsive UI
     setLocalLanguage(newLanguage);
+    
     // Then update on server
     updateLanguageMutation.mutate(newLanguage);
   };
