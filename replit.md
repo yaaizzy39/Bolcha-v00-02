@@ -133,6 +133,16 @@ Chat without border is a real-time multilingual chat application that enables us
 
 ## Recent Changes
 
+- **June 14, 2025**: WebSocket Connection Stability Improvements
+  - Fixed WebSocket disconnection issues during language settings changes
+  - Implemented robust user authentication persistence with localStorage fallbacks
+  - Enhanced room ownership verification with multiple authentication sources
+  - Improved automatic reconnection logic with immediate retry on disconnection
+  - Resolved duplicate WebSocket connection problems during room navigation
+  - Added defensive connection management to prevent concurrent connection attempts
+  - Fixed "切断されました - 再接続中..." errors in newly created rooms
+  - Implemented stable user data persistence across page re-renders and settings updates
+
 - **June 13, 2025**: Enhanced mobile room deletion functionality and navigation
   - Added larger touch targets for mobile delete buttons (8x8px vs 6x6px)
   - Implemented mobile-only action bar at bottom of room cards with prominent "削除" button

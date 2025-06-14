@@ -79,13 +79,13 @@ export function useWebSocket() {
       reconnectTimeoutRef.current = null;
     }
     
-    // Don't interrupt existing stable connection
+    // Don't create new connection if one is already stable
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return;
     }
     
-    // Close failed connections
-    if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
+    // Properly close any existing connection before creating new one
+    if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
@@ -177,16 +177,18 @@ export function useWebSocket() {
         wsRef.current = null;
       }
       
-      // Auto-reconnect more aggressively to prevent authentication issues
+      // Immediate reconnection for better user experience
       if (event.code !== 1000) {
-        console.log('Scheduling WebSocket reconnection in 1 second...');
+        console.log('WebSocket disconnected, attempting immediate reconnection...');
+        // Clear any existing timeout
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        // Immediate reconnect attempt
         reconnectTimeoutRef.current = setTimeout(() => {
-          // Try to reconnect even if authentication state is temporarily unclear
-          const storedUserData = localStorage.getItem('wsUserData');
-          if (storedUserData && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
-            connect();
-          }
-        }, 1000);
+          connect();
+        }, 100); // Very short delay for immediate reconnection
       }
     };
 
@@ -194,7 +196,7 @@ export function useWebSocket() {
       console.error('WebSocket error:', error);
       setIsConnected(false);
     };
-  }, [isAuthenticated, (user as any)?.id]);
+  }, []);
 
   const sendMessage = useCallback((text: string, roomId: number = 1, replyTo?: Message | null, mentions?: string[]) => {
     console.log('Attempting to send message:', { text, roomId, replyTo: replyTo?.id, mentions, wsState: wsRef.current?.readyState });
@@ -222,22 +224,36 @@ export function useWebSocket() {
     }
   }, []);
 
+  // Initial connection effect
   useEffect(() => {
-    // Try to connect if we have any form of user authentication
-    const storedUserData = localStorage.getItem('wsUserData');
-    const hasValidAuth = isAuthenticated || (user && (user as any).id) || storedUserData;
-    
-    if (hasValidAuth && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
-      connect();
-    }
+    const initializeConnection = () => {
+      const storedUserData = localStorage.getItem('wsUserData');
+      const hasValidAuth = isAuthenticated || (user && (user as any).id) || storedUserData;
+      
+      if (hasValidAuth && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
+        if (!isConnectingRef.current) {
+          connect();
+        }
+      }
+    };
 
-    // Cleanup function
+    // Initial connection attempt
+    initializeConnection();
+
+    // Retry connection on auth state changes
+    const timeoutId = setTimeout(() => {
+      if (!isConnected && !isConnectingRef.current) {
+        initializeConnection();
+      }
+    }, 1000);
+
     return () => {
+      clearTimeout(timeoutId);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [isAuthenticated, connect]);
+  }, [isAuthenticated, isConnected]);
 
   // Separate effect for handling user data persistence
   useEffect(() => {
