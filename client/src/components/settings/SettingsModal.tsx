@@ -93,6 +93,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
           showOriginalText: updatedUser.showOriginalText ?? true,
           autoTranslate: updatedUser.autoTranslate ?? true,
+          messageAlignment: updatedUser.messageAlignment || 'right',
         }));
       }
       

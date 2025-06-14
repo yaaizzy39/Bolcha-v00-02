@@ -46,6 +46,12 @@ export function MessageBubble({
   const { user } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
+  // Get user's message alignment preference
+  const messageAlignment = (user as any)?.messageAlignment || 'right';
+  
+  // Determine if this message should be displayed on the right side
+  const shouldDisplayRight = isOwnMessage ? messageAlignment === 'right' : !isOwnMessage;
+  
   // Check if this message needs translation
   const needsTranslation = String(message.originalLanguage) !== String(currentUserLanguage);
   
@@ -140,12 +146,12 @@ export function MessageBubble({
 
   if (isOwnMessage) {
     return (
-      <div className={`group flex items-start gap-2 sm:gap-3 justify-end px-2 sm:px-4 ${
+      <div className={`group flex items-start gap-2 sm:gap-3 ${shouldDisplayRight ? 'justify-end' : 'justify-start'} px-2 sm:px-4 ${
         isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
         isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
       }`} id={`message-${message.id}`}>
-        <div className="flex flex-col items-end max-w-[85%] sm:max-w-lg ml-auto">
-          <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-3 sm:px-4 py-2 sm:py-3">
+        <div className={`flex flex-col ${shouldDisplayRight ? 'items-end ml-auto' : 'items-start mr-auto'} max-w-[85%] sm:max-w-lg`}>
+          <div className={`bg-primary text-primary-foreground rounded-2xl ${shouldDisplayRight ? 'rounded-tr-md' : 'rounded-tl-md'} px-3 sm:px-4 py-2 sm:py-3`}>
             {message.replyToId && (
               <div 
                 className="bg-primary-foreground/10 rounded-lg p-2 mb-2 border-l-2 border-primary-foreground/30 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
@@ -171,7 +177,7 @@ export function MessageBubble({
               <p>{renderTextWithLinks(message.originalText || '', true)}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
+          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${shouldDisplayRight ? 'justify-end' : 'justify-start'}`}>
             <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
             <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">

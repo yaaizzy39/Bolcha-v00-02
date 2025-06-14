@@ -383,6 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         interfaceLanguage: z.string().optional(),
         showOriginalText: z.boolean().optional(),
         autoTranslate: z.boolean().optional(),
+        messageAlignment: z.string().optional(),
       });
       
       const settings = settingsSchema.parse(req.body);
