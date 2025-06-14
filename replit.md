@@ -140,6 +140,9 @@ Bolcha is a real-time multilingual chat application that enables users to commun
   - Simplified action buttons to icon-only design (reply, like, delete buttons without text labels)
   - Removed mention hint text from message input placeholder for cleaner interface
   - Enhanced message interaction with compact, intuitive controls
+  - Removed "(borderless chat)" suffix from app title for cleaner branding
+  - Simplified online status badge to icon-only display (removed "オンライン" text)
+  - Removed notification test button from chat header for streamlined interface
 
 - **June 14, 2025**: Application Rebranding and UI Refinements
   - Changed application name from "Chat without Border" to "Bolcha (borderless chat)"

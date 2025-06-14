@@ -485,7 +485,6 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             )}
             <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <Users className="w-3 h-3" />
-              <span className="hidden xs:inline">{t('nav.online')}</span>
             </Badge>
           </div>
           
