@@ -46,7 +46,7 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, messageLikes, sendMessage, setMessages: setAllMessages, toggleLike } = useWebSocket();
+  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, messageLikes, sendMessage, setMessages: setAllMessages, toggleLike, initializeLikes } = useWebSocket();
   const queryClient = useQueryClient();
   
   // Load initial messages for the current room
@@ -75,6 +75,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     queryFn: () => fetch('/api/user/likes', { credentials: 'include' }).then(res => res.json()),
     enabled: !!user,
   });
+
+  // Initialize likes when user data is loaded
+  useEffect(() => {
+    if (userLikes?.likedMessageIds) {
+      initializeLikes(userLikes.likedMessageIds);
+    }
+  }, [userLikes, initializeLikes]);
 
   // Get user's preferred language for room name translation
   // Try multiple possible language sources since the user might have updated language in UI but not persisted yet

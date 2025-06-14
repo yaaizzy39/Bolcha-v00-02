@@ -54,6 +54,23 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const [messageLikes, setMessageLikes] = useState<Map<number, { totalLikes: number; userLiked: boolean }>>(new Map());
+
+  // Function to initialize likes from user data
+  const initializeLikes = useCallback((userLikedIds: number[]) => {
+    if (userLikedIds && userLikedIds.length > 0) {
+      setMessageLikes(prev => {
+        const newMap = new Map(prev);
+        userLikedIds.forEach(messageId => {
+          const existing = newMap.get(messageId);
+          newMap.set(messageId, {
+            totalLikes: existing?.totalLikes || 1,
+            userLiked: true
+          });
+        });
+        return newMap;
+      });
+    }
+  }, []);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -449,5 +466,6 @@ export function useWebSocket() {
     sendMessage,
     setMessages,
     toggleLike,
+    initializeLikes,
   };
 }

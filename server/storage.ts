@@ -194,37 +194,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async toggleMessageLike(messageId: number, userId: string): Promise<{ liked: boolean; totalLikes: number }> {
-    // Check if user has already liked this message
-    const existingLike = await db
-      .select()
-      .from(messageLikes)
-      .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
-
-    let liked: boolean;
-
-    if (existingLike.length > 0) {
-      // Unlike: remove the like
-      await db
-        .delete(messageLikes)
+    try {
+      // Check if user has already liked this message
+      const existingLike = await db
+        .select()
+        .from(messageLikes)
         .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
-      liked = false;
-    } else {
-      // Like: add the like
-      await db
-        .insert(messageLikes)
-        .values({ messageId, userId });
-      liked = true;
+
+      let liked: boolean;
+
+      if (existingLike.length > 0) {
+        // Unlike: remove the like
+        await db
+          .delete(messageLikes)
+          .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
+        liked = false;
+      } else {
+        // Like: add the like
+        try {
+          await db
+            .insert(messageLikes)
+            .values({ messageId, userId });
+          liked = true;
+        } catch (error: any) {
+          // Handle duplicate key error - user might have already liked
+          if (error.code === '23505') {
+            // Like already exists, treat as already liked
+            liked = true;
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      // Get total likes count for this message
+      const totalLikesResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(messageLikes)
+        .where(eq(messageLikes.messageId, messageId));
+      
+      const totalLikes = totalLikesResult[0]?.count ?? 0;
+
+      return { liked, totalLikes };
+    } catch (error) {
+      console.error('Error in toggleMessageLike:', error);
+      throw error;
     }
-
-    // Get total likes count for this message
-    const totalLikesResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(messageLikes)
-      .where(eq(messageLikes.messageId, messageId));
-    
-    const totalLikes = totalLikesResult[0]?.count ?? 0;
-
-    return { liked, totalLikes };
   }
 
   async getMessageLikes(messageId: number): Promise<MessageLike[]> {
