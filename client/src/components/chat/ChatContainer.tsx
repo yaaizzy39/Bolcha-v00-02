@@ -154,63 +154,45 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages, showScrollToBottom]);
 
-  // Language state with local management for UI responsiveness
-  const [localLanguage, setLocalLanguage] = useState<string>('ja');
-  const currentLanguage = localLanguage;
-
-  // Initialize and sync local language with user data
+  // Clear translations when user language preference changes
   useEffect(() => {
-    if (user && (user as any).preferredLanguage) {
-      const userLanguage = (user as any).preferredLanguage;
-      console.log('Syncing language from user data:', userLanguage);
-      setLocalLanguage(userLanguage);
-    } else if (!user) {
-      // If no user data, check localStorage for previously selected language
-      const savedLanguage = localStorage.getItem('selectedLanguage');
-      if (savedLanguage) {
-        console.log('Using saved language from localStorage:', savedLanguage);
-        setLocalLanguage(savedLanguage);
-      }
-    }
-  }, [user]);
-  
-  // Clear translations when language changes
-  useEffect(() => {
-    if (currentLanguage) {
-      console.log(`Language is now: ${currentLanguage}, clearing all translations`);
+    if (user) {
+      const userLanguage = (user as any)?.preferredLanguage || 'ja';
+      console.log(`Language is now: ${userLanguage}, clearing all translations`);
       setTranslatedMessages(new Map());
       // Force re-evaluation of translation needs after clearing
       setTimeout(() => {
-        console.log(`Re-evaluating translations for language: ${currentLanguage}`);
+        console.log(`Re-evaluating translations for language: ${userLanguage}`);
       }, 100);
     }
-  }, [currentLanguage]);
+  }, [user]);
 
   // Translate messages based on user preference
   useEffect(() => {
     if (!user || !roomMessages.length) return;
     
+    const userLanguage = (user as any)?.preferredLanguage || 'ja';
     // Enable translation for all users by default when language is different from message language
-    console.log(`Translation check: user autoTranslate = ${(user as any).autoTranslate}, current language = ${currentLanguage}`);
+    console.log(`Translation check: user autoTranslate = ${(user as any).autoTranslate}, current language = ${userLanguage}`);
 
     let cancelled = false;
     
     const translateMessages = async () => {
       const messagesToTranslate = roomMessages.filter(message => 
         message.originalLanguage && 
-        message.originalLanguage !== currentLanguage && 
+        message.originalLanguage !== userLanguage && 
         !translatedMessages.has(message.id)
       );
 
       for (const message of messagesToTranslate) {
         if (cancelled) break;
         
-        console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${currentLanguage}`);
+        console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${userLanguage}`);
         try {
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
-            currentLanguage
+            userLanguage
           );
           
           if (!cancelled) {
@@ -303,43 +285,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   };
 
-  // Language change mutation
-  const updateLanguageMutation = useMutation({
-    mutationFn: async (newLanguage: string) => {
-      return apiRequest('PATCH', '/api/user/settings', { 
-        preferredLanguage: newLanguage 
-      });
-    },
-    onSuccess: (updatedUser) => {
-      const newLang = (updatedUser as any)?.preferredLanguage;
-      console.log('Language updated successfully to:', newLang);
-      // Update the query cache with new user data
-      queryClient.setQueryData(['/api/auth/user'], updatedUser);
-      // Note: Local state was already updated in handleLanguageChange for immediate UI response
-    },
-    onError: (error) => {
-      console.error('Language update failed:', error);
-    },
-  });
 
-  const handleLanguageChange = (newLanguage: string) => {
-    console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
-    
-    // Skip if same language
-    if (newLanguage === currentLanguage) {
-      console.log('Same language selected, skipping update');
-      return;
-    }
-    
-    // Store in localStorage immediately for immediate persistence
-    localStorage.setItem('selectedLanguage', newLanguage);
-    
-    // Immediately update local state for responsive UI
-    setLocalLanguage(newLanguage);
-    
-    // Then update on server
-    updateLanguageMutation.mutate(newLanguage);
-  };
 
   return (
     <main className="flex-1 flex flex-col w-full h-full">
@@ -411,27 +357,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-            {/* Language Selector */}
-            <div className="flex items-center gap-2">
-              <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <Select
-                value={currentLanguage}
-                onValueChange={handleLanguageChange}
-              >
-                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
-                  <SelectValue placeholder={
-                    getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || currentLanguage
-                  } />
-                </SelectTrigger>
-                <SelectContent>
-                  {getSupportedLanguages().map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.nativeName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
             
             {/* Auto-translate status */}
             <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">

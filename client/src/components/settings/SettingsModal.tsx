@@ -40,14 +40,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const getUserSettings = () => {
     if (user) {
       return {
-        preferredLanguage: (user as any)?.preferredLanguage || 'ja',
         interfaceLanguage: (user as any)?.interfaceLanguage || 'ja',
         showOriginalText: (user as any)?.showOriginalText ?? true,
         autoTranslate: (user as any)?.autoTranslate ?? true,
       };
     }
     return {
-      preferredLanguage: 'ja',
       interfaceLanguage: 'ja',
       showOriginalText: true,
       autoTranslate: true,
@@ -154,24 +152,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </Select>
                 </div>
                 
-                <div>
-                  <Label htmlFor="messageLanguage">{t('settings.messageLanguage')}</Label>
-                  <Select 
-                    value={settings.preferredLanguage}
-                    onValueChange={(value) => updateSetting('preferredLanguage', value)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="言語を選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getSupportedLanguages().map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.nativeName} ({lang.name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+
               </div>
             </div>
           </TabsContent>
