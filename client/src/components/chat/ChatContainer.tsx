@@ -288,14 +288,32 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   // Language change mutation
   const updateLanguageMutation = useMutation({
     mutationFn: async (newLanguage: string) => {
-      return apiRequest('PATCH', '/api/user/settings', { 
+      const response = await apiRequest('PATCH', '/api/user/settings', { 
         preferredLanguage: newLanguage 
       });
+      return await response.json();
     },
     onSuccess: (updatedUser) => {
       const newLang = (updatedUser as any)?.preferredLanguage;
       console.log('Language updated successfully to:', newLang);
+      
+      // Update query cache
       queryClient.setQueryData(['/api/auth/user'], updatedUser);
+      
+      // Update localStorage
+      const wsUserData = localStorage.getItem('wsUserData');
+      if (wsUserData) {
+        try {
+          const parsedData = JSON.parse(wsUserData);
+          const updatedUserData = { ...parsedData, ...updatedUser };
+          localStorage.setItem('wsUserData', JSON.stringify(updatedUserData));
+        } catch (error) {
+          console.error('Error updating localStorage user data:', error);
+        }
+      }
+      
+      // Force component re-render by invalidating user query
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error) => {
       console.error('Language update failed:', error);
