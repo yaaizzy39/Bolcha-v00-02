@@ -49,6 +49,9 @@ export function MessageBubble({
   // Show translation if we have translated text and the message is in a different language
   const shouldShowTranslation = Boolean(translatedText) && 
     String(message.originalLanguage) !== String(currentUserLanguage);
+  
+  // Only show translated text if translation is actually complete
+  const displayText = shouldShowTranslation && translatedText ? translatedText : message.originalText;
 
   // Get correct profile image URL
   const getProfileImageUrl = () => {
@@ -236,13 +239,8 @@ export function MessageBubble({
             </div>
           )}
           <p className="text-foreground">
-            {renderTextWithLinks(shouldShowTranslation ? (translatedText || message.originalText || '') : (message.originalText || ''), false)}
+            {renderTextWithLinks(displayText || '', false)}
           </p>
-          {shouldShowTranslation && translatedText && (
-            <div className="text-xs text-gray-400 mt-2 border-l-2 border-gray-300 pl-2 opacity-60">
-              原文: {renderTextWithLinks(message.originalText || '', false)}
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
