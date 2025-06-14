@@ -803,6 +803,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Like endpoints
+  app.post('/api/messages/:messageId/like', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const userId = req.user.claims.sub;
+      
+      if (isNaN(messageId)) {
+        return res.status(400).json({ message: "Invalid message ID" });
+      }
+      
+      const result = await storage.toggleMessageLike(messageId, userId);
+      
+      // Broadcast like update to all connected clients
+      broadcastToAll(wss, {
+        type: 'message_like_updated',
+        messageId: messageId,
+        liked: result.liked,
+        totalLikes: result.totalLikes,
+        userId: userId,
+        timestamp: new Date().toISOString(),
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling message like:", error);
+      res.status(500).json({ message: "Failed to toggle like" });
+    }
+  });
+
+  // Get user's liked messages
+  app.get('/api/user/likes', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const likedMessageIds = await storage.getUserLikes(userId);
+      res.json({ likedMessageIds });
+    } catch (error) {
+      console.error("Error fetching user likes:", error);
+      res.status(500).json({ message: "Failed to fetch likes" });
+    }
+  });
+
   // Start periodic cleanup of inactive rooms (every 6 hours)
   setInterval(async () => {
     try {

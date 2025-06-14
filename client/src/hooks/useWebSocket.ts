@@ -37,7 +37,15 @@ interface RoomDeletedData extends BaseWebSocketMessage {
   roomId: number;
 }
 
-type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData | RoomCreatedData | RoomDeletedData;
+interface MessageLikeUpdatedData extends BaseWebSocketMessage {
+  type: 'message_like_updated';
+  messageId: number;
+  liked: boolean;
+  totalLikes: number;
+  userId: string;
+}
+
+type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData | RoomCreatedData | RoomDeletedData | MessageLikeUpdatedData;
 
 export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
@@ -45,6 +53,7 @@ export function useWebSocket() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
+  const [messageLikes, setMessageLikes] = useState<Map<number, { totalLikes: number; userLiked: boolean }>>(new Map());
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -252,6 +261,17 @@ export function useWebSocket() {
           window.dispatchEvent(new CustomEvent('roomDeleted', { 
             detail: { roomId: data.roomId }
           }));
+        } else if (data.type === 'message_like_updated') {
+          console.log('Message like updated:', data.messageId, 'liked:', data.liked, 'total:', data.totalLikes);
+          const currentUserId = (userDataRef.current as any)?.id || (user as any)?.id;
+          setMessageLikes(prev => {
+            const newMap = new Map(prev);
+            newMap.set(data.messageId, {
+              totalLikes: data.totalLikes,
+              userLiked: data.userId === currentUserId ? data.liked : (prev.get(data.messageId)?.userLiked || false)
+            });
+            return newMap;
+          });
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           

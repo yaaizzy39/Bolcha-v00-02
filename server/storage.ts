@@ -2,12 +2,15 @@ import {
   users,
   messages,
   chatRooms,
+  messageLikes,
   type User,
   type UpsertUser,
   type Message,
   type InsertMessage,
   type ChatRoom,
   type InsertChatRoom,
+  type MessageLike,
+  type InsertMessageLike,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, lt, sql } from "drizzle-orm";
@@ -31,6 +34,11 @@ export interface IStorage {
   getMessages(roomId: number, limit?: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   deleteMessage(messageId: number, userId: string): Promise<boolean>;
+  
+  // Like operations
+  toggleMessageLike(messageId: number, userId: string): Promise<{ liked: boolean; totalLikes: number }>;
+  getMessageLikes(messageId: number): Promise<MessageLike[]>;
+  getUserLikes(userId: string): Promise<number[]>; // Returns array of liked message IDs
 }
 
 export class DatabaseStorage implements IStorage {
@@ -183,6 +191,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async toggleMessageLike(messageId: number, userId: string): Promise<{ liked: boolean; totalLikes: number }> {
+    // Check if user has already liked this message
+    const existingLike = await db
+      .select()
+      .from(messageLikes)
+      .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
+
+    let liked: boolean;
+
+    if (existingLike.length > 0) {
+      // Unlike: remove the like
+      await db
+        .delete(messageLikes)
+        .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
+      liked = false;
+    } else {
+      // Like: add the like
+      await db
+        .insert(messageLikes)
+        .values({ messageId, userId });
+      liked = true;
+    }
+
+    // Get total likes count for this message
+    const totalLikesResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(messageLikes)
+      .where(eq(messageLikes.messageId, messageId));
+    
+    const totalLikes = totalLikesResult[0]?.count ?? 0;
+
+    return { liked, totalLikes };
+  }
+
+  async getMessageLikes(messageId: number): Promise<MessageLike[]> {
+    return await db
+      .select()
+      .from(messageLikes)
+      .where(eq(messageLikes.messageId, messageId));
+  }
+
+  async getUserLikes(userId: string): Promise<number[]> {
+    const likes = await db
+      .select({ messageId: messageLikes.messageId })
+      .from(messageLikes)
+      .where(eq(messageLikes.userId, userId));
+    
+    return likes.map(like => like.messageId);
   }
 }
 
