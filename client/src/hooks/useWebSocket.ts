@@ -44,7 +44,8 @@ export function useWebSocket() {
 
   // Store user data in ref when available and also in localStorage for persistence
   useEffect(() => {
-    if (user) {
+    if (user && (user as any).id) {
+      console.log('Storing user data for WebSocket:', (user as any).id);
       userDataRef.current = user;
       localStorage.setItem('wsUserData', JSON.stringify(user));
     }
@@ -55,9 +56,14 @@ export function useWebSocket() {
     const storedUserData = localStorage.getItem('wsUserData');
     if (storedUserData && !userDataRef.current) {
       try {
-        userDataRef.current = JSON.parse(storedUserData);
+        const parsedData = JSON.parse(storedUserData);
+        if (parsedData && parsedData.id) {
+          console.log('Restored user data from localStorage:', parsedData.id);
+          userDataRef.current = parsedData;
+        }
       } catch (e) {
         console.error('Failed to parse stored user data:', e);
+        localStorage.removeItem('wsUserData');
       }
     }
   }, []);
@@ -69,10 +75,12 @@ export function useWebSocket() {
     // Try current user first
     if (user && (user as any)?.id) {
       effectiveUser = user;
+      console.log('Using current user for WebSocket:', (user as any).id);
     }
     // Try stored user data from ref
     else if (userDataRef.current && (userDataRef.current as any)?.id) {
       effectiveUser = userDataRef.current;
+      console.log('Using ref user for WebSocket:', (userDataRef.current as any).id);
     }
     // Try localStorage as final fallback
     else {
@@ -83,9 +91,11 @@ export function useWebSocket() {
           if (parsedUser && parsedUser.id) {
             effectiveUser = parsedUser;
             userDataRef.current = parsedUser; // Update ref
+            console.log('Using localStorage user for WebSocket:', parsedUser.id);
           }
         } catch (e) {
           console.error('Failed to parse stored user data');
+          localStorage.removeItem('wsUserData');
         }
       }
     }
@@ -93,6 +103,7 @@ export function useWebSocket() {
     // Don't connect if no valid user data
     if (!effectiveUser) {
       console.log('No user data available for WebSocket connection');
+      setIsReconnecting(false);
       return;
     }
     
@@ -268,19 +279,21 @@ export function useWebSocket() {
         // Delayed reconnect to avoid rapid connection attempts
         reconnectTimeoutRef.current = setTimeout(() => {
           // Verify we still need to reconnect and have user data
-          if ((!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) && 
-              (user || userDataRef.current || localStorage.getItem('wsUserData'))) {
+          const hasUserData = user || userDataRef.current || localStorage.getItem('wsUserData');
+          const needsReconnect = !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN;
+          
+          if (needsReconnect && hasUserData) {
             console.log('Attempting WebSocket reconnection...');
             connect();
           } else {
-            console.log('No reconnection needed or no user data available');
+            console.log('No reconnection needed or no user data available', { needsReconnect, hasUserData });
             setIsReconnecting(false);
             if (reconnectingTimeoutRef.current) {
               clearTimeout(reconnectingTimeoutRef.current);
               reconnectingTimeoutRef.current = null;
             }
           }
-        }, 2000); // Increased delay for better stability
+        }, 1500); // Slightly reduced delay for faster recovery
       } else {
         console.log('WebSocket closed normally, no reconnection needed');
         setIsReconnecting(false);
@@ -348,11 +361,23 @@ export function useWebSocket() {
     };
   }, [isAuthenticated]);
 
-  // Separate effect for handling user data persistence
+  // Separate effect for handling user data persistence and connection management
   useEffect(() => {
     if (user && (user as any).id) {
+      console.log('User data updated, storing and ensuring connection:', (user as any).id);
       localStorage.setItem('wsUserData', JSON.stringify(user));
       userDataRef.current = user;
+      
+      // Ensure WebSocket connection when user data is available
+      const shouldConnect = () => {
+        return (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) &&
+               !isConnectingRef.current;
+      };
+
+      if (shouldConnect()) {
+        console.log('User data available, initiating WebSocket connection...');
+        setTimeout(() => connect(), 100); // Small delay to ensure state is updated
+      }
     }
   }, [user]);
 
