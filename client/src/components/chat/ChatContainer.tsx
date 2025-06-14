@@ -100,11 +100,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzqJ0/LNgC4NLIzU8t2QQAoUXrTp66hVFApGn+DyvmAaAzqJ0/LNgC4N');
     
-    // Request notification permission
-    if (Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        console.log('Notification permission:', permission);
-      });
+    // Request notification permission (check if Notification API is available)
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('Notification permission:', permission);
+        });
+      }
     }
   }, []);
 
@@ -139,7 +141,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const testNotification = () => {
     console.log('Testing notification...');
     playNotificationSound();
-    if (Notification.permission === 'granted') {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       new Notification('テスト通知', {
         body: 'メンション機能のテストです',
         icon: '/favicon.ico'
@@ -217,14 +219,15 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         playNotificationSound();
         
         // Show browser notification if permission granted
-        if (Notification.permission === 'granted') {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
           new Notification(`メンション通知 - ${message.senderName}`, {
             body: message.originalText,
             icon: message.senderProfileImageUrl || '/favicon.ico',
             tag: `mention-${message.id}`
           });
         } else {
-          console.log('Notification permission not granted:', Notification.permission);
+          console.log('Notification permission not granted or not available:', 
+            typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'API not available');
         }
       }
     });
