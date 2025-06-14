@@ -133,6 +133,14 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 14, 2025**: UI Simplification and Likes Feature Implementation
+  - Implemented comprehensive likes functionality for messages with real-time WebSocket synchronization
+  - Added heart icon like buttons that appear on message hover with user-specific like state tracking
+  - Integrated PostgreSQL storage for likes with proper duplicate handling and user preference persistence
+  - Simplified action buttons to icon-only design (reply, like, delete buttons without text labels)
+  - Removed mention hint text from message input placeholder for cleaner interface
+  - Enhanced message interaction with compact, intuitive controls
+
 - **June 14, 2025**: Application Rebranding and UI Refinements
   - Changed application name from "Chat without Border" to "Bolcha (borderless chat)"
   - Updated all user-facing text and documentation to reflect new branding

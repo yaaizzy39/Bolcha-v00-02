@@ -153,17 +153,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   };
 
-  // Test function for notification
-  const testNotification = () => {
-    console.log('Testing notification...');
-    playNotificationSound();
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification('テスト通知', {
-        body: 'メンション機能のテストです',
-        icon: '/favicon.ico'
-      });
-    }
-  };
+
 
   // Clear messages and reload when room changes
   useEffect(() => {
@@ -534,17 +524,6 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               </Select>
             </div>
             
-            {/* Test notification button (temporary) */}
-            <Button
-              variant="outline" 
-              size="sm"
-              onClick={testNotification}
-              className="h-8 px-3 text-xs"
-            >
-              🔔 Test
-            </Button>
-            
-
 
           </div>
         </div>

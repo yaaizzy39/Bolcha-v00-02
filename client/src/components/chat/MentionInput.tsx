@@ -220,7 +220,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
           value={message}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="メッセージを入力... (@でメンション)"
+          placeholder="メッセージを入力..."
           className="flex-1 min-h-[44px] sm:min-h-[40px] max-h-48 resize-none overflow-hidden text-base sm:text-sm"
           rows={1}
         />
