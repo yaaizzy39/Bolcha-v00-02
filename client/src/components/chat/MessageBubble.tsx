@@ -6,7 +6,7 @@ import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-mod
 import { Languages, Check, CheckCheck, Reply, Trash2, Heart } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { useAuth } from '@/hooks/useAuth';
-import { getDisplayName } from '@/lib/profileUtils';
+import { getDisplayName, getCurrentProfileImage } from '@/lib/profileUtils';
 import type { Message } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -41,10 +41,20 @@ export function MessageBubble({
   onToggleLike
 }: MessageBubbleProps) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
   // Show translation if we have translated text and the message is in a different language
   const shouldShowTranslation = Boolean(translatedText) && 
     String(message.originalLanguage) !== String(currentUserLanguage);
+
+  // Get correct profile image URL
+  const getProfileImageUrl = () => {
+    if (isOwnMessage && user) {
+      return getCurrentProfileImage(user);
+    }
+    return message.senderProfileImageUrl;
+  };
 
 
   // Function to handle link click with warning
@@ -179,7 +189,7 @@ export function MessageBubble({
           </div>
         </div>
         <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarImage src={message.senderProfileImageUrl || undefined} />
+          <AvatarImage src={getProfileImageUrl() || undefined} />
           <AvatarFallback>
             {message.senderName.charAt(0).toUpperCase()}
           </AvatarFallback>
@@ -203,7 +213,7 @@ export function MessageBubble({
       isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
     }`} id={`message-${message.id}`}>
       <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
-        <AvatarImage src={message.senderProfileImageUrl || undefined} />
+        <AvatarImage src={getProfileImageUrl() || undefined} />
         <AvatarFallback>
           {message.senderName.charAt(0).toUpperCase()}
         </AvatarFallback>
