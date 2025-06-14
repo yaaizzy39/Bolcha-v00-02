@@ -214,8 +214,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b bg-white dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">チャットルーム</h2>
+        <div className="flex items-center justify-end">
           <Button onClick={() => setShowCreateModal(true)} size="sm">
             <Plus className="w-4 h-4 mr-2" />
             ルーム作成
