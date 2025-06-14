@@ -5,6 +5,7 @@ import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { RoomsList } from '@/components/rooms/RoomsList';
+import { CreateRoomModal } from '@/components/rooms/CreateRoomModal';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -16,13 +17,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
-import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-react';
+import { MessageCircle, MoreVertical, Settings, LogOut, Globe, Plus } from 'lucide-react';
 import type { ChatRoom } from '@shared/schema';
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [selectedRoomId, setSelectedRoomId] = useState<number | undefined>(undefined);
 
@@ -132,7 +134,17 @@ export default function Home() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-80 bg-background border-r border-border overflow-y-auto">
           <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Rooms</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Rooms</h2>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                size="sm"
+                className="px-3"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                新規作成
+              </Button>
+            </div>
             <RoomsList 
               onRoomSelect={setSelectedRoomId} 
               selectedRoomId={selectedRoomId || undefined}
@@ -155,6 +167,14 @@ export default function Home() {
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ルーム一覧</h2>
+                    <Button
+                      onClick={() => setShowCreateModal(true)}
+                      size="sm"
+                      className="px-3"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      新規作成
+                    </Button>
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
@@ -171,6 +191,16 @@ export default function Home() {
 
       {/* Settings Modal */}
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+      
+      {/* Create Room Modal */}
+      <CreateRoomModal 
+        open={showCreateModal} 
+        onOpenChange={setShowCreateModal}
+        onRoomCreated={(room) => {
+          setSelectedRoomId(room.id);
+          setShowCreateModal(false);
+        }}
+      />
     </div>
   );
 }
