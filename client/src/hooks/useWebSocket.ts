@@ -19,6 +19,7 @@ export function useWebSocket() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectingRef = useRef(false);
   const userDataRef = useRef<any>(null);
+  const connectionAttemptRef = useRef<number>(0);
 
   // Store user data in ref when available and also in localStorage for persistence
   useEffect(() => {
@@ -73,15 +74,24 @@ export function useWebSocket() {
       return;
     }
     
+    // Increment connection attempt counter to track duplicate attempts
+    connectionAttemptRef.current += 1;
+    const currentAttempt = connectionAttemptRef.current;
+    
     // Clear any pending reconnect timeouts
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
     
-    // Don't create new connection if one is already stable
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      return;
+    // Strict check to prevent duplicate connections
+    if (wsRef.current) {
+      if (wsRef.current.readyState === WebSocket.OPEN) {
+        return; // Already connected
+      }
+      if (wsRef.current.readyState === WebSocket.CONNECTING) {
+        return; // Currently connecting
+      }
     }
     
     // Properly close any existing connection before creating new one
@@ -98,6 +108,13 @@ export function useWebSocket() {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      // Verify this is still the current connection attempt
+      if (connectionAttemptRef.current !== currentAttempt) {
+        console.log('Closing outdated WebSocket connection');
+        ws.close();
+        return;
+      }
+      
       console.log('WebSocket connected');
       isConnectingRef.current = false;
       setIsConnected(true);
@@ -185,10 +202,13 @@ export function useWebSocket() {
           clearTimeout(reconnectTimeoutRef.current);
         }
         
-        // Immediate reconnect attempt
+        // Immediate reconnect attempt with proper state management
         reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, 100); // Very short delay for immediate reconnection
+          // Only reconnect if we don't already have a connection
+          if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            connect();
+          }
+        }, 500); // Slightly longer delay to prevent rapid reconnection loops
       }
     };
 
@@ -224,36 +244,27 @@ export function useWebSocket() {
     }
   }, []);
 
-  // Initial connection effect
+  // Single connection management effect
   useEffect(() => {
-    const initializeConnection = () => {
+    const shouldConnect = () => {
       const storedUserData = localStorage.getItem('wsUserData');
       const hasValidAuth = isAuthenticated || (user && (user as any).id) || storedUserData;
       
-      if (hasValidAuth && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
-        if (!isConnectingRef.current) {
-          connect();
-        }
-      }
+      return hasValidAuth && 
+             (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) &&
+             !isConnectingRef.current;
     };
 
-    // Initial connection attempt
-    initializeConnection();
-
-    // Retry connection on auth state changes
-    const timeoutId = setTimeout(() => {
-      if (!isConnected && !isConnectingRef.current) {
-        initializeConnection();
-      }
-    }, 1000);
+    if (shouldConnect()) {
+      connect();
+    }
 
     return () => {
-      clearTimeout(timeoutId);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [isAuthenticated, isConnected]);
+  }, [isAuthenticated]);
 
   // Separate effect for handling user data persistence
   useEffect(() => {
