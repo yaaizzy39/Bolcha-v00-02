@@ -202,32 +202,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </div>
                   <Switch
                     checked={settings.showOriginalText}
-                    onCheckedChange={async (checked) => {
-                      setSettings(prev => ({ ...prev, showOriginalText: checked }));
-                      
-                      // Immediate save for showOriginalText changes
-                      const newSettings = { ...settings, showOriginalText: checked };
-                      try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', newSettings);
-                        const data = await response.json();
-                        
-                        // Update cache and localStorage immediately
-                        const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
-                        if (currentUser) {
-                          const updatedUser = { ...currentUser, ...data };
-                          queryClient.setQueryData(['/api/auth/user'], updatedUser);
-                          localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
-                          localStorage.setItem('userSettings', JSON.stringify({
-                            preferredLanguage: updatedUser.preferredLanguage || 'ja',
-                            interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
-                            showOriginalText: updatedUser.showOriginalText ?? true,
-                            autoTranslate: updatedUser.autoTranslate ?? true,
-                          }));
-                        }
-                      } catch (error) {
-                        console.error('Failed to update showOriginalText:', error);
-                      }
-                    }}
+                    onCheckedChange={(checked) => updateSetting('showOriginalText', checked)}
                   />
                 </div>
               </div>
@@ -243,9 +218,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={updateSettingsMutation.isPending}
           >
-            {updateSettingsMutation.isPending ? t('settings.saving') : t('settings.save')}
+            {t('settings.save')}
           </Button>
         </div>
       </DialogContent>
