@@ -212,7 +212,7 @@ export function MessageBubble({
             )}
           </div>
           <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${shouldDisplayRight ? 'justify-end' : 'justify-start'}`}>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
             <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
               {onReply && (
@@ -286,7 +286,7 @@ export function MessageBubble({
             >
               <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
                 <Reply className="w-3 h-3" />
-                返信先: {message.replyToSenderName}
+                返信先: {message.replyToSenderName || 'Unknown User'}
               </div>
               <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
             </div>
@@ -307,7 +307,7 @@ export function MessageBubble({
           )}
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
             {onReply && (
