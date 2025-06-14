@@ -47,19 +47,33 @@ export default function Home() {
     }
   }, [rooms, selectedRoomId]);
 
-  // Listen for WebSocket room deletion events
+  // Listen for WebSocket room events
   useEffect(() => {
-    const handleRoomDeleted = (event: CustomEvent) => {
-      console.log('Room deletion event received:', event.detail);
-      setSelectedRoomId(undefined);
+    const handleRoomCreated = (event: CustomEvent) => {
+      console.log('Room creation event received:', event.detail);
+      // Invalidate and refetch room list to show new room
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
     };
 
+    const handleRoomDeleted = (event: CustomEvent) => {
+      console.log('Room deletion event received:', event.detail);
+      // Invalidate and refetch room list to remove deleted room
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
+      
+      if (event.detail?.roomId === selectedRoomId) {
+        console.log('Currently selected room was deleted, clearing selection');
+        setSelectedRoomId(undefined);
+      }
+    };
+
+    window.addEventListener('roomCreated', handleRoomCreated as EventListener);
     window.addEventListener('roomDeleted', handleRoomDeleted as EventListener);
     
     return () => {
+      window.removeEventListener('roomCreated', handleRoomCreated as EventListener);
       window.removeEventListener('roomDeleted', handleRoomDeleted as EventListener);
     };
-  }, []);
+  }, [selectedRoomId, queryClient]);
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
