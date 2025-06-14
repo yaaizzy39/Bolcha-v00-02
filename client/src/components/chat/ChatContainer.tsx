@@ -5,7 +5,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
-import { TranslationDemo } from './TranslationDemo';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getSupportedLanguages } from '@/lib/languageSupport';
-import { Languages, Users, TestTube, ArrowDown, Shield, Menu, MessageSquare } from 'lucide-react';
+import { Languages, Users, ArrowDown, Shield, Menu, MessageSquare } from 'lucide-react';
 import type { Message, ChatRoom } from '@shared/schema';
 
 // Room name translations
@@ -85,7 +85,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
-  const [showTestPanel, setShowTestPanel] = useState(false);
+
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -407,21 +407,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               </Select>
             </div>
             
-            {/* Auto-translate status */}
-            <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-              <span>{t('chat.autoTranslate')}: {(user as any)?.autoTranslate ? t('chat.on') : t('chat.off')}</span>
-            </div>
-            
-            {/* Action buttons */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowTestPanel(!showTestPanel)}
-              className="flex items-center gap-1 p-2"
-            >
-              <TestTube className="w-4 h-4" />
-              <span className="hidden sm:inline">{showTestPanel ? 'テスト非表示' : 'テスト'}</span>
-            </Button>
+
             <Button variant="ghost" size="sm" onClick={onOpenSettings} className="p-2">
               <span className="hidden sm:inline">{t('chat.settings')}</span>
               <span className="sm:hidden">設定</span>
@@ -430,12 +416,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         </div>
       </div>
 
-      {/* Translation Test Panel */}
-      {showTestPanel && (
-        <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex-shrink-0">
-          <TranslationDemo />
-        </div>
-      )}
+
 
       {/* Messages Container */}
       <div className="flex-1 overflow-hidden relative">
