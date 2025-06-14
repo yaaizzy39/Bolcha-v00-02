@@ -20,7 +20,7 @@ export function MessageInput({ onSendMessage, replyingTo, onCancelReply }: Messa
   const { detectLanguage } = useTranslation();
 
   const detectedLanguage = message.trim() ? detectLanguage(message) : null;
-  const targetLanguage = user?.preferredLanguage === 'ja' ? 'en' : 'ja';
+  const targetLanguage = (user as any)?.preferredLanguage === 'ja' ? 'en' : 'ja';
 
   const handleSend = () => {
     if (message.trim()) {

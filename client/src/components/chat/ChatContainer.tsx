@@ -216,7 +216,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [roomMessages, user, translateText, currentLanguage]);
+  }, [roomMessages, user, translateText]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
@@ -422,7 +422,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     translatedText={translation}
                     isOwnMessage={isOwnMessage}
                     showOriginal={(user as any)?.showOriginalText || false}
-                    currentUserLanguage={currentLanguage}
+                    currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
                     onReply={handleReply}
                     onNavigateToMessage={handleNavigateToMessage}
                     onDelete={message.senderId === currentUserId || (user as any)?.email === 'yaaizzy39@gmail.com' ? handleDeleteMessage : undefined}
