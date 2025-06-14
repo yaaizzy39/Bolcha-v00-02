@@ -59,19 +59,30 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     mutationFn: async (newSettings: typeof settings) => {
       return await apiRequest('PATCH', '/api/user/settings', newSettings);
     },
-    onSuccess: (data) => {
-      // Keep user authenticated by preserving all user data
-      const currentUser = queryClient.getQueryData(['/api/auth/user']);
+    onSuccess: async (response) => {
+      const data = await response.json();
+      
+      // Preserve user authentication state by carefully updating cache
+      const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
       if (currentUser) {
-        queryClient.setQueryData(['/api/auth/user'], {
+        const updatedUser = {
           ...currentUser,
           ...data
-        });
+        };
+        
+        // Update cache without triggering re-render loops
+        queryClient.setQueryData(['/api/auth/user'], updatedUser);
+        
+        // Also update localStorage for WebSocket persistence
+        localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
       }
       
+      // Invalidate rooms cache to refresh UI with new language settings
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
+      
       toast({
-        title: "Settings updated", 
-        description: "Your preferences have been saved successfully.",
+        title: "設定更新完了", 
+        description: "設定が正常に保存されました。",
       });
     },
     onError: (error) => {

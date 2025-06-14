@@ -140,19 +140,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
     const userId = String((currentUser as any).id);
     const createdBy = String(room.createdBy);
-    const isOwner = userId === createdBy;
-    
-    // Only log when there's actually a user to check
-    if (userId) {
-      console.log(`Room ownership check for "${room.name}":`, {
-        userId,
-        createdBy,
-        isOwner,
-        source
-      });
-    }
-    
-    return isOwner;
+    return userId === createdBy;
   };
 
   const formatLastActivity = (timestamp: string | Date | null) => {

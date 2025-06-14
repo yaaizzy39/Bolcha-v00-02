@@ -8,11 +8,12 @@ export function useAuth() {
       if (error?.status === 401) return false;
       return failureCount < 2;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes (reduced for more frequent updates)
+    staleTime: 2 * 60 * 1000, // 2 minutes for more responsive updates
     gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: true, // Re-enable to ensure fresh auth state
-    refetchOnMount: true, // Re-enable to ensure fresh auth state
-    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    refetchOnWindowFocus: false, // Disable to prevent unnecessary refetches
+    refetchOnMount: false, // Disable to prevent unnecessary refetches
+    refetchInterval: false, // Disable interval to reduce server load
+    networkMode: 'online', // Only fetch when online
   });
 
   return {

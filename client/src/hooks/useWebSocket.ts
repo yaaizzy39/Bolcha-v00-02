@@ -104,11 +104,8 @@ export function useWebSocket() {
         userEmail: (currentUser as any)?.email
       });
       
-      // Use fallback for userId if not available from current user state
-      const fallbackUserId = userId || localStorage.getItem('currentUserId') || "19464369";
-      
-      // Don't send auth if we don't have a valid userId
-      if (!fallbackUserId) {
+      // Only proceed if we have a valid userId
+      if (!userId) {
         console.error('No valid userId available for WebSocket auth - closing connection');
         ws.close();
         return;
@@ -116,7 +113,7 @@ export function useWebSocket() {
       
       ws.send(JSON.stringify({
         type: 'auth',
-        userId: fallbackUserId,
+        userId: userId,
         userName: userName
       }));
     };
@@ -211,17 +208,20 @@ export function useWebSocket() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && user && !wsRef.current) {
-      connect();
+    // Only connect if authenticated and we have user data
+    if (isAuthenticated && (user || userDataRef.current)) {
+      // Don't create new connection if one is already open
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        connect();
+      }
     }
 
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
-      disconnect();
     };
-  }, [isAuthenticated, connect, disconnect]);
+  }, [isAuthenticated, (user as any)?.id, connect]);
 
   return {
     isConnected,
