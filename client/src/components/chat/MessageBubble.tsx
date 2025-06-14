@@ -276,6 +276,7 @@ export function MessageBubble({
               </Button>
             )}
           </div>
+          <span>{timestamp}</span>
         </div>
         <DeleteConfirmationModal
           open={showDeleteModal}
