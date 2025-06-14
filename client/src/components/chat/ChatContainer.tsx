@@ -343,10 +343,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         !translatedMessages.has(message.id)
       );
 
+      console.log(`Found ${messagesToTranslate.length} messages to translate`);
+      
       for (const message of messagesToTranslate) {
         if (cancelled) break;
         
-        console.log(`Translating message ${message.id} from ${message.originalLanguage} to ${userLanguage}`);
+        console.log(`Translating message ${message.id}: "${message.originalText}" from ${message.originalLanguage} to ${userLanguage}`);
+        
         try {
           const translatedText = await translateText(
             message.originalText,
@@ -354,12 +357,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             userLanguage
           );
           
+          console.log(`Translation result for message ${message.id}: "${translatedText}"`);
+          
           if (!cancelled) {
-            console.log(`Setting translation for message ${message.id}: "${translatedText}"`);
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
               newMap.set(message.id, translatedText);
-              console.log(`Translation map updated, size: ${newMap.size}, message ${message.id} = "${newMap.get(message.id)}"`);
               return newMap;
             });
           }
