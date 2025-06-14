@@ -63,6 +63,14 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     enabled: !!user && !!roomId,
   });
 
+  // Load initial online count for the current room
+  const { data: initialOnlineCount } = useQuery({
+    queryKey: ['/api/rooms', roomId, 'online-count'],
+    queryFn: () => fetch(`/api/rooms/${roomId}/online-count`, { credentials: 'include' }).then(res => res.json()),
+    enabled: !!roomId,
+    select: (data) => data.onlineCount,
+  });
+
   // Load all rooms for mobile selector
   const { data: allRooms = [] } = useQuery({
     queryKey: ['/api/rooms'],
@@ -497,7 +505,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             )}
             <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <Users className="w-3 h-3" />
-              <span>{onlineCount}</span>
+              <span>{onlineCount ?? initialOnlineCount ?? 0}</span>
             </Badge>
           </div>
           
