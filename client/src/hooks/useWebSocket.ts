@@ -60,7 +60,7 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const [messageLikes, setMessageLikes] = useState<Map<number, { totalLikes: number; userLiked: boolean }>>(new Map());
-  const [onlineCount, setOnlineCount] = useState<number>(0);
+  const [onlineCount, setOnlineCount] = useState<number | null>(null);
 
   // Function to initialize likes from user data
   const initializeLikes = useCallback((userLikedIds: number[]) => {
@@ -298,8 +298,9 @@ export function useWebSocket() {
           });
         } else if (data.type === 'online_count_updated') {
           console.log('Online count updated:', data.onlineCount, 'for room:', data.roomId);
-          console.log('Setting online count state to:', data.onlineCount);
-          setOnlineCount(data.onlineCount);
+          console.log('Current state before update:', onlineCount);
+          setOnlineCount(Number(data.onlineCount));
+          console.log('State set to:', Number(data.onlineCount));
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           

@@ -674,6 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to broadcast online user count updates
   function broadcastOnlineCount(roomId: number) {
     const count = getOnlineUserCount(roomId);
+    console.log(`Broadcasting online count for room ${roomId}: ${count} users`);
     broadcastToRoom(wss, roomId, {
       type: 'online_count_updated',
       roomId,
