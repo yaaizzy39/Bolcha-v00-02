@@ -18,6 +18,9 @@ export function ProfileImageUpload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Get interface language from user settings
+  const interfaceLanguage = (user as any)?.interfaceLanguage || 'ja';
 
 
   // Get the current profile image to display
@@ -199,7 +202,9 @@ export function ProfileImageUpload() {
       <div className="space-y-4">
         {/* File Upload */}
         <div>
-          <Label className="text-sm font-medium">Upload Image File</Label>
+          <Label className="text-sm font-medium">
+            {interfaceLanguage === 'en' ? 'Upload Image File' : '画像ファイルをアップロード'}
+          </Label>
           <div className="mt-2 flex items-center gap-2">
             <Input
               ref={fileInputRef}
@@ -215,10 +220,13 @@ export function ProfileImageUpload() {
               className="flex items-center gap-2"
             >
               <Upload className="w-4 h-4" />
-              {isUploading ? 'Uploading...' : 'Choose File'}
+              {isUploading 
+                ? (interfaceLanguage === 'en' ? 'Uploading...' : 'アップロード中...') 
+                : (interfaceLanguage === 'en' ? 'Choose File' : 'ファイルを選択')
+              }
             </Button>
             <span className="text-xs text-muted-foreground">
-              Max 1MB, JPG/PNG
+              {interfaceLanguage === 'en' ? 'Max 1MB, JPG/PNG' : '最大1MB、JPG/PNG'}
             </span>
           </div>
         </div>
@@ -235,12 +243,15 @@ export function ProfileImageUpload() {
             )}
             <div>
               <p className="font-medium">
-                {currentUser?.useCustomProfileImage ? 'Custom Image' : 'Google Account Image'}
+                {currentUser?.useCustomProfileImage 
+                  ? (interfaceLanguage === 'en' ? 'Custom Image' : 'カスタム画像')
+                  : (interfaceLanguage === 'en' ? 'Google Account Image' : 'Googleアカウント画像')
+                }
               </p>
               <p className="text-sm text-muted-foreground">
                 {currentUser?.useCustomProfileImage 
-                  ? 'Using your uploaded image'
-                  : 'Using your Google profile picture'
+                  ? (interfaceLanguage === 'en' ? 'Using your uploaded image' : 'アップロードした画像を使用中')
+                  : (interfaceLanguage === 'en' ? 'Using your Google profile picture' : 'Googleプロフィール画像を使用中')
                 }
               </p>
             </div>
@@ -254,7 +265,7 @@ export function ProfileImageUpload() {
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Switch
+              {interfaceLanguage === 'en' ? 'Switch' : '切り替え'}
             </Button>
           </div>
         </div>
