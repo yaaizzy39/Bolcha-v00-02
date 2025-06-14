@@ -64,64 +64,49 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     }
   }, [user]);
 
-  const updateSettingsMutation = useMutation({
-    mutationFn: async (newSettings: typeof settings) => {
-      return await apiRequest('PATCH', '/api/user/settings', newSettings);
-    },
-    onSuccess: async (response) => {
-      const data = await response.json();
+  // Simplified update function that doesn't use mutation
+  const updateSetting = async (key: keyof typeof settings, value: any) => {
+    try {
+      console.log(`Updating ${key} to:`, value);
       
-      // Get current user data without causing re-renders
+      // Create new settings with updated value
+      const newSettings = { ...settings, [key]: value };
+      console.log('New settings object:', newSettings);
+      
+      // Update local state immediately
+      setSettings(newSettings);
+      
+      // Make API call
+      const response = await apiRequest('PATCH', '/api/user/settings', newSettings);
+      const data = await response.json();
+      console.log('API response:', data);
+      
+      // Update cache and localStorage
       const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
       if (currentUser) {
-        const updatedUser = {
-          ...currentUser,
-          ...data
-        };
-        
-        // Update cache directly without triggering watchers
+        const updatedUser = { ...currentUser, ...data };
         queryClient.setQueryData(['/api/auth/user'], updatedUser);
-        
-        // Update localStorage immediately for WebSocket persistence
         localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
-        
-        // Store user ID separately for room ownership checks
         localStorage.setItem('currentUserId', String(updatedUser.id));
-        
-        // Store settings in localStorage for immediate UI updates
         localStorage.setItem('userSettings', JSON.stringify({
           preferredLanguage: updatedUser.preferredLanguage || 'ja',
-          interfaceLanguage: updatedUser.interfaceLanguage || 'ja', 
+          interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
           showOriginalText: updatedUser.showOriginalText ?? true,
           autoTranslate: updatedUser.autoTranslate ?? true,
         }));
-        
-        // Update local state
-        setSettings({
-          preferredLanguage: updatedUser.preferredLanguage || 'ja',
-          interfaceLanguage: updatedUser.interfaceLanguage || 'ja', 
-          showOriginalText: updatedUser.showOriginalText ?? true,
-          autoTranslate: updatedUser.autoTranslate ?? true,
-        });
       }
       
-      toast({
-        title: "設定更新完了", 
-        description: "設定が正常に保存されました。",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update settings. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+      console.log(`${key} updated successfully`);
+    } catch (error) {
+      console.error(`Failed to update ${key}:`, error);
+      // Revert on error
+      setSettings(settings);
+    }
+  };
 
   const handleSave = () => {
-    // Prevent closing modal during update to avoid re-renders
-    updateSettingsMutation.mutate(settings);
+    // Settings are now saved automatically when changed
+    console.log('Settings are auto-saved');
   };
 
   const handleLogout = () => {
@@ -154,42 +139,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <Label htmlFor="interfaceLanguage">{t('settings.interfaceLanguage')}</Label>
                   <Select 
                     value={settings.interfaceLanguage}
-                    onValueChange={async (value) => {
-                      console.log('Interface language change:', value, 'from:', settings.interfaceLanguage);
-                      
-                      // Create updated settings object for API call immediately
-                      const updatedSettings = { ...settings, interfaceLanguage: value };
-                      console.log('Sending API request with:', updatedSettings);
-                      
-                      // Update local state immediately
-                      setSettings(updatedSettings);
-                      
-                      try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
-                        const data = await response.json();
-                        
-                        // Update cache and localStorage immediately
-                        const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
-                        if (currentUser) {
-                          const updatedUser = { ...currentUser, ...data };
-                          queryClient.setQueryData(['/api/auth/user'], updatedUser);
-                          localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
-                          localStorage.setItem('currentUserId', String(updatedUser.id));
-                          localStorage.setItem('userSettings', JSON.stringify({
-                            preferredLanguage: updatedUser.preferredLanguage || 'ja',
-                            interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
-                            showOriginalText: updatedUser.showOriginalText ?? true,
-                            autoTranslate: updatedUser.autoTranslate ?? true,
-                          }));
-                        }
-                        
-                        console.log('Interface language updated successfully to:', data.interfaceLanguage);
-                      } catch (error) {
-                        console.error('Failed to update interface language:', error);
-                        // Revert settings on error
-                        setSettings(settings);
-                      }
-                    }}
+                    onValueChange={(value) => updateSetting('interfaceLanguage', value)}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="言語を選択" />
@@ -208,42 +158,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <Label htmlFor="messageLanguage">{t('settings.messageLanguage')}</Label>
                   <Select 
                     value={settings.preferredLanguage}
-                    onValueChange={async (value) => {
-                      console.log('Preferred language change:', value, 'from:', settings.preferredLanguage);
-                      
-                      // Create updated settings object for API call immediately
-                      const updatedSettings = { ...settings, preferredLanguage: value };
-                      console.log('Sending API request with preferred:', updatedSettings);
-                      
-                      // Update local state immediately
-                      setSettings(updatedSettings);
-                      
-                      try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
-                        const data = await response.json();
-                        
-                        // Update cache and localStorage immediately
-                        const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
-                        if (currentUser) {
-                          const updatedUser = { ...currentUser, ...data };
-                          queryClient.setQueryData(['/api/auth/user'], updatedUser);
-                          localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
-                          localStorage.setItem('currentUserId', String(updatedUser.id));
-                          localStorage.setItem('userSettings', JSON.stringify({
-                            preferredLanguage: updatedUser.preferredLanguage || 'ja',
-                            interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
-                            showOriginalText: updatedUser.showOriginalText ?? true,
-                            autoTranslate: updatedUser.autoTranslate ?? true,
-                          }));
-                        }
-                        
-                        console.log('Preferred language updated successfully to:', data.preferredLanguage);
-                      } catch (error) {
-                        console.error('Failed to update preferred language:', error);
-                        // Revert settings on error
-                        setSettings(settings);
-                      }
-                    }}
+                    onValueChange={(value) => updateSetting('preferredLanguage', value)}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="言語を選択" />
@@ -274,32 +189,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </div>
                   <Switch
                     checked={settings.autoTranslate}
-                    onCheckedChange={async (checked) => {
-                      setSettings(prev => ({ ...prev, autoTranslate: checked }));
-                      
-                      // Immediate save for autoTranslate changes
-                      const newSettings = { ...settings, autoTranslate: checked };
-                      try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', newSettings);
-                        const data = await response.json();
-                        
-                        // Update cache and localStorage immediately
-                        const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
-                        if (currentUser) {
-                          const updatedUser = { ...currentUser, ...data };
-                          queryClient.setQueryData(['/api/auth/user'], updatedUser);
-                          localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
-                          localStorage.setItem('userSettings', JSON.stringify({
-                            preferredLanguage: updatedUser.preferredLanguage || 'ja',
-                            interfaceLanguage: updatedUser.interfaceLanguage || 'ja',
-                            showOriginalText: updatedUser.showOriginalText ?? true,
-                            autoTranslate: updatedUser.autoTranslate ?? true,
-                          }));
-                        }
-                      } catch (error) {
-                        console.error('Failed to update autoTranslate:', error);
-                      }
-                    }}
+                    onCheckedChange={(checked) => updateSetting('autoTranslate', checked)}
                   />
                 </div>
                 
