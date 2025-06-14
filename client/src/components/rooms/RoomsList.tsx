@@ -116,43 +116,43 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     },
   });
 
-  // Improved room ownership check with fallback authentication
+  // Robust room ownership check with multiple authentication sources
   const isRoomOwner = (room: ChatRoom): boolean => {
-    // First check current user from auth hook
+    let currentUser = null;
+    let source = '';
+
+    // Try auth hook first
     if (user && (user as any)?.id) {
-      const userId = String((user as any).id);
-      const createdBy = String(room.createdBy);
-      const isOwner = userId === createdBy;
-      
+      currentUser = user;
+      source = 'auth-hook';
+    } else {
+      // Fallback to cached user data
+      const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
+      if (cachedUser && cachedUser.id) {
+        currentUser = cachedUser;
+        source = 'cache-fallback';
+      }
+    }
+
+    if (!currentUser) {
+      return false;
+    }
+
+    const userId = String((currentUser as any).id);
+    const createdBy = String(room.createdBy);
+    const isOwner = userId === createdBy;
+    
+    // Only log when there's actually a user to check
+    if (userId) {
       console.log(`Room ownership check for "${room.name}":`, {
         userId,
         createdBy,
         isOwner,
-        source: 'auth-hook'
+        source
       });
-      
-      return isOwner;
     }
     
-    // Fallback: check cached user data directly
-    const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
-    if (cachedUser && cachedUser.id) {
-      const userId = String(cachedUser.id);
-      const createdBy = String(room.createdBy);
-      const isOwner = userId === createdBy;
-      
-      console.log(`Room ownership check for "${room.name}":`, {
-        userId,
-        createdBy,
-        isOwner,
-        source: 'cache-fallback'
-      });
-      
-      return isOwner;
-    }
-    
-    console.log(`No user found for room ownership check: "${room.name}"`);
-    return false;
+    return isOwner;
   };
 
   const formatLastActivity = (timestamp: string | Date | null) => {
@@ -171,12 +171,7 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
   };
 
   const canDeleteRoom = (room: ChatRoom) => {
-    if (!user) return false;
-    
-    const userId = (user as any)?.id;
-    if (!userId) return false;
-    
-    return room.createdBy === userId;
+    return isRoomOwner(room);
   };
 
   const handleCreateRoom = () => {

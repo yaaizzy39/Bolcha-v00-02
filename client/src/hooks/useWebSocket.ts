@@ -42,7 +42,6 @@ export function useWebSocket() {
 
   const connect = useCallback(() => {
     if (!isAuthenticated || (!user && !userDataRef.current) || isConnectingRef.current) {
-      console.log('WebSocket connect blocked:', { isAuthenticated, hasUser: !!user, hasStoredUser: !!userDataRef.current, isConnecting: isConnectingRef.current });
       return;
     }
     
@@ -52,8 +51,13 @@ export function useWebSocket() {
       reconnectTimeoutRef.current = null;
     }
     
-    // Close existing connection if any
-    if (wsRef.current) {
+    // Don't close existing stable connection
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      return;
+    }
+    
+    // Close only if connection is closed/failed
+    if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
       wsRef.current.close();
       wsRef.current = null;
     }
@@ -153,14 +157,24 @@ export function useWebSocket() {
       }
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
+    ws.onclose = (event) => {
+      console.log('WebSocket disconnected', { code: event.code, reason: event.reason });
       isConnectingRef.current = false;
       setIsConnected(false);
       
       // Clear the reference if this was the current connection
       if (wsRef.current === ws) {
         wsRef.current = null;
+      }
+      
+      // Auto-reconnect only if it wasn't a manual close and user is still authenticated
+      if (event.code !== 1000 && isAuthenticated && (user || userDataRef.current)) {
+        console.log('Scheduling WebSocket reconnection in 3 seconds...');
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            connect();
+          }
+        }, 3000);
       }
     };
 
