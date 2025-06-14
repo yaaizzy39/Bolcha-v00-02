@@ -158,9 +158,7 @@ export function MessageBubble({
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
             )}
-            {isTranslating ? (
-              <p className="italic text-amber-200/70">翻訳中...</p>
-            ) : showBothTexts ? (
+            {showBothTexts ? (
               <div>
                 <p className="mb-2">
                   {renderTextWithLinks(translatedText || '', true)}
@@ -249,9 +247,7 @@ export function MessageBubble({
               <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
             </div>
           )}
-          {isTranslating ? (
-            <p className="text-foreground italic text-gray-500">翻訳中...</p>
-          ) : showBothTexts ? (
+          {showBothTexts ? (
             <div>
               <p className="text-foreground mb-2">
                 {renderTextWithLinks(translatedText || '', false)}
