@@ -143,11 +143,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       <SelectValue placeholder="言語を選択" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getSupportedLanguages().map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.nativeName} ({lang.name})
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="ja">日本語 (Japanese)</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
