@@ -326,52 +326,57 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [user]);
 
-  // Translate messages based on user preference - temporarily disabled to fix infinite loop
-  // useEffect(() => {
-  //   if (!user || !roomMessages.length) return;
+  // Translate messages based on user preference
+  useEffect(() => {
+    if (!user || !roomMessages.length) return;
     
-  //   const userLanguage = (user as any)?.preferredLanguage || 'ja';
-  //   if (!(user as any)?.autoTranslate) return;
+    const userLanguage = (user as any)?.preferredLanguage || 'ja';
+    if (!(user as any)?.autoTranslate) return;
 
-  //   let cancelled = false;
+    let cancelled = false;
     
-  //   const translateMessages = async () => {
-  //     const messagesToTranslate = roomMessages.filter(message => 
-  //       message.originalLanguage && 
-  //       message.originalLanguage !== userLanguage && 
-  //       !translatedMessages.has(message.id)
-  //     );
+    const translateMessages = async () => {
+      // Only translate messages that need translation and haven't been translated yet
+      const messagesToTranslate = roomMessages.filter(message => 
+        message.originalLanguage && 
+        message.originalLanguage !== userLanguage && 
+        !translatedMessages.has(message.id) &&
+        message.senderId !== (user as any).id // Don't translate user's own messages
+      );
       
-  //     for (const message of messagesToTranslate) {
-  //       if (cancelled) break;
+      if (messagesToTranslate.length === 0) return;
+      
+      for (const message of messagesToTranslate) {
+        if (cancelled) break;
         
-  //       try {
-  //         const translatedText = await translateText(
-  //           message.originalText,
-  //           message.originalLanguage,
-  //           userLanguage
-  //         );
+        try {
+          const translatedText = await translateText(
+            message.originalText,
+            message.originalLanguage,
+            userLanguage
+          );
           
-  //         if (!cancelled) {
-  //           setTranslatedMessages(prev => {
-  //             const newMap = new Map(prev);
-  //             newMap.set(message.id, translatedText);
-  //             return newMap;
-  //           });
-  //         }
-  //       } catch (error) {
-  //         console.error(`Translation failed for message ${message.id}:`, error);
-  //       }
-  //     }
-  //   };
+          if (!cancelled && translatedText && translatedText !== message.originalText) {
+            setTranslatedMessages(prev => {
+              const newMap = new Map(prev);
+              newMap.set(message.id, translatedText);
+              return newMap;
+            });
+          }
+        } catch (error) {
+          console.error(`Translation failed for message ${message.id}:`, error);
+        }
+      }
+    };
 
-  //   const timeoutId = setTimeout(translateMessages, 1000);
+    // Add delay to prevent rapid re-execution
+    const timeoutId = setTimeout(translateMessages, 500);
     
-  //   return () => {
-  //     cancelled = true;
-  //     clearTimeout(timeoutId);
-  //   };
-  // }, [roomMessages, user]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [roomMessages.length, user && (user as any).id, (user as any)?.autoTranslate, (user as any)?.preferredLanguage]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;

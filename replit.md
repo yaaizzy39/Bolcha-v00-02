@@ -133,10 +133,11 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
-- **June 14, 2025**: System Optimization and Bug Fixes
+- **June 14, 2025**: System Optimization and Translation Fix
   - Fixed profile image base64 data storage issue causing massive log entries
   - Prevented base64 image data from being stored in database to reduce overhead
-  - Temporarily disabled automatic translation to resolve infinite loop bug
+  - Resolved automatic translation infinite loop with improved dependency management
+  - Added self-message exclusion to prevent translation of user's own messages
   - Fixed message input duplication display issue with improved WebSocket message handling
   - Implemented real-time online user count display with room-based tracking
   - Added WebSocket-based online count broadcasting and client state synchronization
