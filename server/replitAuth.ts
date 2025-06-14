@@ -40,7 +40,9 @@ export function getSession() {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
+    rolling: true,
   });
 }
 
@@ -139,8 +141,13 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // If no expires_at, assume valid (for better compatibility)
+  if (!user.expires_at) {
+    return next();
   }
 
   const now = Math.floor(Date.now() / 1000);

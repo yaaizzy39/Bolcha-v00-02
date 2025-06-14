@@ -346,7 +346,7 @@ export function useWebSocket() {
         reconnectingTimeoutRef.current = null;
       }
     };
-  }, [isAuthenticated, connect]);
+  }, [isAuthenticated]);
 
   // Separate effect for handling user data persistence
   useEffect(() => {
