@@ -152,12 +152,12 @@ export function MessageBubble({
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
             )}
-            {shouldShowTranslation && (
-              <div className="text-xs text-amber-200/70 mb-2 border-l-2 border-amber-200/40 pl-2">
-                {renderTextWithLinks(message.originalText || '', true)}
+            <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || message.originalText || '') : (message.originalText || ''), true)}</p>
+            {shouldShowTranslation && translatedText && (
+              <div className="text-xs text-amber-200/70 mt-2 border-l-2 border-amber-200/40 pl-2 opacity-60">
+                原文: {renderTextWithLinks(message.originalText || '', true)}
               </div>
             )}
-            <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || '') : (message.originalText || ''), true)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
             <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
@@ -235,14 +235,14 @@ export function MessageBubble({
               <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
             </div>
           )}
-          {shouldShowTranslation && (
-            <div className="text-xs text-gray-400 mb-2 border-l-2 border-gray-300 pl-2">
-              {renderTextWithLinks(message.originalText || '', false)}
+          <p className="text-foreground">
+            {renderTextWithLinks(shouldShowTranslation ? (translatedText || message.originalText || '') : (message.originalText || ''), false)}
+          </p>
+          {shouldShowTranslation && translatedText && (
+            <div className="text-xs text-gray-400 mt-2 border-l-2 border-gray-300 pl-2 opacity-60">
+              原文: {renderTextWithLinks(message.originalText || '', false)}
             </div>
           )}
-          <p className="text-foreground">
-            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}
-          </p>
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
