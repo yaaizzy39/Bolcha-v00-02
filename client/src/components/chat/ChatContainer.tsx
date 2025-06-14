@@ -325,7 +325,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           {/* Room Info */}
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {currentRoom?.name ? translateRoomName(currentRoom.name) : t('chat.title')}
+              {currentRoom?.name ? translateRoomName(currentRoom.name) : '読み込み中...'}
             </h2>
             {currentRoom?.description && (
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
