@@ -391,9 +391,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               variant="outline"
               size="sm"
               onClick={() => onRoomSelect?.(undefined)}
-              className="sm:hidden h-8 px-2 text-xs"
+              className="lg:hidden h-8 px-3 text-sm font-medium"
             >
-              <MessageSquare className="w-4 h-4 mr-1" />
+              <MessageSquare className="w-4 h-4 mr-2" />
               ルーム一覧
             </Button>
             
