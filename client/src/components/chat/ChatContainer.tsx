@@ -5,6 +5,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
+import { getDisplayName } from '@/lib/profileUtils';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

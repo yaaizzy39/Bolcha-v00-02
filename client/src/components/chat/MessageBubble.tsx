@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal';
 import { Languages, Check, CheckCheck, Reply, Trash2 } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
+import { useAuth } from '@/hooks/useAuth';
+import { getDisplayName } from '@/lib/profileUtils';
 import type { Message } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -17,6 +19,7 @@ interface MessageBubbleProps {
   onNavigateToMessage?: (messageId: number) => void;
   onDelete?: (messageId: number) => void;
   isHighlighted?: boolean;
+  isMentioned?: boolean;
 }
 
 export function MessageBubble({ 
@@ -28,7 +31,8 @@ export function MessageBubble({
   onReply,
   onNavigateToMessage,
   onDelete,
-  isHighlighted
+  isHighlighted,
+  isMentioned
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -48,14 +52,17 @@ export function MessageBubble({
     }
   };
 
-  // Function to convert URLs to clickable links and handle line breaks
+  // Function to convert URLs to clickable links and handle line breaks and mentions
   const renderTextWithLinks = (text: string | undefined, isOwnMessage: boolean = false) => {
     if (!text) return '';
     const safeText = String(text);
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = safeText.split(urlRegex);
+    const mentionRegex = /(@\w+)/g;
     
-    return parts.map((part, index) => {
+    // First split by URLs, then handle mentions within each part
+    const urlParts = safeText.split(urlRegex);
+    
+    return urlParts.map((part, index) => {
       if (urlRegex.test(part)) {
         return (
           <a
@@ -71,13 +78,33 @@ export function MessageBubble({
           </a>
         );
       }
-      // Handle line breaks in non-URL parts
-      return part.split('\n').map((line, lineIndex, lines) => (
-        <span key={`${index}-${lineIndex}`}>
-          {line}
-          {lineIndex < lines.length - 1 && <br />}
-        </span>
-      ));
+      
+      // Handle mentions in non-URL parts
+      const mentionParts = part.split(mentionRegex);
+      return mentionParts.map((mentionPart, mentionIndex) => {
+        if (mentionRegex.test(mentionPart)) {
+          return (
+            <span
+              key={`${index}-mention-${mentionIndex}`}
+              className={`font-semibold ${
+                isOwnMessage 
+                  ? 'text-blue-100 bg-blue-500/20 px-1 rounded' 
+                  : 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 px-1 rounded'
+              }`}
+            >
+              {mentionPart}
+            </span>
+          );
+        }
+        
+        // Handle line breaks in non-URL, non-mention parts
+        return mentionPart.split('\n').map((line, lineIndex, lines) => (
+          <span key={`${index}-${mentionIndex}-${lineIndex}`}>
+            {line}
+            {lineIndex < lines.length - 1 && <br />}
+          </span>
+        ));
+      });
     });
   };
   
@@ -89,7 +116,10 @@ export function MessageBubble({
 
   if (isOwnMessage) {
     return (
-      <div className={`group flex items-start gap-2 sm:gap-3 justify-end px-2 sm:px-4 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+      <div className={`group flex items-start gap-2 sm:gap-3 justify-end px-2 sm:px-4 ${
+        isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
+        isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
+      }`} id={`message-${message.id}`}>
         <div className="flex flex-col items-end max-w-[85%] sm:max-w-lg ml-auto">
           <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-3 sm:px-4 py-2 sm:py-3">
             {message.replyToId && (
@@ -162,7 +192,10 @@ export function MessageBubble({
   }
 
   return (
-    <div className={`group flex items-start gap-2 sm:gap-3 justify-start px-2 sm:px-4 ${isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : ''}`} id={`message-${message.id}`}>
+    <div className={`group flex items-start gap-2 sm:gap-3 justify-start px-2 sm:px-4 ${
+      isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
+      isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
+    }`} id={`message-${message.id}`}>
       <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
         <AvatarImage src={message.senderProfileImageUrl || undefined} />
         <AvatarFallback>
