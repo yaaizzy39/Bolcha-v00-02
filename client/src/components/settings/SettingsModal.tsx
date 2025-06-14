@@ -43,12 +43,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         interfaceLanguage: (user as any)?.interfaceLanguage || 'ja',
         showOriginalText: (user as any)?.showOriginalText ?? true,
         autoTranslate: (user as any)?.autoTranslate ?? true,
+        messageAlignment: (user as any)?.messageAlignment || 'right',
       };
     }
     return {
       interfaceLanguage: 'ja',
       showOriginalText: true,
       autoTranslate: true,
+      messageAlignment: 'right',
     };
   };
 
@@ -121,15 +123,18 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile">
               {settings.interfaceLanguage === 'en' ? 'Profile' : 'プロフィール'}
             </TabsTrigger>
             <TabsTrigger value="language">
-              {settings.interfaceLanguage === 'en' ? 'Language Settings' : '言語設定'}
+              {settings.interfaceLanguage === 'en' ? 'Language' : '言語'}
             </TabsTrigger>
             <TabsTrigger value="translation">
-              {settings.interfaceLanguage === 'en' ? 'Translation Settings' : '翻訳設定'}
+              {settings.interfaceLanguage === 'en' ? 'Translation' : '翻訳'}
+            </TabsTrigger>
+            <TabsTrigger value="ui">
+              {settings.interfaceLanguage === 'en' ? 'UI' : 'UI'}
             </TabsTrigger>
           </TabsList>
 
@@ -190,6 +195,42 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     checked={settings.showOriginalText}
                     onCheckedChange={(checked) => updateSetting('showOriginalText', checked)}
                   />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ui" className="space-y-6 mt-6">
+            <div>
+              <h4 className="text-sm font-medium text-foreground mb-3">
+                {settings.interfaceLanguage === 'en' ? 'UI Preferences' : 'UI設定'}
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="messageAlignment">
+                    {settings.interfaceLanguage === 'en' ? 'My Message Position' : '自分のメッセージ位置'}
+                  </Label>
+                  <Select 
+                    value={settings.messageAlignment}
+                    onValueChange={(value) => updateSetting('messageAlignment', value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="right">
+                        {settings.interfaceLanguage === 'en' ? 'Right side (default)' : '右側（デフォルト）'}
+                      </SelectItem>
+                      <SelectItem value="left">
+                        {settings.interfaceLanguage === 'en' ? 'Left side' : '左側'}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {settings.interfaceLanguage === 'en' 
+                      ? 'Choose which side your messages appear on in the chat'
+                      : 'チャット画面で自分のメッセージがどちら側に表示されるかを選択'}
+                  </div>
                 </div>
               </div>
             </div>

@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   interfaceLanguage: varchar("interface_language").default("ja"),
   showOriginalText: boolean("show_original_text").default(true),
   autoTranslate: boolean("auto_translate").default(true),
+  messageAlignment: varchar("message_alignment").default("right"),
   isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
