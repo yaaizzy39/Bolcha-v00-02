@@ -20,6 +20,9 @@ interface MessageBubbleProps {
   onDelete?: (messageId: number) => void;
   isHighlighted?: boolean;
   isMentioned?: boolean;
+  totalLikes?: number;
+  userLiked?: boolean;
+  onToggleLike?: () => void;
 }
 
 export function MessageBubble({ 
@@ -32,7 +35,10 @@ export function MessageBubble({
   onNavigateToMessage,
   onDelete,
   isHighlighted,
-  isMentioned
+  isMentioned,
+  totalLikes = 0,
+  userLiked = false,
+  onToggleLike
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -239,6 +245,21 @@ export function MessageBubble({
               >
                 <Reply className="w-3 h-3 mr-1" />
                 返信
+              </Button>
+            )}
+            {onToggleLike && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleLike}
+                className={`h-6 px-2 text-xs ${
+                  userLiked 
+                    ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300' 
+                    : 'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300'
+                }`}
+              >
+                <Heart className={`w-3 h-3 mr-1 ${userLiked ? 'fill-current' : ''}`} />
+                {totalLikes > 0 ? totalLikes : 'いいね'}
               </Button>
             )}
             {onDelete && (

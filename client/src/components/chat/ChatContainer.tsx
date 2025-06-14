@@ -69,6 +69,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     enabled: !!user,
   });
 
+  // Load user's liked messages
+  const { data: userLikes } = useQuery({
+    queryKey: ['/api/user/likes'],
+    queryFn: () => fetch('/api/user/likes', { credentials: 'include' }).then(res => res.json()),
+    enabled: !!user,
+  });
+
   // Get user's preferred language for room name translation
   // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
   const userLanguage = (user as any)?.preferredLanguage || 
