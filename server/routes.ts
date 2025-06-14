@@ -566,8 +566,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const roomId = parseInt(req.params.roomId);
       
+      // Get the room info to include room creator
+      const room = await db
+        .select()
+        .from(chatRooms)
+        .where(eq(chatRooms.id, roomId))
+        .limit(1);
+      
+      if (room.length === 0) {
+        return res.status(404).json({ message: 'Room not found' });
+      }
+      
       // Get unique users who have sent messages in this room
-      const participants = await db
+      const messageParticipants = await db
         .selectDistinct({
           id: users.id,
           firstName: users.firstName,
@@ -582,7 +593,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(messages.roomId, roomId))
         .orderBy(users.firstName, users.lastName);
 
-      res.json(participants);
+      // Get room creator info
+      const roomCreator = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl,
+          useCustomProfileImage: users.useCustomProfileImage,
+          customProfileImageUrl: users.customProfileImageUrl
+        })
+        .from(users)
+        .where(eq(users.id, room[0].createdBy))
+        .limit(1);
+
+      // Combine and deduplicate participants
+      const allParticipants = [...messageParticipants];
+      
+      // Add room creator if not already in the list
+      if (roomCreator.length > 0) {
+        const creatorExists = messageParticipants.some(p => p.id === roomCreator[0].id);
+        if (!creatorExists) {
+          allParticipants.push(roomCreator[0]);
+        }
+      }
+
+      res.json(allParticipants);
     } catch (error) {
       console.error('Error fetching room participants:', error);
       res.status(500).json({ message: 'Failed to fetch room participants' });

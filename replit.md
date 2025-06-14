@@ -133,6 +133,16 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 14, 2025**: Message Alignment Feature and Profile Image Fixes
+  - Implemented user-configurable message display position (left/right alignment)
+  - Added new "UI" tab in settings modal with message alignment selection
+  - Updated database schema with messageAlignment field (default: right)
+  - Modified MessageBubble component to support dynamic message positioning
+  - Fixed profile image display in newly created rooms by including room creators in participants API
+  - Enhanced participants endpoint to return room creators even when no messages exist
+  - Improved message bubble styling with appropriate corner rounding for both alignments
+  - Updated backend API to handle messageAlignment setting storage and retrieval
+
 - **June 14, 2025**: System Optimization and UI Improvements
   - Fixed profile image base64 data storage issue causing massive log entries
   - Prevented base64 image data from being stored in database to reduce overhead
