@@ -349,7 +349,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     if (!user || !roomMessages.length) return;
     
     const userLanguage = (user as any)?.preferredLanguage || 'ja';
-    if (!(user as any)?.autoTranslate) return;
+    // Always enable translation by default
+    console.log(`Translation check: userLanguage=${userLanguage}`);
+    console.log(`User object:`, user);
 
     let cancelled = false;
     
@@ -360,6 +362,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         message.originalLanguage !== userLanguage && 
         !translatedMessages.has(message.id)
       );
+      
+      console.log(`Found ${messagesToTranslate.length} messages to translate from ${roomMessages.length} total messages`);
+      console.log('Messages to translate:', messagesToTranslate.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
       
       if (messagesToTranslate.length === 0) return;
       
