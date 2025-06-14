@@ -91,10 +91,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mentionInputRef = useRef<MentionInputRef>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
@@ -257,17 +259,32 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     const element = e.target as HTMLDivElement;
     const isNearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 100;
     setShowScrollToBottom(!isNearBottom && roomMessages.length > 0);
+    
+    // Track user scrolling behavior
+    setIsUserScrolling(true);
+    
+    // Clear any existing timeout and set a new one
+    if (userScrollTimeoutRef.current) {
+      clearTimeout(userScrollTimeoutRef.current);
+    }
+    
+    // Reset user scrolling state after they stop scrolling for 2 seconds
+    userScrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 2000);
   };
 
-  // Auto-scroll to bottom when new messages arrive (only if already at bottom)
+  // Auto-scroll to bottom when new messages arrive (only if user is not manually scrolling)
   useEffect(() => {
-    if (!showScrollToBottom) {
-      // Use multiple scroll attempts to ensure it works with dynamic content
-      setTimeout(() => scrollToBottom(), 50);
-      setTimeout(() => scrollToBottom(), 150);
-      setTimeout(() => scrollToBottom(), 300);
+    // Only auto-scroll if:
+    // 1. User is not currently scrolling manually
+    // 2. User is already at the bottom (showScrollToBottom is false)
+    // 3. We have messages to show
+    if (!isUserScrolling && !showScrollToBottom && roomMessages.length > 0) {
+      const timeoutId = setTimeout(() => scrollToBottom(), 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [roomMessages, showScrollToBottom]);
+  }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
   // Clear translations when user language preference changes
   useEffect(() => {
@@ -342,19 +359,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     // Clear reply state after sending
     setReplyingTo(null);
     
-    // Force scroll to bottom after sending message
-    // Use multiple timeouts to ensure scroll happens after DOM updates
+    // Force scroll to bottom after sending own message
     setTimeout(() => {
       scrollToBottom();
-    }, 50);
-    
-    setTimeout(() => {
-      scrollToBottom();
-    }, 200);
-    
-    setTimeout(() => {
-      scrollToBottom();
-    }, 500);
+    }, 100);
   };
 
   const handleReply = (message: Message) => {
