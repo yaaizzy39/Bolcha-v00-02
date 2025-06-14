@@ -213,19 +213,10 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b bg-white dark:bg-gray-800">
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setShowCreateModal(true)} size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            ルーム作成
-          </Button>
-        </div>
-      </div>
-
       <div className="flex-1 p-4 space-y-2" style={{ 
         overflowY: 'auto', 
         WebkitOverflowScrolling: 'touch',
-        maxHeight: 'calc(100vh - 140px)' 
+        maxHeight: 'calc(100vh - 80px)' 
       }}>
         {(rooms as ChatRoom[]).map((room: ChatRoom) => (
           <Card 
