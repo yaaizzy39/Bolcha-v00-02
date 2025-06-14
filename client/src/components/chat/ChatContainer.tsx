@@ -331,12 +331,20 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     if (!user || !roomMessages.length) return;
     
     const userLanguage = (user as any)?.preferredLanguage || 'ja';
-    // Enable translation for all users by default when language is different from message language
     console.log(`Translation check: user autoTranslate = ${(user as any).autoTranslate}, current language = ${userLanguage}`);
+    console.log(`Room messages count: ${roomMessages.length}`);
 
     let cancelled = false;
     
     const translateMessages = async () => {
+      console.log('Starting translation check...');
+      console.log('Available messages:', roomMessages.map(m => ({ 
+        id: m.id, 
+        text: m.originalText, 
+        lang: m.originalLanguage, 
+        userLang: userLanguage 
+      })));
+      
       const messagesToTranslate = roomMessages.filter(message => 
         message.originalLanguage && 
         message.originalLanguage !== userLanguage && 
@@ -344,13 +352,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       );
 
       console.log(`Found ${messagesToTranslate.length} messages to translate`);
-      console.log('Messages analysis:', roomMessages.map(m => ({ 
-        id: m.id, 
-        text: m.originalText, 
-        lang: m.originalLanguage, 
-        userLang: userLanguage,
-        needsTranslation: m.originalLanguage && m.originalLanguage !== userLanguage && !translatedMessages.has(m.id)
-      })));
+      console.log('Translation map current size:', translatedMessages.size);
       
       for (const message of messagesToTranslate) {
         if (cancelled) break;
@@ -379,11 +381,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       }
     };
 
-    const timeoutId = setTimeout(translateMessages, 300);
+    translateMessages();
     
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
     };
   }, [roomMessages, user, translateText]);
 
