@@ -115,7 +115,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   // Function to get user profile image from participants data
   const getUserProfileImage = (userId: string): string | undefined => {
     const participant = participants.find((p: any) => p.id === userId);
-    if (!participant) return undefined;
+    if (!participant) {
+      console.log(`No participant found for userId: ${userId}`, { participants });
+      return undefined;
+    }
+    
+    console.log(`Getting profile image for ${userId}:`, {
+      participant,
+      useCustom: participant.useCustomProfileImage,
+      customUrl: participant.customProfileImageUrl,
+      profileUrl: participant.profileImageUrl
+    });
     
     if (participant.useCustomProfileImage && participant.customProfileImageUrl) {
       return participant.customProfileImageUrl;

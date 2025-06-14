@@ -65,9 +65,17 @@ export function MessageBubble({
   // Get correct profile image URL
   const getProfileImageUrl = () => {
     if (isOwnMessage && user) {
-      return getCurrentProfileImage(user);
+      const ownImage = getCurrentProfileImage(user);
+      console.log(`Own message profile image for ${message.senderId}:`, ownImage);
+      return ownImage;
     }
-    return userProfileImage || message.senderProfileImageUrl;
+    const profileImage = userProfileImage || message.senderProfileImageUrl;
+    console.log(`Other message profile image for ${message.senderId}:`, {
+      userProfileImage,
+      senderProfileImageUrl: message.senderProfileImageUrl,
+      final: profileImage
+    });
+    return profileImage;
   };
 
 
