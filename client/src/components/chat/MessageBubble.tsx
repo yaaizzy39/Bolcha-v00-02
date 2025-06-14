@@ -23,6 +23,7 @@ interface MessageBubbleProps {
   totalLikes?: number;
   userLiked?: boolean;
   onToggleLike?: () => void;
+  userProfileImage?: string;
 }
 
 export function MessageBubble({ 
@@ -38,7 +39,8 @@ export function MessageBubble({
   isMentioned,
   totalLikes = 0,
   userLiked = false,
-  onToggleLike
+  onToggleLike,
+  userProfileImage
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -53,7 +55,7 @@ export function MessageBubble({
     if (isOwnMessage && user) {
       return getCurrentProfileImage(user);
     }
-    return message.senderProfileImageUrl;
+    return userProfileImage || message.senderProfileImageUrl;
   };
 
 

@@ -77,6 +77,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     enabled: !!user,
   });
 
+  // Load participants for profile images
+  const { data: participants = [] } = useQuery({
+    queryKey: ['/api/rooms', roomId, 'participants'],
+    queryFn: () => fetch(`/api/rooms/${roomId}/participants`, { credentials: 'include' }).then(res => res.json()),
+    enabled: !!user && !!roomId,
+  });
+
   // Load user's liked messages
   const { data: userLikes } = useQuery({
     queryKey: ['/api/user/likes'],
@@ -103,6 +110,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       return roomNameTranslations[roomName][userLanguage];
     }
     return roomName;
+  };
+
+  // Function to get user profile image from participants data
+  const getUserProfileImage = (userId: string): string | undefined => {
+    const participant = participants.find((p: any) => p.id === userId);
+    if (!participant) return undefined;
+    
+    if (participant.useCustomProfileImage && participant.customProfileImageUrl) {
+      return participant.customProfileImageUrl;
+    }
+    return participant.profileImageUrl;
   };
   
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
@@ -598,6 +616,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     totalLikes={likeData?.totalLikes || 0}
                     userLiked={likeData?.userLiked || false}
                     onToggleLike={() => toggleLike(message.id)}
+                    userProfileImage={getUserProfileImage(message.senderId)}
                   />
                 );
               })}
