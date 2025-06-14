@@ -8,6 +8,7 @@ import {
   serial,
   integer,
   boolean,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -70,6 +71,14 @@ export const messages = pgTable("messages", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+// Likes table for message reactions
+export const messageLikes = pgTable("message_likes", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
@@ -87,9 +96,16 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   timestamp: true,
 });
 
+export const insertMessageLikeSchema = createInsertSchema(messageLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
 export type ChatRoom = typeof chatRooms.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
+export type MessageLike = typeof messageLikes.$inferSelect;
