@@ -250,29 +250,23 @@ export function useWebSocket() {
     ws.onmessage = (event) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
-        console.log('Received WebSocket message:', data);
         
         if (data.type === 'new_message') {
-          console.log('Processing new message:', data.message);
           const newMessage = data.message;
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
             const messageExists = prev.some(msg => msg.id === newMessage.id);
             if (messageExists) {
-              console.log('Message already exists, skipping:', newMessage.id);
               return prev;
             }
-            console.log('Adding new message to state:', newMessage);
             // Only add message if it's for the current room (will be filtered by parent component)
             return [...prev, newMessage];
           });
         } else if (data.type === 'message_deleted') {
-          console.log('Message deleted:', data.messageId);
           const messageId = data.messageId;
           setDeletedMessageIds(prev => new Set(prev).add(messageId));
           setMessages(prev => prev.filter(msg => msg.id !== messageId));
         } else if (data.type === 'user_joined' || data.type === 'user_left') {
-          console.log(`${data.userName} ${data.type === 'user_joined' ? 'joined' : 'left'} the chat`);
         } else if (data.type === 'room_created') {
           console.log('New room created:', data.room);
           // Dispatch custom event to refresh room list
@@ -297,7 +291,6 @@ export function useWebSocket() {
             return newMap;
           });
         } else if (data.type === 'online_count_updated') {
-          console.log('Online count updated:', data.onlineCount, 'for room:', data.roomId);
           setOnlineCount(Number(data.onlineCount));
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
