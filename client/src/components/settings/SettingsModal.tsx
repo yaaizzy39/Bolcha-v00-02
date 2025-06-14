@@ -120,9 +120,15 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">プロフィール</TabsTrigger>
-            <TabsTrigger value="language">言語設定</TabsTrigger>
-            <TabsTrigger value="translation">翻訳設定</TabsTrigger>
+            <TabsTrigger value="profile">
+              {settings.interfaceLanguage === 'en' ? 'Profile' : 'プロフィール'}
+            </TabsTrigger>
+            <TabsTrigger value="language">
+              {settings.interfaceLanguage === 'en' ? 'Language Settings' : '言語設定'}
+            </TabsTrigger>
+            <TabsTrigger value="translation">
+              {settings.interfaceLanguage === 'en' ? 'Translation Settings' : '翻訳設定'}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6 mt-6">
