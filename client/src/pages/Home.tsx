@@ -93,13 +93,7 @@ export default function Home() {
                 <Plus className="w-4 h-4" />
               </Button>
 
-              {/* Language Indicator */}
-              <div className="hidden sm:flex items-center gap-2">
-                <Globe className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  {(user as any)?.preferredLanguage === 'ja' ? t('language.japanese') : t('language.english')}
-                </span>
-              </div>
+
 
               {/* Online Status */}
               <Badge variant="secondary" className="flex items-center gap-1">
