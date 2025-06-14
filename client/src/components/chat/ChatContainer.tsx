@@ -369,8 +369,14 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   // Translate messages based on user preference
   useEffect(() => {
+    console.log('Translation effect triggered:', { 
+      hasUser: !!user, 
+      messageCount: roomMessages.length,
+      translatedCount: translatedMessages.size 
+    });
+    
     if (!user || !roomMessages.length) {
-      console.log('Translation skipped:', { hasUser: !!user, messageCount: roomMessages.length });
+      console.log('Translation skipped - missing user or messages');
       return;
     }
     
@@ -379,56 +385,60 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     
     console.log('=== TRANSLATION PROCESS START ===');
     console.log(`Target language: ${userLanguage}`);
-    console.log(`Total messages: ${roomMessages.length}`);
-    console.log(`Already translated: ${translatedMessages.size}`);
+    console.log(`Messages to check:`, roomMessages.map(m => ({ 
+      id: m.id, 
+      text: m.originalText?.substring(0, 30), 
+      lang: m.originalLanguage 
+    })));
 
-    const translateMessages = async () => {
-      console.log('Analyzing messages for translation...');
+    // Process each message for translation
+    roomMessages.forEach(async (message) => {
+      const hasOriginalLanguage = Boolean(message.originalLanguage);
+      const isDifferentLanguage = message.originalLanguage !== userLanguage;
+      const notAlreadyTranslated = !translatedMessages.has(message.id);
+      const needsTranslation = hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated;
       
-      for (const message of roomMessages) {
-        const hasOriginalLanguage = Boolean(message.originalLanguage);
-        const isDifferentLanguage = message.originalLanguage !== userLanguage;
-        const notAlreadyTranslated = !translatedMessages.has(message.id);
-        const needsTranslation = hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated;
+      console.log(`Message ${message.id} analysis:`, {
+        text: message.originalText?.substring(0, 20) + '...',
+        originalLang: message.originalLanguage,
+        targetLang: userLanguage,
+        hasOriginalLanguage,
+        isDifferentLanguage,
+        notAlreadyTranslated,
+        needsTranslation
+      });
+      
+      if (needsTranslation) {
+        console.log(`🔄 Starting translation for message ${message.id}: "${message.originalText}"`);
         
-        console.log(`Message ${message.id} analysis:`, {
-          text: message.originalText?.substring(0, 20) + '...',
-          originalLang: message.originalLanguage,
-          hasOriginalLanguage,
-          isDifferentLanguage,
-          notAlreadyTranslated,
-          needsTranslation
-        });
-        
-        if (needsTranslation) {
-          console.log(`🔄 TRANSLATING message ${message.id}: "${message.originalText}"`);
+        try {
+          const translatedText = await translateText(
+            message.originalText,
+            message.originalLanguage,
+            userLanguage
+          );
           
-          try {
-            const translatedText = await translateText(
-              message.originalText,
-              message.originalLanguage,
-              userLanguage
-            );
-            
-            console.log(`✅ Translation completed for message ${message.id}: "${translatedText}"`);
-            
+          console.log(`✅ Translation API response for message ${message.id}: "${translatedText}"`);
+          
+          if (translatedText && translatedText !== message.originalText) {
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
               newMap.set(message.id, translatedText);
+              console.log(`💾 Stored translation for message ${message.id}`);
               return newMap;
             });
-            
-          } catch (error) {
-            console.error(`❌ Translation failed for message ${message.id}:`, error);
+          } else {
+            console.log(`⚠️ Translation unchanged for message ${message.id}`);
           }
+          
+        } catch (error) {
+          console.error(`❌ Translation failed for message ${message.id}:`, error);
         }
       }
-      
-      console.log('=== TRANSLATION PROCESS END ===');
-    };
-
-    translateMessages();
-  }, [roomMessages, translateText]);
+    });
+    
+    console.log('=== TRANSLATION PROCESS END ===');
+  }, [roomMessages, user, translateText]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
