@@ -46,12 +46,15 @@ export function MessageBubble({
   const { user } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
-  // Show translation if we have translated text and the message is in a different language
-  const shouldShowTranslation = Boolean(translatedText) && 
-    String(message.originalLanguage) !== String(currentUserLanguage);
+  // Check if this message needs translation
+  const needsTranslation = String(message.originalLanguage) !== String(currentUserLanguage);
   
-  // Only show translated text if translation is actually complete
-  const displayText = shouldShowTranslation && translatedText ? translatedText : message.originalText;
+  // Check if we have completed translation
+  const hasTranslation = Boolean(translatedText);
+  
+  // Determine display state
+  const isTranslating = needsTranslation && !hasTranslation;
+  const showBothTexts = needsTranslation && hasTranslation;
 
   // Get correct profile image URL
   const getProfileImageUrl = () => {
@@ -155,11 +158,19 @@ export function MessageBubble({
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
             )}
-            <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || message.originalText || '') : (message.originalText || ''), true)}</p>
-            {shouldShowTranslation && translatedText && (
-              <div className="text-xs text-amber-200/70 mt-2 border-l-2 border-amber-200/40 pl-2 opacity-60">
-                原文: {renderTextWithLinks(message.originalText || '', true)}
+            {isTranslating ? (
+              <p className="italic text-amber-200/70">翻訳中...</p>
+            ) : showBothTexts ? (
+              <div>
+                <p className="mb-2">
+                  {renderTextWithLinks(translatedText || '', true)}
+                </p>
+                <div className="text-xs text-amber-200/70 border-l-2 border-amber-200/40 pl-2 opacity-70">
+                  {renderTextWithLinks(message.originalText || '', true)}
+                </div>
               </div>
+            ) : (
+              <p>{renderTextWithLinks(message.originalText || '', true)}</p>
             )}
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
@@ -238,9 +249,22 @@ export function MessageBubble({
               <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
             </div>
           )}
-          <p className="text-foreground">
-            {renderTextWithLinks(displayText || '', false)}
-          </p>
+          {isTranslating ? (
+            <p className="text-foreground italic text-gray-500">翻訳中...</p>
+          ) : showBothTexts ? (
+            <div>
+              <p className="text-foreground mb-2">
+                {renderTextWithLinks(translatedText || '', false)}
+              </p>
+              <div className="text-xs text-gray-400 border-l-2 border-gray-300 pl-2 opacity-70">
+                {renderTextWithLinks(message.originalText || '', false)}
+              </div>
+            </div>
+          ) : (
+            <p className="text-foreground">
+              {renderTextWithLinks(message.originalText || '', false)}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
