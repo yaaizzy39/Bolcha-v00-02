@@ -78,10 +78,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   });
 
   // Load participants for profile images
-  const { data: participants = [] } = useQuery({
+  const { data: participants = [], refetch: refetchParticipants } = useQuery({
     queryKey: ['/api/rooms', roomId, 'participants'],
     queryFn: () => fetch(`/api/rooms/${roomId}/participants`, { credentials: 'include' }).then(res => res.json()),
     enabled: !!user && !!roomId,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   // Load user's liked messages
@@ -97,6 +99,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       initializeLikes(userLikes.likedMessageIds);
     }
   }, [userLikes, initializeLikes]);
+
+
 
   // Get user's preferred language for room name translation
   // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
@@ -126,6 +130,14 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
+
+  // Refetch participants when messages change to ensure profile images are available
+  useEffect(() => {
+    if (roomMessages.length > 0) {
+      // Invalidate and refetch participants data when new messages arrive
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms', roomId, 'participants'] });
+    }
+  }, [roomMessages.length, queryClient, roomId]);
 
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
