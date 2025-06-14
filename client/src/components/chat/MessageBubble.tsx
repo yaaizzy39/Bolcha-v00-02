@@ -228,26 +228,9 @@ export function MessageBubble({
               {renderTextWithLinks(message.originalText || '', false)}
             </div>
           )}
-          <div className="flex items-end justify-between gap-2">
-            <p className="text-foreground flex-1">
-              {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}
-            </p>
-            {onToggleLike && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggleLike}
-                className={`h-5 px-1 text-xs flex items-center gap-1 ml-2 flex-shrink-0 ${
-                  userLiked 
-                    ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300' 
-                    : 'text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400'
-                }`}
-              >
-                <Heart className={`w-3 h-3 ${userLiked ? 'fill-current' : ''}`} />
-                {totalLikes > 0 && <span className="text-xs">{totalLikes}</span>}
-              </Button>
-            )}
-          </div>
+          <p className="text-foreground">
+            {renderTextWithLinks(shouldShowTranslation ? translatedText : message.originalText)}
+          </p>
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
@@ -264,7 +247,21 @@ export function MessageBubble({
                 返信
               </Button>
             )}
-
+            {onToggleLike && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleLike}
+                className={`h-6 px-2 text-xs ${
+                  userLiked 
+                    ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300' 
+                    : 'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300'
+                }`}
+              >
+                <Heart className={`w-3 h-3 mr-1 ${userLiked ? 'fill-current' : ''}`} />
+                {totalLikes > 0 ? totalLikes : 'いいね'}
+              </Button>
+            )}
             {onDelete && (
               <Button
                 variant="ghost"
