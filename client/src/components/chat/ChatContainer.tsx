@@ -340,8 +340,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       const messagesToTranslate = roomMessages.filter(message => 
         message.originalLanguage && 
         message.originalLanguage !== userLanguage && 
-        !translatedMessages.has(message.id) &&
-        message.senderId !== (user as any).id // Don't translate user's own messages
+        !translatedMessages.has(message.id)
       );
       
       if (messagesToTranslate.length === 0) return;
