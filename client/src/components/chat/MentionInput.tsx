@@ -57,12 +57,8 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
     adjustTextareaHeight();
   }, [message]);
 
-  // Fetch room participants
-  const { data: participants = [] } = useQuery({
-    queryKey: ['/api/rooms', roomId, 'participants'],
-    queryFn: () => fetch(`/api/rooms/${roomId}/participants`, { credentials: 'include' }).then(res => res.json()),
-    enabled: !!roomId,
-  });
+  // Disable participants query to prevent infinite requests
+  const participants: any[] = [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;

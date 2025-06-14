@@ -62,12 +62,19 @@ export function MessageBubble({
   const isTranslating = needsTranslation && !hasTranslation;
   const showBothTexts = needsTranslation && hasTranslation;
 
-  // Get correct profile image URL
+  // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
     if (isOwnMessage && user) {
       return getCurrentProfileImage(user);
     }
-    return userProfileImage || message.senderProfileImageUrl;
+    
+    // Use enhanced message data that includes sender profile information
+    const enhancedMessage = message as any;
+    if (enhancedMessage.senderUseCustomProfileImage && enhancedMessage.senderCustomProfileImageUrl) {
+      return enhancedMessage.senderCustomProfileImageUrl;
+    }
+    
+    return enhancedMessage.senderProfileImageUrl || userProfileImage;
   };
 
 
