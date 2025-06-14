@@ -45,7 +45,13 @@ interface MessageLikeUpdatedData extends BaseWebSocketMessage {
   userId: string;
 }
 
-type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData | RoomCreatedData | RoomDeletedData | MessageLikeUpdatedData;
+interface OnlineCountUpdatedData extends BaseWebSocketMessage {
+  type: 'online_count_updated';
+  roomId: number;
+  onlineCount: number;
+}
+
+type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData | RoomCreatedData | RoomDeletedData | MessageLikeUpdatedData | OnlineCountUpdatedData;
 
 export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
@@ -54,6 +60,7 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const [messageLikes, setMessageLikes] = useState<Map<number, { totalLikes: number; userLiked: boolean }>>(new Map());
+  const [onlineCount, setOnlineCount] = useState<number>(0);
 
   // Function to initialize likes from user data
   const initializeLikes = useCallback((userLikedIds: number[]) => {
@@ -289,6 +296,9 @@ export function useWebSocket() {
             });
             return newMap;
           });
+        } else if (data.type === 'online_count_updated') {
+          console.log('Online count updated:', data.onlineCount, 'for room:', data.roomId);
+          setOnlineCount(data.onlineCount);
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           
@@ -384,6 +394,18 @@ export function useWebSocket() {
     }
   }, []);
 
+  const joinRoom = useCallback((roomId: number) => {
+    console.log('Joining room:', roomId);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'join_room',
+        roomId: roomId
+      }));
+    } else {
+      console.error('WebSocket is not connected for room join. State:', wsRef.current?.readyState);
+    }
+  }, []);
+
   const disconnect = useCallback(() => {
     if (wsRef.current) {
       wsRef.current.close();
@@ -463,7 +485,9 @@ export function useWebSocket() {
     messages,
     deletedMessageIds,
     messageLikes,
+    onlineCount,
     sendMessage,
+    joinRoom,
     setMessages,
     toggleLike,
     initializeLikes,

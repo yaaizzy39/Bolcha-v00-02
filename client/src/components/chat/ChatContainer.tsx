@@ -46,7 +46,7 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, messageLikes, sendMessage, setMessages: setAllMessages, toggleLike, initializeLikes } = useWebSocket();
+  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, messageLikes, onlineCount, sendMessage, joinRoom, setMessages: setAllMessages, toggleLike, initializeLikes } = useWebSocket();
   const queryClient = useQueryClient();
   
   // Load initial messages for the current room
