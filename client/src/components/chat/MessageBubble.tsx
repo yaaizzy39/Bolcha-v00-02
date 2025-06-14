@@ -77,6 +77,23 @@ export function MessageBubble({
     return enhancedMessage.senderProfileImageUrl || userProfileImage;
   };
 
+  // Get sender display name from enhanced message data
+  const getSenderDisplayName = () => {
+    if (isOwnMessage && user) {
+      return getDisplayName(user);
+    }
+    
+    const enhancedMessage = message as any;
+    const firstName = enhancedMessage.senderFirstName || '';
+    const lastName = enhancedMessage.senderLastName || '';
+    
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    
+    return enhancedMessage.senderEmail || 'Unknown User';
+  };
+
 
   // Function to handle link click with warning
   const handleLinkClick = (e: React.MouseEvent, url: string) => {
@@ -162,7 +179,7 @@ export function MessageBubble({
           <Avatar className="w-8 h-8 flex-shrink-0">
             <AvatarImage src={getProfileImageUrl() || undefined} />
             <AvatarFallback>
-              {message.senderName.charAt(0).toUpperCase()}
+              {getSenderDisplayName().charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         )}
@@ -176,7 +193,7 @@ export function MessageBubble({
               >
                 <div className="text-xs text-primary-foreground/70 flex items-center gap-1 mb-1">
                   <Reply className="w-3 h-3" />
-                  返信先: {message.replyToSenderName}
+                  返信先: {message.replyToSenderName || 'Unknown User'}
                 </div>
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
@@ -231,7 +248,7 @@ export function MessageBubble({
           <Avatar className="w-8 h-8 flex-shrink-0">
             <AvatarImage src={getProfileImageUrl() || undefined} />
             <AvatarFallback>
-              {message.senderName.charAt(0).toUpperCase()}
+              {getSenderDisplayName().charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         )}
@@ -256,7 +273,7 @@ export function MessageBubble({
       <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
         <AvatarImage src={getProfileImageUrl() || undefined} />
         <AvatarFallback>
-          {message.senderName.charAt(0).toUpperCase()}
+          {getSenderDisplayName().charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
