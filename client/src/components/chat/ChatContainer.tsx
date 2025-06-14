@@ -326,67 +326,52 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [user]);
 
-  // Translate messages based on user preference
-  useEffect(() => {
-    if (!user || !roomMessages.length) return;
+  // Translate messages based on user preference - temporarily disabled to fix infinite loop
+  // useEffect(() => {
+  //   if (!user || !roomMessages.length) return;
     
-    const userLanguage = (user as any)?.preferredLanguage || 'ja';
-    console.log(`Translation check: user autoTranslate = ${(user as any).autoTranslate}, current language = ${userLanguage}`);
-    console.log(`Room messages count: ${roomMessages.length}`);
+  //   const userLanguage = (user as any)?.preferredLanguage || 'ja';
+  //   if (!(user as any)?.autoTranslate) return;
 
-    let cancelled = false;
+  //   let cancelled = false;
     
-    const translateMessages = async () => {
-      console.log('Starting translation check...');
-      console.log('Available messages:', roomMessages.map(m => ({ 
-        id: m.id, 
-        text: m.originalText, 
-        lang: m.originalLanguage, 
-        userLang: userLanguage 
-      })));
+  //   const translateMessages = async () => {
+  //     const messagesToTranslate = roomMessages.filter(message => 
+  //       message.originalLanguage && 
+  //       message.originalLanguage !== userLanguage && 
+  //       !translatedMessages.has(message.id)
+  //     );
       
-      const messagesToTranslate = roomMessages.filter(message => 
-        message.originalLanguage && 
-        message.originalLanguage !== userLanguage && 
-        !translatedMessages.has(message.id)
-      );
-
-      console.log(`Found ${messagesToTranslate.length} messages to translate`);
-      console.log('Translation map current size:', translatedMessages.size);
-      
-      for (const message of messagesToTranslate) {
-        if (cancelled) break;
+  //     for (const message of messagesToTranslate) {
+  //       if (cancelled) break;
         
-        console.log(`Translating message ${message.id}: "${message.originalText}" from ${message.originalLanguage} to ${userLanguage}`);
-        
-        try {
-          const translatedText = await translateText(
-            message.originalText,
-            message.originalLanguage,
-            userLanguage
-          );
+  //       try {
+  //         const translatedText = await translateText(
+  //           message.originalText,
+  //           message.originalLanguage,
+  //           userLanguage
+  //         );
           
-          console.log(`Translation result for message ${message.id}: "${translatedText}"`);
-          
-          if (!cancelled) {
-            setTranslatedMessages(prev => {
-              const newMap = new Map(prev);
-              newMap.set(message.id, translatedText);
-              return newMap;
-            });
-          }
-        } catch (error) {
-          console.error(`Translation failed for message ${message.id}:`, error);
-        }
-      }
-    };
+  //         if (!cancelled) {
+  //           setTranslatedMessages(prev => {
+  //             const newMap = new Map(prev);
+  //             newMap.set(message.id, translatedText);
+  //             return newMap;
+  //           });
+  //         }
+  //       } catch (error) {
+  //         console.error(`Translation failed for message ${message.id}:`, error);
+  //       }
+  //     }
+  //   };
 
-    translateMessages();
+  //   const timeoutId = setTimeout(translateMessages, 1000);
     
-    return () => {
-      cancelled = true;
-    };
-  }, [roomMessages, user, translateText]);
+  //   return () => {
+  //     cancelled = true;
+  //     clearTimeout(timeoutId);
+  //   };
+  // }, [roomMessages, user]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
