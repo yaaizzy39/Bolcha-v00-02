@@ -5,7 +5,7 @@ import { getCurrentProfileImage, getDisplayName } from '@/lib/profileUtils';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { RoomsList } from '@/components/rooms/RoomsList';
-import { CreateRoomModal } from '@/components/rooms/CreateRoomModal';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,14 +16,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
-import { MessageCircle, MoreVertical, Settings, LogOut, Globe, Plus } from 'lucide-react';
+import { MessageCircle, MoreVertical, Settings, LogOut, Globe } from 'lucide-react';
 import type { ChatRoom } from '@shared/schema';
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [createRoomOpen, setCreateRoomOpen] = useState(false);
+
   const [selectedRoomId, setSelectedRoomId] = useState<number | undefined>(undefined);
 
   // Fetch available rooms
@@ -83,15 +83,6 @@ export default function Home() {
 
             {/* User Actions */}
             <div className="flex items-center gap-4">
-              {/* Mobile Create Room Button */}
-              <Button 
-                onClick={() => setCreateRoomOpen(true)}
-                size="sm"
-                className="lg:hidden"
-                variant="outline"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
 
 
 
@@ -164,14 +155,6 @@ export default function Home() {
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ルーム一覧</h2>
-                    <Button
-                      onClick={() => setCreateRoomOpen(true)}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      新規作成
-                    </Button>
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
@@ -188,16 +171,6 @@ export default function Home() {
 
       {/* Settings Modal */}
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
-      
-      {/* Create Room Modal */}
-      <CreateRoomModal 
-        open={createRoomOpen} 
-        onOpenChange={setCreateRoomOpen}
-        onRoomCreated={(room) => {
-          setSelectedRoomId(room.id);
-          setCreateRoomOpen(false);
-        }}
-      />
     </div>
   );
 }
