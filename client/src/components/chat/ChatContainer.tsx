@@ -368,7 +368,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [user]);
 
-  // Translate messages based on user preference
+  // Translate messages based on user preference with caching
   useEffect(() => {
     console.log('Translation effect triggered:', { 
       hasUser: !!user, 
@@ -394,34 +394,55 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       lang: m.originalLanguage 
     })));
 
-    // Process each message for translation
-    roomMessages.forEach(async (message) => {
-      const hasOriginalLanguage = Boolean(message.originalLanguage);
-      const isDifferentLanguage = message.originalLanguage !== userLanguage;
-      const notAlreadyTranslated = !translatedMessages.has(message.id);
-      const needsTranslation = hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated;
-      
-      console.log(`Message ${message.id} analysis:`, {
-        text: message.originalText?.substring(0, 20) + '...',
-        originalLang: message.originalLanguage,
-        targetLang: userLanguage,
-        hasOriginalLanguage,
-        isDifferentLanguage,
-        notAlreadyTranslated,
-        needsTranslation
-      });
-      
-      if (needsTranslation) {
-        console.log(`🔄 Starting translation for message ${message.id}: "${message.originalText}"`);
+    const translateMessages = async () => {
+      const newTranslations = new Map<number, string>();
+      const messagesToTranslate: Message[] = [];
+
+      // First pass: check cache for existing translations
+      roomMessages.forEach((message) => {
+        const hasOriginalLanguage = Boolean(message.originalLanguage);
+        const isDifferentLanguage = message.originalLanguage !== userLanguage;
+        const notAlreadyTranslated = !translatedMessages.has(message.id);
         
-        try {
-          const translatedText = await translateText(
-            message.originalText,
-            message.originalLanguage,
+        if (hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated) {
+          // Check cache first
+          const cachedTranslation = translationCache.get(
+            message.originalText || '', 
+            message.originalLanguage || 'ja', 
             userLanguage
           );
           
-          console.log(`✅ Translation API response for message ${message.id}: "${translatedText}"`);
+          if (cachedTranslation) {
+            console.log(`💾 Using cached translation for message ${message.id}: "${message.originalText}" -> "${cachedTranslation}"`);
+            newTranslations.set(message.id, cachedTranslation);
+          } else {
+            messagesToTranslate.push(message);
+          }
+        }
+      });
+
+      // Apply cached translations immediately
+      if (newTranslations.size > 0) {
+        setTranslatedMessages(prev => {
+          const updated = new Map(prev);
+          newTranslations.forEach((translation, messageId) => {
+            updated.set(messageId, translation);
+          });
+          return updated;
+        });
+      }
+
+      // Second pass: translate uncached messages
+      for (const message of messagesToTranslate) {
+        console.log(`🔄 Translating message ${message.id} from API: "${message.originalText}"`);
+        try {
+          const translatedText = await translateText(
+            message.originalText || '',
+            message.originalLanguage || 'ja',
+            userLanguage
+          );
+          
+          console.log(`✅ Translation completed for message ${message.id}: "${translatedText}"`);
           
           if (translatedText && translatedText !== message.originalText) {
             setTranslatedMessages(prev => {
@@ -430,18 +451,18 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               console.log(`💾 Stored translation for message ${message.id}`);
               return newMap;
             });
-          } else {
-            console.log(`⚠️ Translation unchanged for message ${message.id}`);
           }
-          
         } catch (error) {
           console.error(`❌ Translation failed for message ${message.id}:`, error);
         }
       }
-    });
-    
+    };
+
+    translateMessages();
     console.log('=== TRANSLATION PROCESS END ===');
   }, [roomMessages, user, translateText]);
+
+
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
