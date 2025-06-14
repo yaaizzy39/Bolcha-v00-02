@@ -2,13 +2,32 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import type { Message } from '@shared/schema';
 
-interface WebSocketMessage {
+interface BaseWebSocketMessage {
   type: string;
-  message?: Message;
-  messageId?: number;
-  userName?: string;
   timestamp: string;
 }
+
+interface NewMessageData extends BaseWebSocketMessage {
+  type: 'new_message';
+  message: Message;
+}
+
+interface DeleteMessageData extends BaseWebSocketMessage {
+  type: 'message_deleted';
+  messageId: number;
+}
+
+interface UserEventData extends BaseWebSocketMessage {
+  type: 'user_joined' | 'user_left';
+  userName: string;
+}
+
+interface ErrorMessageData extends BaseWebSocketMessage {
+  type: 'error';
+  message: string;
+}
+
+type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData;
 
 export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
@@ -18,6 +37,7 @@ export function useWebSocket() {
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectingRef = useRef(false);
   const userDataRef = useRef<any>(null);
   const connectionAttemptRef = useRef<number>(0);
@@ -167,9 +187,9 @@ export function useWebSocket() {
         const data: WebSocketMessage = JSON.parse(event.data);
         console.log('Received WebSocket message:', data);
         
-        if (data.type === 'new_message' && data.message) {
+        if (data.type === 'new_message' && data.message && typeof data.message === 'object') {
           console.log('Processing new message:', data.message);
-          const newMessage = data.message;
+          const newMessage = data.message as Message;
           setMessages(prev => {
             // Check if message already exists to prevent duplicates
             const messageExists = prev.some(msg => msg.id === newMessage.id);
@@ -222,10 +242,19 @@ export function useWebSocket() {
         console.log('WebSocket disconnected unexpectedly, attempting reconnection...');
         setIsReconnecting(true);
         
-        // Clear any existing timeout
+        // Clear any existing timeouts
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
+        if (reconnectingTimeoutRef.current) {
+          clearTimeout(reconnectingTimeoutRef.current);
+        }
+        
+        // Auto-clear reconnecting state after 10 seconds if still trying
+        reconnectingTimeoutRef.current = setTimeout(() => {
+          console.log('Reconnection timeout - clearing reconnecting state');
+          setIsReconnecting(false);
+        }, 10000);
         
         // Delayed reconnect to avoid rapid connection attempts
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -235,9 +264,14 @@ export function useWebSocket() {
             console.log('Attempting WebSocket reconnection...');
             connect();
           } else {
+            console.log('No reconnection needed or no user data available');
             setIsReconnecting(false);
+            if (reconnectingTimeoutRef.current) {
+              clearTimeout(reconnectingTimeoutRef.current);
+              reconnectingTimeoutRef.current = null;
+            }
           }
-        }, 1000); // Longer delay for stability
+        }, 2000); // Increased delay for better stability
       } else {
         console.log('WebSocket closed normally, no reconnection needed');
         setIsReconnecting(false);
@@ -294,6 +328,9 @@ export function useWebSocket() {
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (reconnectingTimeoutRef.current) {
+        clearTimeout(reconnectingTimeoutRef.current);
       }
     };
   }, [isAuthenticated]);
