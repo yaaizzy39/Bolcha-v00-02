@@ -69,8 +69,15 @@ export function useWebSocket() {
       }
     }
     
-    // Don't connect if no valid user data or already connecting
-    if (!effectiveUser || isConnectingRef.current) {
+    // Don't connect if no valid user data
+    if (!effectiveUser) {
+      console.log('No user data available for WebSocket connection');
+      return;
+    }
+    
+    // Prevent multiple concurrent connection attempts
+    if (isConnectingRef.current) {
+      console.log('Connection already in progress, skipping...');
       return;
     }
     
@@ -96,13 +103,18 @@ export function useWebSocket() {
     
     // Properly close any existing connection before creating new one
     if (wsRef.current) {
+      console.log('Closing existing WebSocket connection gracefully');
+      wsRef.current.onclose = null; // Prevent reconnect loops
+      wsRef.current.onerror = null; // Prevent error handling
       wsRef.current.close();
       wsRef.current = null;
+      setIsConnected(false);
     }
 
     isConnectingRef.current = true;
+    console.log('Connecting to WebSocket...');
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsUrl = `${protocol}//${window.location.host}`;
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -194,21 +206,25 @@ export function useWebSocket() {
         wsRef.current = null;
       }
       
-      // Immediate reconnection for better user experience
-      if (event.code !== 1000) {
-        console.log('WebSocket disconnected, attempting immediate reconnection...');
+      // Smart reconnection logic - only reconnect for unexpected closures
+      if (event.code !== 1000 && event.code !== 1001) {
+        console.log('WebSocket disconnected unexpectedly, attempting reconnection...');
         // Clear any existing timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
         
-        // Immediate reconnect attempt with proper state management
+        // Delayed reconnect to avoid rapid connection attempts
         reconnectTimeoutRef.current = setTimeout(() => {
-          // Only reconnect if we don't already have a connection
-          if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+          // Verify we still need to reconnect and have user data
+          if ((!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) && 
+              (user || userDataRef.current || localStorage.getItem('wsUserData'))) {
+            console.log('Attempting WebSocket reconnection...');
             connect();
           }
-        }, 500); // Slightly longer delay to prevent rapid reconnection loops
+        }, 1000); // Longer delay for stability
+      } else {
+        console.log('WebSocket closed normally, no reconnection needed');
       }
     };
 
