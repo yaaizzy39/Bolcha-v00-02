@@ -371,34 +371,54 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     if (!user || !roomMessages.length) return;
     
-    const userLanguage = (user as any)?.preferredLanguage || 'ja';
-    // Always enable translation by default
-    console.log(`Translation check: userLanguage=${userLanguage}`);
+    // Get user language from multiple sources with priority order
+    const userLanguage = (user as any)?.preferredLanguage || 
+                        localStorage.getItem('selectedLanguage') || 
+                        'ja';
+    
+    console.log(`Translation check: userLanguage=${userLanguage}, autoTranslate=true (default)`);
     console.log(`User object:`, user);
 
     let cancelled = false;
     
     const translateMessages = async () => {
       // Only translate messages that need translation and haven't been translated yet
-      const messagesToTranslate = roomMessages.filter(message => 
-        message.originalLanguage && 
-        message.originalLanguage !== userLanguage && 
-        !translatedMessages.has(message.id)
-      );
+      const messagesToTranslate = roomMessages.filter(message => {
+        const needsTranslation = message.originalLanguage && 
+                                message.originalLanguage !== userLanguage && 
+                                !translatedMessages.has(message.id);
+        
+        if (needsTranslation) {
+          console.log(`Message ${message.id} needs translation: ${message.originalLanguage} -> ${userLanguage}`);
+        }
+        
+        return needsTranslation;
+      });
       
       // Sort by newest first (highest ID/timestamp first)
       messagesToTranslate.sort((a, b) => b.id - a.id);
       
       console.log(`Found ${messagesToTranslate.length} messages to translate from ${roomMessages.length} total messages`);
-      console.log('Messages to translate (newest first):', messagesToTranslate.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
       
-      if (messagesToTranslate.length === 0) return;
+      if (messagesToTranslate.length === 0) {
+        console.log('No messages need translation');
+        return;
+      }
+      
+      console.log('Messages to translate (newest first):', messagesToTranslate.map(m => ({ 
+        id: m.id, 
+        text: m.originalText, 
+        lang: m.originalLanguage,
+        targetLang: userLanguage 
+      })));
       
       // Translate messages in parallel but prioritize newest
       const translationPromises = messagesToTranslate.map(async (message) => {
         if (cancelled) return;
         
         try {
+          console.log(`Starting translation for message ${message.id}: "${message.originalText}" (${message.originalLanguage} -> ${userLanguage})`);
+          
           const translatedText = await translateText(
             message.originalText,
             message.originalLanguage,
@@ -412,6 +432,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               console.log(`Translation completed for message ${message.id}: "${message.originalText}" -> "${translatedText}"`);
               return newMap;
             });
+          } else {
+            console.log(`Translation result for message ${message.id}: unchanged or empty`);
           }
         } catch (error) {
           console.error(`Translation failed for message ${message.id}:`, error);
@@ -423,13 +445,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     };
 
     // Add delay to prevent rapid re-execution
-    const timeoutId = setTimeout(translateMessages, 500);
+    const timeoutId = setTimeout(translateMessages, 100);
     
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [roomMessages.length, user && (user as any).id, (user as any)?.autoTranslate, (user as any)?.preferredLanguage]);
+  }, [roomMessages, user, translateText]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
