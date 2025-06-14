@@ -344,6 +344,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       );
 
       console.log(`Found ${messagesToTranslate.length} messages to translate`);
+      console.log('Messages analysis:', roomMessages.map(m => ({ 
+        id: m.id, 
+        text: m.originalText, 
+        lang: m.originalLanguage, 
+        userLang: userLanguage,
+        needsTranslation: m.originalLanguage && m.originalLanguage !== userLanguage && !translatedMessages.has(m.id)
+      })));
       
       for (const message of messagesToTranslate) {
         if (cancelled) break;

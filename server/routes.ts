@@ -745,9 +745,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Get user data for profile image
           const user = await storage.getUser(ws.userId);
-          const profileImageUrl = user?.useCustomProfileImage && user?.customProfileImageUrl 
+          let profileImageUrl = user?.useCustomProfileImage && user?.customProfileImageUrl 
             ? user.customProfileImageUrl 
             : user?.profileImageUrl;
+          
+          // Prevent base64 data URLs from being stored directly - use a placeholder or external URL
+          if (profileImageUrl && profileImageUrl.startsWith('data:')) {
+            profileImageUrl = null; // Use fallback avatar instead of storing base64 data
+          }
 
           // Extract mentions from message text
           const mentions = extractMentions(message.text);
