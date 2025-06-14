@@ -372,25 +372,33 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     if (!user || !roomMessages.length) return;
     
     // Get user language from multiple sources with priority order
-    const userLanguage = (user as any)?.preferredLanguage || 
-                        localStorage.getItem('selectedLanguage') || 
-                        'ja';
+    // Force English as target language for testing
+    const userLanguage = 'en';
     
     console.log(`Translation check: userLanguage=${userLanguage}, autoTranslate=true (default)`);
     console.log(`User object:`, user);
+    console.log(`Room messages:`, roomMessages.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
+    console.log(`Already translated:`, Array.from(translatedMessages.keys()));
 
     let cancelled = false;
     
     const translateMessages = async () => {
       // Only translate messages that need translation and haven't been translated yet
       const messagesToTranslate = roomMessages.filter(message => {
-        const needsTranslation = message.originalLanguage && 
-                                message.originalLanguage !== userLanguage && 
-                                !translatedMessages.has(message.id);
+        const hasOriginalLanguage = Boolean(message.originalLanguage);
+        const isDifferentLanguage = message.originalLanguage !== userLanguage;
+        const notAlreadyTranslated = !translatedMessages.has(message.id);
+        const needsTranslation = hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated;
         
-        if (needsTranslation) {
-          console.log(`Message ${message.id} needs translation: ${message.originalLanguage} -> ${userLanguage}`);
-        }
+        console.log(`Message ${message.id} translation check:`, {
+          text: message.originalText,
+          originalLang: message.originalLanguage,
+          userLang: userLanguage,
+          hasOriginalLanguage,
+          isDifferentLanguage,
+          notAlreadyTranslated,
+          needsTranslation
+        });
         
         return needsTranslation;
       });
