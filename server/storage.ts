@@ -142,7 +142,6 @@ export class DatabaseStorage implements IStorage {
         originalText: messages.originalText,
         timestamp: messages.timestamp,
         mentions: messages.mentions,
-        replyToMessageId: messages.replyToMessageId,
         // Include sender information
         senderFirstName: users.firstName,
         senderLastName: users.lastName,

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -77,35 +77,36 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     enabled: !!user,
   });
 
-  // Get participants from messages instead of separate API call
-  const participants = useMemo(() => {
-    const uniqueUsers = new Map();
-    roomMessages.forEach(message => {
-      if (message.senderId && !uniqueUsers.has(message.senderId)) {
-        uniqueUsers.set(message.senderId, {
-          id: message.senderId,
-          // We'll use the sender data from the message if available
-          profileImageUrl: (message as any).senderProfileImage || null,
-          firstName: (message as any).senderFirstName || null,
-          lastName: (message as any).senderLastName || null,
-          email: (message as any).senderEmail || '',
-        });
-      }
-    });
-    
-    // Add current user if not in participants
-    if (user && !uniqueUsers.has(user.id)) {
-      uniqueUsers.set(user.id, {
-        id: user.id,
-        profileImageUrl: user.profileImageUrl,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-      });
+  // Extract participant data directly from messages
+  const getParticipantProfile = (senderId: string) => {
+    // Find message from this sender to get their profile info
+    const senderMessage = roomMessages.find(msg => msg.senderId === senderId);
+    if (senderMessage) {
+      const message = senderMessage as any;
+      return {
+        id: senderId,
+        profileImageUrl: message.senderUseCustomProfileImage 
+          ? message.senderCustomProfileImageUrl 
+          : message.senderProfileImageUrl,
+        firstName: message.senderFirstName,
+        lastName: message.senderLastName,
+        email: message.senderEmail,
+      };
     }
     
-    return Array.from(uniqueUsers.values());
-  }, [roomMessages, user]);
+    // Fallback to current user if it's their message
+    if (user && senderId === (user as any).id) {
+      return {
+        id: (user as any).id,
+        profileImageUrl: (user as any).useCustomProfileImage ? (user as any).customProfileImageUrl : (user as any).profileImageUrl,
+        firstName: (user as any).firstName,
+        lastName: (user as any).lastName,
+        email: (user as any).email,
+      };
+    }
+    
+    return null;
+  };
 
   // Load user's liked messages
   const { data: userLikes } = useQuery({
@@ -137,15 +138,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     return roomName;
   };
 
-  // Function to get user profile image from participants data
+  // Function to get user profile image directly from message data
   const getUserProfileImage = (userId: string): string | undefined => {
-    const participant = participants.find((p: any) => p.id === userId);
-    if (!participant) return undefined;
-    
-    if (participant.useCustomProfileImage && participant.customProfileImageUrl) {
-      return participant.customProfileImageUrl;
-    }
-    return participant.profileImageUrl;
+    const profile = getParticipantProfile(userId);
+    return profile?.profileImageUrl;
   };
   
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
