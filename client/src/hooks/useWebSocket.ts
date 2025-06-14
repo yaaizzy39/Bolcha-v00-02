@@ -298,9 +298,7 @@ export function useWebSocket() {
           });
         } else if (data.type === 'online_count_updated') {
           console.log('Online count updated:', data.onlineCount, 'for room:', data.roomId);
-          console.log('Current state before update:', onlineCount);
           setOnlineCount(Number(data.onlineCount));
-          console.log('State set to:', Number(data.onlineCount));
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           

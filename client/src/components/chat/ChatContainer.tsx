@@ -184,10 +184,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [isConnected, roomId, joinRoom]);
 
-  // Debug online count state
-  useEffect(() => {
-    console.log('Online count state changed:', { onlineCount, initialOnlineCount, roomId });
-  }, [onlineCount, initialOnlineCount, roomId]);
+
 
   // Merge initial messages from database with real-time WebSocket messages
   useEffect(() => {
@@ -511,7 +508,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             )}
             <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <Users className="w-3 h-3" />
-              <span>{onlineCount !== null ? onlineCount : (initialOnlineCount ?? 0)}</span>
+              <span className="min-w-[1ch]">{onlineCount !== null ? onlineCount : (initialOnlineCount ?? 0)}</span>
             </Badge>
           </div>
           
