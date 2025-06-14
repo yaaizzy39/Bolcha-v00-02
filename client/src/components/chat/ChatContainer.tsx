@@ -46,7 +46,7 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
+  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, messageLikes, sendMessage, setMessages: setAllMessages, toggleLike } = useWebSocket();
   const queryClient = useQueryClient();
   
   // Load initial messages for the current room
@@ -564,6 +564,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                 
 
                 
+                const likeData = messageLikes.get(message.id);
+                
                 return (
                   <MessageBubble
                     key={`msg-${message.id}`}
@@ -577,6 +579,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     onDelete={message.senderId === currentUserId || (user as any)?.email === 'yaaizzy39@gmail.com' ? handleDeleteMessage : undefined}
                     isHighlighted={highlightedMessageId === message.id}
                     isMentioned={mentionedMessageIds.has(message.id)}
+                    totalLikes={likeData?.totalLikes || 0}
+                    userLiked={likeData?.userLiked || false}
+                    onToggleLike={() => toggleLike(message.id)}
                   />
                 );
               })}

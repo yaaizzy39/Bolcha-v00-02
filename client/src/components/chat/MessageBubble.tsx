@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal';
-import { Languages, Check, CheckCheck, Reply, Trash2 } from 'lucide-react';
+import { Languages, Check, CheckCheck, Reply, Trash2, Heart } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { useAuth } from '@/hooks/useAuth';
 import { getDisplayName } from '@/lib/profileUtils';

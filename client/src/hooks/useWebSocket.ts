@@ -423,12 +423,31 @@ export function useWebSocket() {
     }
   }, [user]);
 
+  const toggleLike = useCallback(async (messageId: number) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}/like`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to toggle like');
+      }
+      
+      // WebSocket will handle updating the state when broadcast is received
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  }, []);
+
   return {
     isConnected,
     isReconnecting,
     messages,
     deletedMessageIds,
+    messageLikes,
     sendMessage,
     setMessages,
+    toggleLike,
   };
 }
