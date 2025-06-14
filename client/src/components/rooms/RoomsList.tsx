@@ -116,39 +116,57 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     },
   });
 
-  // Robust room ownership check with multiple authentication sources  
+  // Enhanced room ownership check with persistent user data
   const isRoomOwner = (room: ChatRoom): boolean => {
     let currentUser = null;
+    let userId = null;
 
-    // Try multiple sources for user data
+    // Multi-layered authentication check with priority order
+    
+    // 1. Current user from auth hook
     if (user && (user as any)?.id) {
       currentUser = user;
-    } else {
-      // Try cached user data
+      userId = String((user as any).id);
+    }
+    
+    // 2. Cached user data from query
+    if (!userId) {
       const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
       if (cachedUser && cachedUser.id) {
         currentUser = cachedUser;
-      } else {
-        // Try localStorage as final fallback
-        const storedUserData = localStorage.getItem('wsUserData');
-        if (storedUserData) {
-          try {
-            const parsedUser = JSON.parse(storedUserData);
-            if (parsedUser && parsedUser.id) {
-              currentUser = parsedUser;
-            }
-          } catch (e) {
-            // Ignore parse errors
+        userId = String(cachedUser.id);
+      }
+    }
+    
+    // 3. WebSocket user data from localStorage
+    if (!userId) {
+      const wsUserData = localStorage.getItem('wsUserData');
+      if (wsUserData) {
+        try {
+          const parsedUser = JSON.parse(wsUserData);
+          if (parsedUser && parsedUser.id) {
+            currentUser = parsedUser;
+            userId = String(parsedUser.id);
           }
+        } catch (e) {
+          // Ignore parse errors
         }
       }
     }
+    
+    // 4. Settings data from localStorage as final fallback
+    if (!userId) {
+      const userSettings = localStorage.getItem('userSettings');
+      const storedUserId = localStorage.getItem('currentUserId');
+      if (storedUserId) {
+        userId = storedUserId;
+      }
+    }
 
-    if (!currentUser || !(currentUser as any)?.id) {
+    if (!userId) {
       return false;
     }
 
-    const userId = String((currentUser as any).id);
     const createdBy = String(room.createdBy);
     return userId === createdBy;
   };

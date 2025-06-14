@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
@@ -15,6 +16,15 @@ export function useAuth() {
     refetchInterval: false, // Disable interval to reduce server load
     networkMode: 'online', // Only fetch when online
   });
+
+  // Ensure user ID is always stored when user data is available
+  useEffect(() => {
+    if (user && (user as any)?.id) {
+      const userId = String((user as any).id);
+      localStorage.setItem('currentUserId', userId);
+      localStorage.setItem('wsUserData', JSON.stringify(user));
+    }
+  }, [user]);
 
   return {
     user,

@@ -76,6 +76,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         // Update localStorage immediately for WebSocket persistence
         localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
         
+        // Store user ID separately for room ownership checks
+        localStorage.setItem('currentUserId', String(updatedUser.id));
+        
         // Store settings in localStorage for immediate UI updates
         localStorage.setItem('userSettings', JSON.stringify({
           preferredLanguage: updatedUser.preferredLanguage || 'ja',
