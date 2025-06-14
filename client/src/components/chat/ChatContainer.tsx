@@ -77,14 +77,35 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     enabled: !!user,
   });
 
-  // Load participants for profile images
-  const { data: participants = [], refetch: refetchParticipants } = useQuery({
-    queryKey: ['/api/rooms', roomId, 'participants'],
-    queryFn: () => fetch(`/api/rooms/${roomId}/participants`, { credentials: 'include' }).then(res => res.json()),
-    enabled: !!user && !!roomId,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-  });
+  // Get participants from messages instead of separate API call
+  const participants = useMemo(() => {
+    const uniqueUsers = new Map();
+    roomMessages.forEach(message => {
+      if (message.senderId && !uniqueUsers.has(message.senderId)) {
+        uniqueUsers.set(message.senderId, {
+          id: message.senderId,
+          // We'll use the sender data from the message if available
+          profileImageUrl: (message as any).senderProfileImage || null,
+          firstName: (message as any).senderFirstName || null,
+          lastName: (message as any).senderLastName || null,
+          email: (message as any).senderEmail || '',
+        });
+      }
+    });
+    
+    // Add current user if not in participants
+    if (user && !uniqueUsers.has(user.id)) {
+      uniqueUsers.set(user.id, {
+        id: user.id,
+        profileImageUrl: user.profileImageUrl,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      });
+    }
+    
+    return Array.from(uniqueUsers.values());
+  }, [roomMessages, user]);
 
   // Load user's liked messages
   const { data: userLikes } = useQuery({
@@ -131,13 +152,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
 
-  // Refetch participants when messages change to ensure profile images are available
-  useEffect(() => {
-    if (roomMessages.length > 0) {
-      // Invalidate and refetch participants data when new messages arrive
-      queryClient.invalidateQueries({ queryKey: ['/api/rooms', roomId, 'participants'] });
-    }
-  }, [roomMessages.length, queryClient, roomId]);
+
 
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
@@ -303,12 +318,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     });
     
     setRoomMessages(mergedMessages);
-    
-    // Refresh participants data when new messages arrive to ensure profile images load
-    if (mergedMessages.length > 0) {
-      queryClient.invalidateQueries({ queryKey: ['/api/rooms', roomId, 'participants'] });
-    }
-  }, [initialMessages, allMessages, roomId, deletedMessageIds, user, playNotificationSound, isUserMentioned, queryClient]);
+  }, [initialMessages, allMessages, roomId, deletedMessageIds, user, playNotificationSound, isUserMentioned]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
