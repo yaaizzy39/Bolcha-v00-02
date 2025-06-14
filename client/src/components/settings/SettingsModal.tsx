@@ -157,15 +157,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     onValueChange={async (value) => {
                       console.log('Interface language change:', value, 'from:', settings.interfaceLanguage);
                       
-                      // Update settings state first
-                      setSettings(prev => {
-                        const newSettings = { ...prev, interfaceLanguage: value };
-                        console.log('Updated settings state:', newSettings);
-                        return newSettings;
-                      });
-                      
-                      // Create updated settings object for API call
+                      // Create updated settings object for API call immediately
                       const updatedSettings = { ...settings, interfaceLanguage: value };
+                      console.log('Sending API request with:', updatedSettings);
+                      
+                      // Update local state immediately
+                      setSettings(updatedSettings);
                       
                       try {
                         const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
@@ -190,7 +187,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       } catch (error) {
                         console.error('Failed to update interface language:', error);
                         // Revert settings on error
-                        setSettings(prev => ({ ...prev, interfaceLanguage: settings.interfaceLanguage }));
+                        setSettings(settings);
                       }
                     }}
                   >
@@ -214,15 +211,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     onValueChange={async (value) => {
                       console.log('Preferred language change:', value, 'from:', settings.preferredLanguage);
                       
-                      // Update settings state first
-                      setSettings(prev => {
-                        const newSettings = { ...prev, preferredLanguage: value };
-                        console.log('Updated preferred settings state:', newSettings);
-                        return newSettings;
-                      });
-                      
-                      // Create updated settings object for API call
+                      // Create updated settings object for API call immediately
                       const updatedSettings = { ...settings, preferredLanguage: value };
+                      console.log('Sending API request with preferred:', updatedSettings);
+                      
+                      // Update local state immediately
+                      setSettings(updatedSettings);
                       
                       try {
                         const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
@@ -247,7 +241,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       } catch (error) {
                         console.error('Failed to update preferred language:', error);
                         // Revert settings on error
-                        setSettings(prev => ({ ...prev, preferredLanguage: settings.preferredLanguage }));
+                        setSettings(settings);
                       }
                     }}
                   >
