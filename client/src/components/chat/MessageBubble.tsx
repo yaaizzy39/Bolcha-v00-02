@@ -129,11 +129,7 @@ export function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (confirm('このメッセージを削除しますか？')) {
-                      onDelete(message.id);
-                    }
-                  }}
+                  onClick={() => setShowDeleteModal(true)}
                   className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-3 h-3 mr-1" />
@@ -151,6 +147,15 @@ export function MessageBubble({
             {message.senderName.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
+        <DeleteConfirmationModal
+          open={showDeleteModal}
+          onOpenChange={setShowDeleteModal}
+          onConfirm={() => onDelete && onDelete(message.id)}
+          title="メッセージを削除"
+          description="このメッセージを削除しますか？削除したメッセージは復元できません。"
+          confirmText="削除"
+          cancelText="キャンセル"
+        />
       </div>
     );
   }
@@ -217,16 +222,16 @@ export function MessageBubble({
             )}
           </div>
         </div>
+        <DeleteConfirmationModal
+          open={showDeleteModal}
+          onOpenChange={setShowDeleteModal}
+          onConfirm={() => onDelete && onDelete(message.id)}
+          title="メッセージを削除"
+          description="このメッセージを削除しますか？削除したメッセージは復元できません。"
+          confirmText="削除"
+          cancelText="キャンセル"
+        />
       </div>
-      <DeleteConfirmationModal
-        open={showDeleteModal}
-        onOpenChange={setShowDeleteModal}
-        onConfirm={() => onDelete && onDelete(message.id)}
-        title="メッセージを削除"
-        description="このメッセージを削除しますか？削除したメッセージは復元できません。"
-        confirmText="削除"
-        cancelText="キャンセル"
-      />
     </div>
   );
 }
