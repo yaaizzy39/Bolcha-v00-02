@@ -303,7 +303,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     });
     
     setRoomMessages(mergedMessages);
-  }, [initialMessages, allMessages, roomId, deletedMessageIds, user, playNotificationSound, isUserMentioned]);
+    
+    // Refresh participants data when new messages arrive to ensure profile images load
+    if (mergedMessages.length > 0) {
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms', roomId, 'participants'] });
+    }
+  }, [initialMessages, allMessages, roomId, deletedMessageIds, user, playNotificationSound, isUserMentioned, queryClient]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -611,10 +616,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               )
               .sort((a: Message, b: Message) => {
                 // First sort by original timestamp to maintain chronological order
-                const timeComparison = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+                const timeComparison = new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
                 
                 // If timestamps are very close (within same second), prioritize translated messages
-                const timeDiff = Math.abs(new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                const aTime = new Date(a.timestamp || 0).getTime();
+                const bTime = new Date(b.timestamp || 0).getTime();
+                const timeDiff = Math.abs(aTime - bTime);
                 if (timeDiff < 1000) {
                   const aHasTranslation = translatedMessages.has(a.id);
                   const bHasTranslation = translatedMessages.has(b.id);
