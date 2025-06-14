@@ -628,8 +628,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // WebSocket server setup
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // WebSocket server setup with custom path to avoid conflicts with Vite
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/websocket'
+  });
   
   wss.on('connection', (ws: WebSocketClient, req) => {
     console.log('WebSocket client connected');
