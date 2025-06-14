@@ -150,6 +150,16 @@ export function MessageBubble({
         isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
         isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
       }`} id={`message-${message.id}`}>
+        {/* Avatar on left when messageAlignment is left */}
+        {!shouldDisplayRight && (
+          <Avatar className="w-8 h-8 flex-shrink-0">
+            <AvatarImage src={getProfileImageUrl() || undefined} />
+            <AvatarFallback>
+              {message.senderName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        
         <div className={`flex flex-col ${shouldDisplayRight ? 'items-end ml-auto' : 'items-start mr-auto'} max-w-[85%] sm:max-w-lg`}>
           <div className={`bg-primary text-primary-foreground rounded-2xl ${shouldDisplayRight ? 'rounded-tr-md' : 'rounded-tl-md'} px-3 sm:px-4 py-2 sm:py-3`}>
             {message.replyToId && (
@@ -208,12 +218,16 @@ export function MessageBubble({
             <CheckCheck className="w-3 h-3 text-green-500" />
           </div>
         </div>
-        <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarImage src={getProfileImageUrl() || undefined} />
-          <AvatarFallback>
-            {message.senderName.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        
+        {/* Avatar on right when messageAlignment is right */}
+        {shouldDisplayRight && (
+          <Avatar className="w-8 h-8 flex-shrink-0">
+            <AvatarImage src={getProfileImageUrl() || undefined} />
+            <AvatarFallback>
+              {message.senderName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <DeleteConfirmationModal
           open={showDeleteModal}
           onOpenChange={setShowDeleteModal}
