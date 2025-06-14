@@ -139,6 +139,8 @@ export function MessageBubble({
                 </Button>
               )}
             </div>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
             <span>{timestamp}</span>
             <CheckCheck className="w-3 h-3 text-green-500" />
           </div>
@@ -198,8 +200,8 @@ export function MessageBubble({
           </p>
         </div>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-          <span>{message.senderName}</span>
-          <span>•</span>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
           <span>{timestamp}</span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 ml-auto">
             {onReply && (
