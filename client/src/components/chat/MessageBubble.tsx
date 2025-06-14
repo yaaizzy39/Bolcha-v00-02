@@ -56,11 +56,22 @@ export function MessageBubble({
   const needsTranslation = String(message.originalLanguage) !== String(currentUserLanguage);
   
   // Check if we have completed translation
-  const hasTranslation = Boolean(translatedText);
+  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
   
   // Determine display state
   const isTranslating = needsTranslation && !hasTranslation;
   const showBothTexts = needsTranslation && hasTranslation;
+  
+  // Debug translation state
+  console.log(`Message ${message.id} translation state:`, {
+    originalText: message.originalText,
+    originalLang: message.originalLanguage,
+    currentUserLang: currentUserLanguage,
+    translatedText,
+    needsTranslation,
+    hasTranslation,
+    showBothTexts
+  });
 
   // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
@@ -198,7 +209,7 @@ export function MessageBubble({
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
             )}
-            {showBothTexts ? (
+            {hasTranslation ? (
               <div>
                 <p className="mb-2">
                   {renderTextWithLinks(translatedText || '', true)}
@@ -291,7 +302,7 @@ export function MessageBubble({
               <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
             </div>
           )}
-          {showBothTexts ? (
+          {hasTranslation ? (
             <div>
               <p className="text-foreground mb-2">
                 {renderTextWithLinks(translatedText || '', false)}
