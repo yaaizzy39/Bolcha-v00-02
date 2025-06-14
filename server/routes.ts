@@ -653,6 +653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Track online users per room
   const roomOnlineUsers = new Map<number, Set<string>>();
 
+  // Helper function to broadcast to specific room
+  function broadcastToRoom(wss: WebSocketServer, roomId: number, data: any) {
+    const message = JSON.stringify(data);
+    let sentCount = 0;
+    wss.clients.forEach((client: WebSocketClient) => {
+      if (client.readyState === WebSocket.OPEN && client.roomId === roomId) {
+        client.send(message);
+        sentCount++;
+      }
+    });
+    console.log(`Broadcast message sent to ${sentCount} clients in room ${roomId}`);
+  }
+
   // Helper function to get online user count for a room
   function getOnlineUserCount(roomId: number): number {
     return roomOnlineUsers.get(roomId)?.size || 0;
@@ -949,14 +962,4 @@ function broadcastToAll(wss: WebSocketServer, data: any) {
   console.log(`Broadcast message sent to ${sentCount} clients out of ${wss.clients.size} total`);
 }
 
-function broadcastToRoom(wss: WebSocketServer, roomId: number, data: any) {
-  const message = JSON.stringify(data);
-  let sentCount = 0;
-  wss.clients.forEach((client: WebSocketClient) => {
-    if (client.readyState === WebSocket.OPEN && client.roomId === roomId) {
-      client.send(message);
-      sentCount++;
-    }
-  });
-  console.log(`Broadcast message sent to ${sentCount} clients in room ${roomId}`);
-}
+

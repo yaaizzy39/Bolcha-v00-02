@@ -161,7 +161,19 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     if (roomId) {
       refetchMessages();
     }
-  }, [roomId, refetchMessages]);
+    
+    // Join the new room via WebSocket
+    if (isConnected && roomId) {
+      joinRoom(roomId);
+    }
+  }, [roomId, refetchMessages, isConnected, joinRoom]);
+
+  // Join room when WebSocket connects
+  useEffect(() => {
+    if (isConnected && roomId) {
+      joinRoom(roomId);
+    }
+  }, [isConnected, roomId, joinRoom]);
 
   // Merge initial messages from database with real-time WebSocket messages
   useEffect(() => {
@@ -485,6 +497,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             )}
             <Badge variant="secondary" className="flex items-center gap-1 text-xs">
               <Users className="w-3 h-3" />
+              <span>{onlineCount}</span>
             </Badge>
           </div>
           
