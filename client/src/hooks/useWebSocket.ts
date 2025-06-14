@@ -41,22 +41,35 @@ export function useWebSocket() {
   }, []);
 
   const connect = useCallback(() => {
-    // Get the most current user data
-    const currentUser = user || userDataRef.current;
-    const storedUserData = localStorage.getItem('wsUserData');
-    let fallbackUser = null;
+    // Robust user data retrieval with multiple fallbacks
+    let effectiveUser = null;
     
-    if (storedUserData) {
-      try {
-        fallbackUser = JSON.parse(storedUserData);
-      } catch (e) {
-        console.error('Failed to parse stored user data');
+    // Try current user first
+    if (user && (user as any)?.id) {
+      effectiveUser = user;
+    }
+    // Try stored user data from ref
+    else if (userDataRef.current && (userDataRef.current as any)?.id) {
+      effectiveUser = userDataRef.current;
+    }
+    // Try localStorage as final fallback
+    else {
+      const storedUserData = localStorage.getItem('wsUserData');
+      if (storedUserData) {
+        try {
+          const parsedUser = JSON.parse(storedUserData);
+          if (parsedUser && parsedUser.id) {
+            effectiveUser = parsedUser;
+            userDataRef.current = parsedUser; // Update ref
+          }
+        } catch (e) {
+          console.error('Failed to parse stored user data');
+        }
       }
     }
     
-    const effectiveUser = currentUser || fallbackUser;
-    
-    if (!isAuthenticated || !effectiveUser || isConnectingRef.current) {
+    // Don't connect if no valid user data or already connecting
+    if (!effectiveUser || isConnectingRef.current) {
       return;
     }
     
@@ -66,12 +79,12 @@ export function useWebSocket() {
       reconnectTimeoutRef.current = null;
     }
     
-    // Don't close existing stable connection
+    // Don't interrupt existing stable connection
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return;
     }
     
-    // Close only if connection is closed/failed
+    // Close failed connections
     if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
       wsRef.current.close();
       wsRef.current = null;
@@ -89,34 +102,19 @@ export function useWebSocket() {
       isConnectingRef.current = false;
       setIsConnected(true);
       
-      // Authenticate WebSocket connection - use current, stored, or localStorage user data
-      let currentUser = user || userDataRef.current;
-      
-      // Fallback to localStorage if both are unavailable
-      if (!currentUser) {
-        const storedUserData = localStorage.getItem('wsUserData');
-        if (storedUserData) {
-          try {
-            currentUser = JSON.parse(storedUserData);
-            userDataRef.current = currentUser;
-          } catch (e) {
-            console.error('Failed to parse stored user data:', e);
-          }
-        }
-      }
-      
-      const userId = (currentUser as any)?.id;
-      const userName = (currentUser as any)?.firstName && (currentUser as any)?.lastName 
-        ? `${(currentUser as any).firstName} ${(currentUser as any).lastName}` 
-        : (currentUser as any)?.email?.split('@')[0] || 'Anonymous';
+      // Use the effective user from connect function
+      const userId = (effectiveUser as any)?.id;
+      const userName = (effectiveUser as any)?.firstName && (effectiveUser as any)?.lastName 
+        ? `${(effectiveUser as any).firstName} ${(effectiveUser as any).lastName}` 
+        : (effectiveUser as any)?.email?.split('@')[0] || 'Anonymous';
       
       console.log('Sending WebSocket auth:', { 
         userId, 
         userName, 
         hasUser: !!user, 
         hasStoredUser: !!userDataRef.current,
-        currentUserData: currentUser,
-        userEmail: (currentUser as any)?.email
+        currentUserData: effectiveUser,
+        userEmail: (effectiveUser as any)?.email
       });
       
       // Only proceed if we have a valid userId
@@ -179,14 +177,16 @@ export function useWebSocket() {
         wsRef.current = null;
       }
       
-      // Auto-reconnect only if it wasn't a manual close and user is still authenticated
-      if (event.code !== 1000 && isAuthenticated && (user || userDataRef.current)) {
-        console.log('Scheduling WebSocket reconnection in 3 seconds...');
+      // Auto-reconnect more aggressively to prevent authentication issues
+      if (event.code !== 1000) {
+        console.log('Scheduling WebSocket reconnection in 1 second...');
         reconnectTimeoutRef.current = setTimeout(() => {
-          if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+          // Try to reconnect even if authentication state is temporarily unclear
+          const storedUserData = localStorage.getItem('wsUserData');
+          if (storedUserData && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
             connect();
           }
-        }, 3000);
+        }, 1000);
       }
     };
 
@@ -223,20 +223,29 @@ export function useWebSocket() {
   }, []);
 
   useEffect(() => {
-    // Only connect if authenticated and we have user data
-    if (isAuthenticated && (user || userDataRef.current)) {
-      // Don't create new connection if one is already open
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        connect();
-      }
+    // Try to connect if we have any form of user authentication
+    const storedUserData = localStorage.getItem('wsUserData');
+    const hasValidAuth = isAuthenticated || (user && (user as any).id) || storedUserData;
+    
+    if (hasValidAuth && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
+      connect();
     }
 
+    // Cleanup function
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
   }, [isAuthenticated, connect]);
+
+  // Separate effect for handling user data persistence
+  useEffect(() => {
+    if (user && (user as any).id) {
+      localStorage.setItem('wsUserData', JSON.stringify(user));
+      userDataRef.current = user;
+    }
+  }, [user]);
 
   return {
     isConnected,

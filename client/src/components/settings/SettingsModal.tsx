@@ -62,7 +62,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     onSuccess: async (response) => {
       const data = await response.json();
       
-      // Preserve user authentication state by carefully updating cache
+      // Get current user data without causing re-renders
       const currentUser = queryClient.getQueryData(['/api/auth/user']) as any;
       if (currentUser) {
         const updatedUser = {
@@ -70,13 +70,21 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           ...data
         };
         
-        // Update cache silently without invalidating
+        // Update cache directly without triggering watchers
         queryClient.setQueryData(['/api/auth/user'], updatedUser);
         
-        // Update localStorage for WebSocket persistence
+        // Update localStorage immediately for WebSocket persistence
         localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
         
-        // Update local settings state to reflect changes
+        // Store settings in localStorage for immediate UI updates
+        localStorage.setItem('userSettings', JSON.stringify({
+          preferredLanguage: updatedUser.preferredLanguage || 'ja',
+          interfaceLanguage: updatedUser.interfaceLanguage || 'ja', 
+          showOriginalText: updatedUser.showOriginalText ?? true,
+          autoTranslate: updatedUser.autoTranslate ?? true,
+        }));
+        
+        // Update local state
         setSettings({
           preferredLanguage: updatedUser.preferredLanguage || 'ja',
           interfaceLanguage: updatedUser.interfaceLanguage || 'ja', 
@@ -100,6 +108,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   });
 
   const handleSave = () => {
+    // Prevent closing modal during update to avoid re-renders
     updateSettingsMutation.mutate(settings);
   };
 
