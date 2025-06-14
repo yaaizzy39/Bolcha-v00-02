@@ -190,6 +190,15 @@ export function useWebSocket() {
           console.log(`${data.userName} left the chat`);
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
+          
+          // Handle room not found error by clearing current room selection
+          if (data.message === 'Chat room not found') {
+            console.log('Room not found, triggering room selection reset');
+            // Dispatch custom event to notify components about room deletion
+            window.dispatchEvent(new CustomEvent('roomDeleted', { 
+              detail: { message: data.message } 
+            }));
+          }
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);

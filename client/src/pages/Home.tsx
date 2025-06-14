@@ -32,11 +32,31 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Don't auto-select any room to prevent unwanted Global Chat display
+  // Validate selected room still exists after room list updates
   useEffect(() => {
-    // Disabled auto-selection to avoid showing Global Chat after deletion
-    // Users can manually select rooms from the room list
+    if (selectedRoomId && rooms.length > 0) {
+      const roomExists = rooms.some(room => room.id === selectedRoomId);
+      if (!roomExists) {
+        // Clear selection if the selected room no longer exists
+        console.log('Selected room no longer exists, clearing selection');
+        setSelectedRoomId(undefined);
+      }
+    }
   }, [rooms, selectedRoomId]);
+
+  // Listen for WebSocket room deletion events
+  useEffect(() => {
+    const handleRoomDeleted = (event: CustomEvent) => {
+      console.log('Room deletion event received:', event.detail);
+      setSelectedRoomId(undefined);
+    };
+
+    window.addEventListener('roomDeleted', handleRoomDeleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('roomDeleted', handleRoomDeleted as EventListener);
+    };
+  }, []);
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
