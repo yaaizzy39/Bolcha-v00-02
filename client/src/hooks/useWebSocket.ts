@@ -13,6 +13,7 @@ interface WebSocketMessage {
 export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [deletedMessageIds, setDeletedMessageIds] = useState<Set<number>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
@@ -130,6 +131,7 @@ export function useWebSocket() {
       console.log('WebSocket connected');
       isConnectingRef.current = false;
       setIsConnected(true);
+      setIsReconnecting(false);
       
       // Use the effective user from connect function
       const userId = (effectiveUser as any)?.id;
@@ -218,6 +220,8 @@ export function useWebSocket() {
       // Smart reconnection logic - only reconnect for unexpected closures
       if (event.code !== 1000 && event.code !== 1001) {
         console.log('WebSocket disconnected unexpectedly, attempting reconnection...');
+        setIsReconnecting(true);
+        
         // Clear any existing timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -230,10 +234,13 @@ export function useWebSocket() {
               (user || userDataRef.current || localStorage.getItem('wsUserData'))) {
             console.log('Attempting WebSocket reconnection...');
             connect();
+          } else {
+            setIsReconnecting(false);
           }
         }, 1000); // Longer delay for stability
       } else {
         console.log('WebSocket closed normally, no reconnection needed');
+        setIsReconnecting(false);
       }
     };
 
@@ -301,6 +308,7 @@ export function useWebSocket() {
 
   return {
     isConnected,
+    isReconnecting,
     messages,
     deletedMessageIds,
     sendMessage,

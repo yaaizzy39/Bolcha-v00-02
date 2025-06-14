@@ -45,7 +45,7 @@ interface ChatContainerProps {
 export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatContainerProps) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const { isConnected, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
+  const { isConnected, isReconnecting, messages: allMessages, deletedMessageIds, sendMessage, setMessages: setAllMessages } = useWebSocket();
   const queryClient = useQueryClient();
   
   // Load initial messages for the current room
@@ -492,9 +492,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               })}
             
             {!isConnected && (
-              <div className="flex justify-center">
-                <Badge variant="destructive">
-                  {t('chat.disconnected')}
+              <div className="flex justify-center py-2">
+                <Badge variant={isReconnecting ? "secondary" : "destructive"} className={isReconnecting ? "animate-pulse" : ""}>
+                  {isReconnecting ? "再接続中..." : t('chat.disconnected')}
                 </Badge>
               </div>
             )}
