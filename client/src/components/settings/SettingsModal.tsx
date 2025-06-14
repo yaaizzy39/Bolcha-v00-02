@@ -36,22 +36,31 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [settings, setSettings] = useState({
-    preferredLanguage: 'ja',
-    interfaceLanguage: 'ja',
-    showOriginalText: true,
-    autoTranslate: true,
-  });
-
-  // Update local settings when user data changes
-  useEffect(() => {
+  // Initialize settings with user data or defaults
+  const getUserSettings = () => {
     if (user) {
-      setSettings({
+      return {
         preferredLanguage: (user as any)?.preferredLanguage || 'ja',
         interfaceLanguage: (user as any)?.interfaceLanguage || 'ja',
         showOriginalText: (user as any)?.showOriginalText ?? true,
         autoTranslate: (user as any)?.autoTranslate ?? true,
-      });
+      };
+    }
+    return {
+      preferredLanguage: 'ja',
+      interfaceLanguage: 'ja',
+      showOriginalText: true,
+      autoTranslate: true,
+    };
+  };
+
+  const [settings, setSettings] = useState(getUserSettings);
+
+  // Update local settings when user data changes
+  useEffect(() => {
+    if (user) {
+      const newSettings = getUserSettings();
+      setSettings(newSettings);
     }
   }, [user]);
 
@@ -146,13 +155,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <Select 
                     value={settings.interfaceLanguage}
                     onValueChange={async (value) => {
-                      console.log('User selected language:', value, 'current language:', settings.interfaceLanguage);
-                      setSettings(prev => ({ ...prev, interfaceLanguage: value }));
+                      console.log('Interface language change:', value, 'from:', settings.interfaceLanguage);
                       
-                      // Immediate save for interface language changes
-                      const newSettings = { ...settings, interfaceLanguage: value };
+                      // Update settings state first
+                      setSettings(prev => {
+                        const newSettings = { ...prev, interfaceLanguage: value };
+                        console.log('Updated settings state:', newSettings);
+                        return newSettings;
+                      });
+                      
+                      // Create updated settings object for API call
+                      const updatedSettings = { ...settings, interfaceLanguage: value };
+                      
                       try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', newSettings);
+                        const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
                         const data = await response.json();
                         
                         // Update cache and localStorage immediately
@@ -170,9 +186,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           }));
                         }
                         
-                        console.log('Language updated successfully to:', data.interfaceLanguage);
+                        console.log('Interface language updated successfully to:', data.interfaceLanguage);
                       } catch (error) {
-                        console.error('Failed to update language:', error);
+                        console.error('Failed to update interface language:', error);
+                        // Revert settings on error
+                        setSettings(prev => ({ ...prev, interfaceLanguage: settings.interfaceLanguage }));
                       }
                     }}
                   >
@@ -194,13 +212,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <Select 
                     value={settings.preferredLanguage}
                     onValueChange={async (value) => {
-                      console.log('User selected preferred language:', value, 'current preferred language:', settings.preferredLanguage);
-                      setSettings(prev => ({ ...prev, preferredLanguage: value }));
+                      console.log('Preferred language change:', value, 'from:', settings.preferredLanguage);
                       
-                      // Immediate save for preferred language changes
-                      const newSettings = { ...settings, preferredLanguage: value };
+                      // Update settings state first
+                      setSettings(prev => {
+                        const newSettings = { ...prev, preferredLanguage: value };
+                        console.log('Updated preferred settings state:', newSettings);
+                        return newSettings;
+                      });
+                      
+                      // Create updated settings object for API call
+                      const updatedSettings = { ...settings, preferredLanguage: value };
+                      
                       try {
-                        const response = await apiRequest('PATCH', '/api/user/settings', newSettings);
+                        const response = await apiRequest('PATCH', '/api/user/settings', updatedSettings);
                         const data = await response.json();
                         
                         // Update cache and localStorage immediately
@@ -221,6 +246,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                         console.log('Preferred language updated successfully to:', data.preferredLanguage);
                       } catch (error) {
                         console.error('Failed to update preferred language:', error);
+                        // Revert settings on error
+                        setSettings(prev => ({ ...prev, preferredLanguage: settings.preferredLanguage }));
                       }
                     }}
                   >
