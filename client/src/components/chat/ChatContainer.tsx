@@ -285,7 +285,35 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   };
 
+  // Language change mutation
+  const updateLanguageMutation = useMutation({
+    mutationFn: async (newLanguage: string) => {
+      return apiRequest('PATCH', '/api/user/settings', { 
+        preferredLanguage: newLanguage 
+      });
+    },
+    onSuccess: (updatedUser) => {
+      const newLang = (updatedUser as any)?.preferredLanguage;
+      console.log('Language updated successfully to:', newLang);
+      queryClient.setQueryData(['/api/auth/user'], updatedUser);
+    },
+    onError: (error) => {
+      console.error('Language update failed:', error);
+    },
+  });
 
+  const handleLanguageChange = (newLanguage: string) => {
+    const currentLanguage = (user as any)?.preferredLanguage || 'ja';
+    console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
+    
+    if (newLanguage === currentLanguage) {
+      console.log('Same language selected, skipping update');
+      return;
+    }
+    
+    localStorage.setItem('selectedLanguage', newLanguage);
+    updateLanguageMutation.mutate(newLanguage);
+  };
 
   return (
     <main className="flex-1 flex flex-col w-full h-full">
@@ -357,7 +385,27 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-
+            {/* Language Selector */}
+            <div className="flex items-center gap-2">
+              <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <Select
+                value={(user as any)?.preferredLanguage || 'ja'}
+                onValueChange={handleLanguageChange}
+              >
+                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
+                  <SelectValue placeholder={
+                    getSupportedLanguages().find(lang => lang.code === ((user as any)?.preferredLanguage || 'ja'))?.nativeName || 'ja'
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSupportedLanguages().map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.nativeName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             {/* Auto-translate status */}
             <div className="hidden md:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
