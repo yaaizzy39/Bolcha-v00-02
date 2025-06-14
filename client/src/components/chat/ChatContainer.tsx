@@ -363,13 +363,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         !translatedMessages.has(message.id)
       );
       
+      // Sort by newest first (highest ID/timestamp first)
+      messagesToTranslate.sort((a, b) => b.id - a.id);
+      
       console.log(`Found ${messagesToTranslate.length} messages to translate from ${roomMessages.length} total messages`);
-      console.log('Messages to translate:', messagesToTranslate.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
+      console.log('Messages to translate (newest first):', messagesToTranslate.map(m => ({ id: m.id, text: m.originalText, lang: m.originalLanguage })));
       
       if (messagesToTranslate.length === 0) return;
       
-      for (const message of messagesToTranslate) {
-        if (cancelled) break;
+      // Translate messages in parallel but prioritize newest
+      const translationPromises = messagesToTranslate.map(async (message) => {
+        if (cancelled) return;
         
         try {
           const translatedText = await translateText(
@@ -382,13 +386,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
               newMap.set(message.id, translatedText);
+              console.log(`Translation completed for message ${message.id}: "${message.originalText}" -> "${translatedText}"`);
               return newMap;
             });
           }
         } catch (error) {
           console.error(`Translation failed for message ${message.id}:`, error);
         }
-      }
+      });
+      
+      // Process all translations in parallel
+      await Promise.allSettled(translationPromises);
     };
 
     // Add delay to prevent rapid re-execution
@@ -589,6 +597,22 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               .filter((message: Message, index: number, self: Message[]) => 
                 index === self.findIndex((m: Message) => m.id === message.id)
               )
+              .sort((a: Message, b: Message) => {
+                // First sort by original timestamp to maintain chronological order
+                const timeComparison = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+                
+                // If timestamps are very close (within same second), prioritize translated messages
+                const timeDiff = Math.abs(new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                if (timeDiff < 1000) {
+                  const aHasTranslation = translatedMessages.has(a.id);
+                  const bHasTranslation = translatedMessages.has(b.id);
+                  
+                  if (aHasTranslation && !bHasTranslation) return 1; // Move translated messages later (appear after)
+                  if (!aHasTranslation && bHasTranslation) return -1; // Move non-translated messages earlier
+                }
+                
+                return timeComparison;
+              })
               .map((message: Message) => {
                 const translation = translatedMessages.get(message.id);
                 
