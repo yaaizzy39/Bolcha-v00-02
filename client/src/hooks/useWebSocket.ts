@@ -27,7 +27,17 @@ interface ErrorMessageData extends BaseWebSocketMessage {
   message: string;
 }
 
-type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData;
+interface RoomCreatedData extends BaseWebSocketMessage {
+  type: 'room_created';
+  room: any;
+}
+
+interface RoomDeletedData extends BaseWebSocketMessage {
+  type: 'room_deleted';
+  roomId: number;
+}
+
+type WebSocketMessage = NewMessageData | DeleteMessageData | UserEventData | ErrorMessageData | RoomCreatedData | RoomDeletedData;
 
 export function useWebSocket() {
   const { user, isAuthenticated } = useAuth();
@@ -230,6 +240,18 @@ export function useWebSocket() {
           setMessages(prev => prev.filter(msg => msg.id !== messageId));
         } else if (data.type === 'user_joined' || data.type === 'user_left') {
           console.log(`${data.userName} ${data.type === 'user_joined' ? 'joined' : 'left'} the chat`);
+        } else if (data.type === 'room_created') {
+          console.log('New room created:', data.room);
+          // Dispatch custom event to refresh room list
+          window.dispatchEvent(new CustomEvent('roomCreated', { 
+            detail: { room: data.room }
+          }));
+        } else if (data.type === 'room_deleted') {
+          console.log('Room deleted:', data.roomId);
+          // Dispatch custom event to refresh room list and handle room selection
+          window.dispatchEvent(new CustomEvent('roomDeleted', { 
+            detail: { roomId: data.roomId }
+          }));
         } else if (data.type === 'error') {
           console.error('WebSocket error:', data.message);
           

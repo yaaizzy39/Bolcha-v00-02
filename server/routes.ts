@@ -508,6 +508,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Final room data:", roomData);
       const room = await storage.createChatRoom(roomData);
       console.log("Created room:", room);
+      
+      // Broadcast new room to all connected clients
+      broadcastToAll(wss, {
+        type: 'room_created',
+        room: room,
+        timestamp: new Date().toISOString()
+      });
+      
       res.json(room);
     } catch (error) {
       console.error("Error creating chat room:", error);
@@ -522,6 +530,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const success = await storage.deleteChatRoom(roomId, userId);
       if (success) {
+        // Broadcast room deletion to all connected clients
+        broadcastToAll(wss, {
+          type: 'room_deleted',
+          roomId: roomId,
+          timestamp: new Date().toISOString()
+        });
+        
         res.json({ message: "Chat room deleted successfully" });
       } else {
         res.status(403).json({ message: "Not authorized to delete this room" });

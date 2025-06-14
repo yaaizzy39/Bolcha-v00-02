@@ -16,13 +16,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, MoreVertical, Settings, LogOut, Globe, Plus } from 'lucide-react';
 import type { ChatRoom } from '@shared/schema';
 
 export default function Home() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
