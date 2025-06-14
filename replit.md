@@ -133,6 +133,14 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 14, 2025**: Online User Count Implementation and Message Input Fix
+  - Fixed message input duplication display issue with improved WebSocket message handling
+  - Implemented real-time online user count display with room-based tracking
+  - Added WebSocket-based online count broadcasting and client state synchronization
+  - Enhanced message deduplication to prevent duplicate entries in chat interface
+  - Cleaned up debug logging for production-ready user experience
+  - Optimized WebSocket connection management for better performance
+
 - **June 14, 2025**: UI Simplification and Likes Feature Implementation
   - Implemented comprehensive likes functionality for messages with real-time WebSocket synchronization
   - Added heart icon like buttons that appear on message hover with user-specific like state tracking
