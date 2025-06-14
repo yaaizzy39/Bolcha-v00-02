@@ -103,8 +103,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   };
 
   const handleSave = () => {
-    // Settings are now saved automatically when changed
+    // Settings are already saved automatically when changed
     console.log('Settings are auto-saved');
+    // Close the modal
+    onOpenChange(false);
   };
 
   const handleLogout = () => {
