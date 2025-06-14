@@ -398,10 +398,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             </div>
             
 
-            <Button variant="ghost" size="sm" onClick={onOpenSettings} className="p-2">
-              <span className="hidden sm:inline">{t('chat.settings')}</span>
-              <span className="sm:hidden">設定</span>
-            </Button>
+
           </div>
         </div>
       </div>
