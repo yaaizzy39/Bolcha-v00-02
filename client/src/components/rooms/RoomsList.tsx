@@ -213,10 +213,22 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Header with room creation button */}
+      <div className="p-4 border-b">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="w-full"
+          size="sm"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          新規作成
+        </Button>
+      </div>
+      
       <div className="flex-1 p-4 space-y-2" style={{ 
         overflowY: 'auto', 
         WebkitOverflowScrolling: 'touch',
-        maxHeight: 'calc(100vh - 80px)' 
+        maxHeight: 'calc(100vh - 140px)' 
       }}>
         {(rooms as ChatRoom[]).map((room: ChatRoom) => (
           <Card 

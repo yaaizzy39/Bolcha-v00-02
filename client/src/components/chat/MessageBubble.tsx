@@ -115,6 +115,8 @@ export function MessageBubble({
             <p>{renderTextWithLinks(shouldShowTranslation ? (translatedText || '') : (message.originalText || ''), true)}</p>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
               {onReply && (
                 <Button
@@ -139,8 +141,6 @@ export function MessageBubble({
                 </Button>
               )}
             </div>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
             <span>{timestamp}</span>
             <CheckCheck className="w-3 h-3 text-green-500" />
           </div>
@@ -202,8 +202,7 @@ export function MessageBubble({
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{message.senderName}</span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
-          <span>{timestamp}</span>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 ml-auto">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
             {onReply && (
               <Button
                 variant="ghost"
