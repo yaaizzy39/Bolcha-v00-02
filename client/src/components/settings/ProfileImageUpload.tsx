@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Camera, Globe, Upload, RotateCcw, Link } from 'lucide-react';
+import { Camera, Globe, Upload, RotateCcw } from 'lucide-react';
 
 export function ProfileImageUpload() {
   const { user } = useAuth();
@@ -16,7 +16,7 @@ export function ProfileImageUpload() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageUrl, setImageUrl] = useState('');
+
   const [isUploading, setIsUploading] = useState(false);
 
 
@@ -160,19 +160,7 @@ export function ProfileImageUpload() {
     }
   };
 
-  const handleUrlUpload = () => {
-    if (!imageUrl.trim()) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid image URL.",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    updateProfileImageMutation.mutate({ imageUrl: imageUrl.trim(), useCustom: true });
-    setImageUrl('');
-  };
 
   const handleToggleImage = () => {
     if (!currentUser?.customProfileImageUrl && !currentUser?.useCustomProfileImage) {
@@ -235,26 +223,7 @@ export function ProfileImageUpload() {
           </div>
         </div>
 
-        {/* URL Upload */}
-        <div>
-          <Label className="text-sm font-medium">Or Enter Image URL</Label>
-          <div className="mt-2 flex items-center gap-2">
-            <Input
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="flex-1"
-            />
-            <Button
-              onClick={handleUrlUpload}
-              disabled={!imageUrl.trim() || updateProfileImageMutation.isPending}
-              size="sm"
-            >
-              Upload
-            </Button>
-          </div>
-        </div>
+
 
         {/* Toggle between Google and Custom */}
         <div className="flex items-center justify-between p-4 border rounded-lg">
