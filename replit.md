@@ -1,8 +1,8 @@
-# Chat without border - Multilingual Real-time Chat Application
+# Bolcha (borderless chat) - Multilingual Real-time Chat Application
 
 ## Overview
 
-Chat without border is a real-time multilingual chat application that enables users to communicate seamlessly across language barriers. The application provides automatic translation between languages, allowing users to chat in their preferred language while others see messages translated to their preferred language. Built with React, Node.js, Express, WebSockets, PostgreSQL, and Google Translate integration.
+Bolcha is a real-time multilingual chat application that enables users to communicate seamlessly across language barriers. The application provides automatic translation between languages, allowing users to chat in their preferred language while others see messages translated to their preferred language. Built with React, Node.js, Express, WebSockets, PostgreSQL, and Google Translate integration.
 
 ## System Architecture
 
@@ -132,6 +132,14 @@ Chat without border is a real-time multilingual chat application that enables us
 - **NODE_ENV**: Environment mode (development/production)
 
 ## Recent Changes
+
+- **June 14, 2025**: Application Rebranding and UI Refinements
+  - Changed application name from "Chat without Border" to "Bolcha (borderless chat)"
+  - Updated all user-facing text and documentation to reflect new branding
+  - Removed settings button from chat header for cleaner interface
+  - Implemented comprehensive multilingual support for settings modal tabs and profile components
+  - Limited interface language selection to Japanese and English only as requested
+  - Added save-and-close functionality to settings modal
 
 - **June 14, 2025**: Major UI Simplification and Feature Cleanup
   - Fixed language selection bug where first selection attempt was ignored

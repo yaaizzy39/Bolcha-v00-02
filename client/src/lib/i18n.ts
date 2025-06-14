@@ -1,12 +1,12 @@
 export const translations = {
   en: {
     // Landing Page
-    'landing.title': 'Welcome to Chat without border',
-    'landing.subtitle': 'Connect with people around the world in your preferred language',
+    'landing.title': 'Welcome to Bolcha',
+    'landing.subtitle': 'Borderless chat connecting people around the world',
     'landing.signIn': 'Sign in with Google',
     
     // Navigation
-    'nav.title': 'Chat without border',
+    'nav.title': 'Bolcha',
     'nav.online': 'Online',
     'nav.settings': 'Settings',
     'nav.signOut': 'Sign Out',
@@ -65,12 +65,12 @@ export const translations = {
   },
   ja: {
     // Landing Page
-    'landing.title': 'Chat without borderへようこそ',
-    'landing.subtitle': '世界中の人々とあなたの好きな言語でつながりましょう',
+    'landing.title': 'Bolchaへようこそ',
+    'landing.subtitle': 'ボーダーレスチャットで世界中の人々とつながりましょう',
     'landing.signIn': 'Googleでサインイン',
     
     // Navigation
-    'nav.title': 'Chat without border',
+    'nav.title': 'Bolcha',
     'nav.online': 'オンライン',
     'nav.settings': '設定',
     'nav.signOut': 'サインアウト',
