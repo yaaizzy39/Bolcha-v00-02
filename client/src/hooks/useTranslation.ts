@@ -5,19 +5,26 @@ export function useTranslation() {
   const [isTranslating, setIsTranslating] = useState(false);
 
   const translateText = useCallback(async (text: string, source: string, target: string): Promise<string> => {
+    console.log(`🔄 useTranslation.translateText called:`, { text, source, target });
+    
     if (!text.trim() || source === target) {
+      console.log(`⏭️ Translation skipped: empty text or same language`);
       return text;
     }
 
     setIsTranslating(true);
     try {
+      console.log(`📡 Making API request to /api/translate`);
       const response = await apiRequest('POST', '/api/translate', {
         text,
         source,
         target
       });
       
+      console.log(`📨 API response status:`, response.status);
       const data = await response.json();
+      console.log(`📄 API response data:`, data);
+      
       let translatedText = data.translatedText || text;
       
       // If translatedText is a JSON string, parse it

@@ -7,6 +7,7 @@ import { Languages, Check, CheckCheck, Reply, Trash2, Heart } from 'lucide-react
 import { useI18n } from '@/hooks/useI18n';
 import { useAuth } from '@/hooks/useAuth';
 import { getDisplayName, getCurrentProfileImage } from '@/lib/profileUtils';
+import { CulturalContextTooltip } from './CulturalContextTooltip';
 import type { Message } from '@shared/schema';
 
 interface MessageBubbleProps {
@@ -212,7 +213,13 @@ export function MessageBubble({
             {hasTranslation ? (
               <div>
                 <p className="mb-2">
-                  {renderTextWithLinks(translatedText || '', true)}
+                  <CulturalContextTooltip
+                    text={message.originalText || ''}
+                    originalLanguage={message.originalLanguage || 'en'}
+                    targetLanguage={currentUserLanguage}
+                  >
+                    {renderTextWithLinks(translatedText || '', true)}
+                  </CulturalContextTooltip>
                 </p>
                 <div className="text-xs text-amber-200/70 border-l-2 border-amber-200/40 pl-2 opacity-70">
                   {renderTextWithLinks(message.originalText || '', true)}
@@ -305,7 +312,13 @@ export function MessageBubble({
           {hasTranslation ? (
             <div>
               <p className="text-foreground mb-2">
-                {renderTextWithLinks(translatedText || '', false)}
+                <CulturalContextTooltip
+                  text={message.originalText || ''}
+                  originalLanguage={message.originalLanguage || 'en'}
+                  targetLanguage={currentUserLanguage}
+                >
+                  {renderTextWithLinks(translatedText || '', false)}
+                </CulturalContextTooltip>
               </p>
               <div className="text-xs text-gray-400 border-l-2 border-gray-300 pl-2 opacity-70">
                 {renderTextWithLinks(message.originalText || '', false)}

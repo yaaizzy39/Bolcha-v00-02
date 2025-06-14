@@ -133,6 +133,17 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 14, 2025**: Translation System Debugging and Profile Image Fixes
+  - Resolved critical white screen errors caused by undefined senderName values in MessageBubble component
+  - Removed duplicate translation API routes that were causing conflicts
+  - Enhanced translation processing with comprehensive debugging logs throughout the system
+  - Fixed infinite participant API request loops by integrating sender data directly into message queries
+  - Improved translation display logic to properly show translated text when available
+  - Added detailed console logging for translation process tracking and troubleshooting
+  - Updated MessageBubble component to handle undefined user data with proper fallbacks
+  - Restored user language preference detection from multiple sources (user settings, localStorage)
+  - Enhanced translation state management and display conditions in chat interface
+
 - **June 14, 2025**: Message Alignment Feature and Profile Image Fixes
   - Implemented user-configurable message display position (left/right alignment)
   - Added new "UI" tab in settings modal with message alignment selection

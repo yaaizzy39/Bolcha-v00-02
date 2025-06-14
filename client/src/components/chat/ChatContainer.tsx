@@ -380,8 +380,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       return;
     }
     
-    // Force English as target language for testing
-    const userLanguage = 'en';
+    // Get user language from multiple sources with priority order
+    const userLanguage = (user as any)?.preferredLanguage || 
+                        localStorage.getItem('selectedLanguage') || 
+                        'ja';
     
     console.log('=== TRANSLATION PROCESS START ===');
     console.log(`Target language: ${userLanguage}`);
