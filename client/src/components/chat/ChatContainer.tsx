@@ -317,35 +317,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   return (
     <main className="flex-1 flex flex-col w-full h-full">
-      {/* Mobile Room Selector */}
-      <div className="lg:hidden bg-background border-b border-border p-3">
-        <Select
-          value={roomId.toString()}
-          onValueChange={(value) => onRoomSelect?.(parseInt(value))}
-        >
-          <SelectTrigger className="w-full">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              <SelectValue placeholder="Select a room" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            {(allRooms as ChatRoom[]).map((room) => (
-              <SelectItem key={room.id} value={room.id.toString()}>
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>{translateRoomName(room.name)}</span>
-                  {room.adminOnly && (
-                    <Badge variant="destructive" className="text-xs">
-                      <Shield className="w-3 h-3" />
-                    </Badge>
-                  )}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+
 
       {/* Chat Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-3 flex-shrink-0">

@@ -133,13 +133,18 @@ Chat without border is a real-time multilingual chat application that enables us
 
 ## Recent Changes
 
-- **June 14, 2025**: UI Cleanup and Language Selection Fixes
+- **June 14, 2025**: Major UI Simplification and Feature Cleanup
   - Fixed language selection bug where first selection attempt was ignored
   - Improved language state management with localStorage persistence and early initialization
   - Removed duplicate "チャットルーム" header text for cleaner UI
   - Removed redundant "ルーム作成" button (functionality available via "新規作成")
   - Enhanced scroll area optimization for better room list display
   - Stabilized language synchronization between local state and server updates
+  - Eliminated redundant language indicator from main header
+  - Completely removed translation testing functionality and UI components
+  - Removed auto-translation status display for cleaner interface
+  - Deleted mobile room selector dropdown for simplified navigation
+  - Streamlined chat header to essential controls only (language selection and settings)
 
 - **June 14, 2025**: WebSocket Connection and Room Management Fixes
   - Resolved language settings causing room deletion button disappearance

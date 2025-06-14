@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal';
 import { Languages, Check, CheckCheck, Reply, Trash2 } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import type { Message } from '@shared/schema';
@@ -29,6 +31,7 @@ export function MessageBubble({
   isHighlighted
 }: MessageBubbleProps) {
   const { t } = useI18n();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Show translation if we have translated text and the message is in a different language
   const shouldShowTranslation = Boolean(translatedText) && 
     String(message.originalLanguage) !== String(currentUserLanguage);
@@ -205,11 +208,7 @@ export function MessageBubble({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  if (confirm('このメッセージを削除しますか？')) {
-                    onDelete(message.id);
-                  }
-                }}
+                onClick={() => setShowDeleteModal(true)}
                 className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
               >
                 <Trash2 className="w-3 h-3 mr-1" />
@@ -219,6 +218,15 @@ export function MessageBubble({
           </div>
         </div>
       </div>
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        onConfirm={() => onDelete && onDelete(message.id)}
+        title="メッセージを削除"
+        description="このメッセージを削除しますか？削除したメッセージは復元できません。"
+        confirmText="削除"
+        cancelText="キャンセル"
+      />
     </div>
   );
 }
