@@ -70,15 +70,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           ...data
         };
         
-        // Update cache without triggering re-render loops
+        // Update cache silently without invalidating
         queryClient.setQueryData(['/api/auth/user'], updatedUser);
         
-        // Also update localStorage for WebSocket persistence
+        // Update localStorage for WebSocket persistence
         localStorage.setItem('wsUserData', JSON.stringify(updatedUser));
+        
+        // Update local settings state to reflect changes
+        setSettings({
+          preferredLanguage: updatedUser.preferredLanguage || 'ja',
+          interfaceLanguage: updatedUser.interfaceLanguage || 'ja', 
+          showOriginalText: updatedUser.showOriginalText ?? true,
+          autoTranslate: updatedUser.autoTranslate ?? true,
+        });
       }
-      
-      // Invalidate rooms cache to refresh UI with new language settings
-      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
       
       toast({
         title: "設定更新完了", 

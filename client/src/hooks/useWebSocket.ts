@@ -41,7 +41,22 @@ export function useWebSocket() {
   }, []);
 
   const connect = useCallback(() => {
-    if (!isAuthenticated || (!user && !userDataRef.current) || isConnectingRef.current) {
+    // Get the most current user data
+    const currentUser = user || userDataRef.current;
+    const storedUserData = localStorage.getItem('wsUserData');
+    let fallbackUser = null;
+    
+    if (storedUserData) {
+      try {
+        fallbackUser = JSON.parse(storedUserData);
+      } catch (e) {
+        console.error('Failed to parse stored user data');
+      }
+    }
+    
+    const effectiveUser = currentUser || fallbackUser;
+    
+    if (!isAuthenticated || !effectiveUser || isConnectingRef.current) {
       return;
     }
     
@@ -221,7 +236,7 @@ export function useWebSocket() {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [isAuthenticated, (user as any)?.id, connect]);
+  }, [isAuthenticated, connect]);
 
   return {
     isConnected,

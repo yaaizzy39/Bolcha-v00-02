@@ -116,25 +116,35 @@ export function RoomsList({ onRoomSelect, selectedRoomId }: RoomsListProps) {
     },
   });
 
-  // Robust room ownership check with multiple authentication sources
+  // Robust room ownership check with multiple authentication sources  
   const isRoomOwner = (room: ChatRoom): boolean => {
     let currentUser = null;
-    let source = '';
 
-    // Try auth hook first
+    // Try multiple sources for user data
     if (user && (user as any)?.id) {
       currentUser = user;
-      source = 'auth-hook';
     } else {
-      // Fallback to cached user data
+      // Try cached user data
       const cachedUser = queryClient.getQueryData(['/api/auth/user']) as any;
       if (cachedUser && cachedUser.id) {
         currentUser = cachedUser;
-        source = 'cache-fallback';
+      } else {
+        // Try localStorage as final fallback
+        const storedUserData = localStorage.getItem('wsUserData');
+        if (storedUserData) {
+          try {
+            const parsedUser = JSON.parse(storedUserData);
+            if (parsedUser && parsedUser.id) {
+              currentUser = parsedUser;
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
       }
     }
 
-    if (!currentUser) {
+    if (!currentUser || !(currentUser as any)?.id) {
       return false;
     }
 
