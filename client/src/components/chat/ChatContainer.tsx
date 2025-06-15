@@ -410,13 +410,20 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     });
 
     try {
+      console.log(`Starting translation for message ${messageId}: "${text}"`);
       const translated = await translateText(text, sourceLanguage, targetLanguage);
-      if (translated && translated !== text) {
+      console.log(`Translation result for message ${messageId}: "${translated}"`);
+      
+      if (translated && translated !== text && translated.trim() !== '') {
+        console.log(`Setting translation for message ${messageId}: "${translated}"`);
         setTranslatedMessages(prev => {
           const newMap = new Map(prev);
           newMap.set(messageId, translated);
+          console.log(`Updated translated messages map:`, newMap);
           return newMap;
         });
+      } else {
+        console.log(`Translation not set - same as original or empty`);
       }
     } catch (error) {
       console.error('Translation failed:', error);

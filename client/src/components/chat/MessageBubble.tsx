@@ -250,12 +250,19 @@ export function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onTranslate(
-                    message.id, 
-                    message.originalText || '', 
-                    message.originalLanguage || 'en', 
-                    currentUserLanguage
-                  )}
+                  onClick={() => {
+                    console.log(`Translation button clicked for message ${message.id}:`, {
+                      text: message.originalText,
+                      from: message.originalLanguage,
+                      to: currentUserLanguage
+                    });
+                    onTranslate && onTranslate(
+                      message.id, 
+                      message.originalText || '', 
+                      message.originalLanguage || 'en', 
+                      currentUserLanguage
+                    );
+                  }}
                   className="h-6 px-2 text-xs hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/20"
                 >
                   <RotateCcw className="w-3 h-3 mr-1" />
