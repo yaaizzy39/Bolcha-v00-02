@@ -148,6 +148,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
+  const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
 
 
 
@@ -355,112 +356,62 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Clear translations when user language preference changes
+  // Simple translation system without infinite loops
   useEffect(() => {
-    if (user) {
-      const userLanguage = (user as any)?.preferredLanguage || 'ja';
-      console.log(`Language is now: ${userLanguage}, clearing all translations`);
-      setTranslatedMessages(new Map());
-      // Force re-evaluation of translation needs after clearing
-      setTimeout(() => {
-        console.log(`Re-evaluating translations for language: ${userLanguage}`);
-      }, 100);
-    }
-  }, [user]);
+    if (!user || !roomMessages.length) return;
 
-  // Translate messages based on user preference with caching
-  useEffect(() => {
-    console.log('Translation effect triggered:', { 
-      hasUser: !!user, 
-      messageCount: roomMessages.length,
-      translatedCount: translatedMessages.size 
-    });
+    const userLanguage = (user as any)?.preferredLanguage || 'ja';
     
-    if (!user || !roomMessages.length) {
-      console.log('Translation skipped - missing user or messages');
-      return;
-    }
-    
-    // Get user language from multiple sources with priority order
-    const userLanguage = (user as any)?.preferredLanguage || 
-                        localStorage.getItem('selectedLanguage') || 
-                        'ja';
-    
-    console.log('=== TRANSLATION PROCESS START ===');
-    console.log(`Target language: ${userLanguage}`);
-    console.log(`Messages to check:`, roomMessages.map(m => ({ 
-      id: m.id, 
-      text: m.originalText?.substring(0, 30), 
-      lang: m.originalLanguage 
-    })));
+    // Process only messages that need translation
+    const messagesToTranslate = roomMessages.filter(message => 
+      message.originalLanguage && 
+      message.originalLanguage !== userLanguage &&
+      !translatedMessages.has(message.id) &&
+      !translatingMessages.has(message.id)
+    );
 
-    const translateMessages = async () => {
-      const newTranslations = new Map<number, string>();
-      const messagesToTranslate: Message[] = [];
+    if (messagesToTranslate.length === 0) return;
 
-      // First pass: check cache for existing translations
-      roomMessages.forEach((message) => {
-        const hasOriginalLanguage = Boolean(message.originalLanguage);
-        const isDifferentLanguage = message.originalLanguage !== userLanguage;
-        const notAlreadyTranslated = !translatedMessages.has(message.id);
-        
-        if (hasOriginalLanguage && isDifferentLanguage && notAlreadyTranslated) {
-          // Check cache first
-          const cachedTranslation = translationCache.get(
-            message.originalText || '', 
-            message.originalLanguage || 'ja', 
-            userLanguage
-          );
-          
-          if (cachedTranslation) {
-            console.log(`💾 Using cached translation for message ${message.id}: "${message.originalText}" -> "${cachedTranslation}"`);
-            newTranslations.set(message.id, cachedTranslation);
-          } else {
-            messagesToTranslate.push(message);
-          }
-        }
-      });
-
-      // Apply cached translations immediately
-      if (newTranslations.size > 0) {
-        setTranslatedMessages(prev => {
-          const updated = new Map(prev);
-          newTranslations.forEach((translation, messageId) => {
-            updated.set(messageId, translation);
-          });
-          return updated;
-        });
-      }
-
-      // Second pass: translate uncached messages
+    const processTranslations = async () => {
       for (const message of messagesToTranslate) {
-        console.log(`🔄 Translating message ${message.id} from API: "${message.originalText}"`);
-        try {
-          const translatedText = await translateText(
-            message.originalText || '',
-            message.originalLanguage || 'ja',
-            userLanguage
-          );
+        // Check cache first
+        const cached = translationCache.get(
+          message.originalText || '', 
+          message.originalLanguage, 
+          userLanguage
+        );
+        
+        if (cached) {
+          setTranslatedMessages(prev => new Map(prev).set(message.id, cached));
+        } else {
+          // Mark as translating to prevent duplicates
+          setTranslatingMessages(prev => new Set(prev).add(message.id));
           
-          console.log(`✅ Translation completed for message ${message.id}: "${translatedText}"`);
-          
-          if (translatedText && translatedText !== message.originalText) {
-            setTranslatedMessages(prev => {
-              const newMap = new Map(prev);
-              newMap.set(message.id, translatedText);
-              console.log(`💾 Stored translation for message ${message.id}`);
-              return newMap;
+          try {
+            const translated = await translateText(
+              message.originalText || '',
+              message.originalLanguage,
+              userLanguage
+            );
+            
+            if (translated) {
+              setTranslatedMessages(prev => new Map(prev).set(message.id, translated));
+            }
+          } catch (error) {
+            console.error(`Translation failed for message ${message.id}:`, error);
+          } finally {
+            setTranslatingMessages(prev => {
+              const updated = new Set(prev);
+              updated.delete(message.id);
+              return updated;
             });
           }
-        } catch (error) {
-          console.error(`❌ Translation failed for message ${message.id}:`, error);
         }
       }
     };
 
-    translateMessages();
-    console.log('=== TRANSLATION PROCESS END ===');
-  }, [roomMessages, user, translateText]);
+    processTranslations();
+  }, [roomMessages.length, user]); // Only depend on message count, not the full array
 
 
 
