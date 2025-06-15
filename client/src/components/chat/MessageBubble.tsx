@@ -55,10 +55,10 @@ export function MessageBubble({
   // Determine if this message should be displayed on the right side
   const shouldDisplayRight = isOwnMessage ? messageAlignment === 'right' : !isOwnMessage;
   
-  // Simple translation logic for Japanese to English
-  const needsTranslation = message.originalLanguage === 'ja' && currentUserLanguage === 'en';
+  // Enhanced translation logic - show translate button for any Japanese text
+  const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
   const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
-  const showTranslateButton = needsTranslation && !hasTranslation;
+  const showTranslateButton = isJapanese && !hasTranslation && currentUserLanguage !== 'ja';
   
   // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
