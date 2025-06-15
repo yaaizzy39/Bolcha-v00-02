@@ -133,6 +133,15 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 15, 2025**: API Creation Function Fixed
+  - Fixed critical API request parameter order bug preventing translation API creation
+  - Corrected apiRequest function calls from (url, method, data) to (method, url, data) format
+  - Added temporary direct API creation endpoint to bypass admin middleware issues
+  - Enhanced error handling with detailed logging for API creation failures
+  - Resolved browser console error: "Failed to execute 'fetch' on 'Window': '/api/translation-apis/create' is not a valid HTTP method"
+  - API creation now functional through direct endpoint at /api/translation-apis/create
+  - Both creation and deletion functionality now working properly in admin settings
+
 - **June 15, 2025**: Complete Translation System Rebuild
   - Built new TranslationManager class to handle all translation operations with priority queue system
   - Implemented automatic translation for new messages with prioritization (new messages get high priority)

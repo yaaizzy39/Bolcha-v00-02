@@ -40,7 +40,7 @@ export default function AdminSettings() {
   // Create API mutation
   const createApiMutation = useMutation({
     mutationFn: async (apiData: InsertTranslationApi) => {
-      return await apiRequest('/api/translation-apis/create', 'POST', apiData);
+      return await apiRequest('POST', '/api/translation-apis/create', apiData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/translation-apis'] });
@@ -63,7 +63,7 @@ export default function AdminSettings() {
   // Update API mutation
   const updateApiMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: number; updates: Partial<TranslationApi> }) => {
-      return await apiRequest(`/api/admin/translation-apis/${id}`, 'PUT', updates);
+      return await apiRequest('PUT', `/api/admin/translation-apis/${id}`, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/translation-apis'] });
