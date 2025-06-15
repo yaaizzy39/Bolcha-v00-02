@@ -34,7 +34,7 @@ export default function AdminSettings() {
   // Fetch translation APIs
   const { data: apis = [], isLoading: apisLoading } = useQuery<TranslationApi[]>({
     queryKey: ['/api/admin/translation-apis'],
-    enabled: !!user?.isAdmin,
+    enabled: !!(user as any)?.isAdmin,
   });
 
   // Create API mutation
@@ -83,9 +83,7 @@ export default function AdminSettings() {
   // Delete API mutation
   const deleteApiMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/admin/translation-apis/${id}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest(`/api/admin/translation-apis/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/translation-apis'] });
@@ -140,7 +138,7 @@ export default function AdminSettings() {
     return <div className="p-4">読み込み中...</div>;
   }
 
-  if (!user?.isAdmin) {
+  if (!(user as any)?.isAdmin) {
     return (
       <div className="p-4 text-center">
         <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
@@ -235,7 +233,7 @@ export default function AdminSettings() {
           ) : (
             <div className="space-y-4">
               {apis
-                .sort((a, b) => a.priority - b.priority)
+                .sort((a, b) => (a.priority || 1) - (b.priority || 1))
                 .map((api) => (
                   <div
                     key={api.id}
@@ -253,7 +251,7 @@ export default function AdminSettings() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
-                          checked={api.isActive}
+                          checked={Boolean(api.isActive)}
                           onCheckedChange={() => handleToggleActive(api)}
                           disabled={updateApiMutation.isPending}
                         />
@@ -287,7 +285,7 @@ export default function AdminSettings() {
                           id={`priority-${api.id}`}
                           type="number"
                           min="1"
-                          value={api.priority}
+                          value={String(api.priority || 1)}
                           onChange={(e) => {
                             const newPriority = parseInt(e.target.value) || 1;
                             handlePriorityChange(api, newPriority);
