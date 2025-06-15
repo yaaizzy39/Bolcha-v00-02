@@ -156,6 +156,12 @@ function getSimpleTranslation(text: string, target: string): string {
     'ふざけないでください。': {
       'en': 'Please don\'t joke around.'
     },
+    'どういう事？': {
+      'en': 'What do you mean?'
+    },
+    'どうしよう': {
+      'en': 'What should I do?'
+    },
     'おはよう': {
       'en': 'Good morning',
       'es': 'Buenos días',
