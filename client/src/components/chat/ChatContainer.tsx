@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useI18n } from '@/hooks/useI18n';
 import { translationManager } from '@/lib/translationManager';
-import { translationCache } from '@/lib/translationCache';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
 import { getDisplayName } from '@/lib/profileUtils';
@@ -377,106 +376,44 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     translationManager.setUserLanguage(currentLanguage);
   }, [currentLanguage]);
 
-  // Handle message translations automatically
+  // Handle message translations for visible messages only
   useEffect(() => {
     if (!user || !roomMessages.length) return;
 
-    console.log(`🌐 Processing translations for ${roomMessages.length} messages in language: ${currentLanguage}`);
+    console.log(`🌐 Processing translations for ${roomMessages.length} visible messages in language: ${currentLanguage}`);
     
-    // First, load cached translations for all messages
-    const cachedTranslations = new Map<number, string>();
-    console.log(`🔍 Checking cache for ${roomMessages.length} messages in room ${roomId}, target language: ${currentLanguage}`);
+    // Clear previous translations when language changes
+    setTranslatedMessages(new Map());
     
-    roomMessages.forEach(message => {
+    // Simple language detection function
+    const detectLanguage = (text: string): string => {
+      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text)) return 'ja';
+      if (/[\uAC00-\uD7AF]/.test(text)) return 'ko';
+      if (/[\u4E00-\u9FFF]/.test(text)) return 'zh';
+      if (/[\u0600-\u06FF]/.test(text)) return 'ar';
+      if (/[\u0400-\u04FF]/.test(text)) return 'ru';
+      return 'en'; // Default to English
+    };
+    
+    // Translate visible messages immediately
+    roomMessages.forEach((message) => {
       const text = message.originalText || '';
-      const sourceLanguage = message.originalLanguage || 'ja';
+      const detectedLanguage = detectLanguage(text);
       
-      console.log(`🔍 Checking message ${message.id}: "${text}" (source: ${sourceLanguage})`);
-      
-      // Skip if same language
-      if (sourceLanguage === currentLanguage) {
-        console.log(`⏭️ Skipping message ${message.id} - same language (${sourceLanguage})`);
+      // Skip if same language or empty text
+      if (detectedLanguage === currentLanguage || !text.trim()) {
         return;
       }
       
-      // Enhanced language detection (same as server-side)
-      const patterns: Record<string, RegExp> = {
-        'ja': /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/,
-        'ko': /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/,
-        'zh': /[\u4E00-\u9FFF]/,
-        'ar': /[\u0600-\u06FF\u0750-\u077F]/,
-        'hi': /[\u0900-\u097F]/,
-        'th': /[\u0E00-\u0E7F]/,
-        'vi': /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i,
-        'ru': /[\u0400-\u04FF]/,
-        'es': /[ñáéíóúü]/i,
-        'fr': /[àâäçéèêëïîôùûüÿ]/i,
-        'de': /[äöüßÄÖÜ]/,
-        'pt': /[ãâáàçêéíôóõúü]/i,
-        'it': /[àèéìíîòóù]/i,
-        'nl': /[äëïöüÄËÏÖÜ]/,
-      };
-
-      let actualSourceLanguage = sourceLanguage;
-      // Check for specific language patterns
-      for (const [lang, pattern] of Object.entries(patterns)) {
-        if (pattern.test(text)) {
-          actualSourceLanguage = lang;
-          break;
-        }
-      }
-      // Default to English for basic Latin text if no pattern matches
-      if (actualSourceLanguage === sourceLanguage && /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim())) {
-        actualSourceLanguage = 'en';
-      }
+      console.log(`🔄 Translating message ${message.id}: "${text}" (${detectedLanguage} -> ${currentLanguage})`);
       
-      console.log(`🔍 Detected language for "${text}": ${actualSourceLanguage} (original: ${sourceLanguage})`);
-      
-      // Skip if detected source and target are the same
-      if (actualSourceLanguage === currentLanguage) {
-        console.log(`⏭️ Skipping message ${message.id} - detected same language (${actualSourceLanguage})`);
-        return;
-      }
-      
-      // Check cache
-      const cached = translationCache.get(text, actualSourceLanguage, currentLanguage);
-      if (cached) {
-        console.log(`💾 Cache hit for message ${message.id}: "${text}" (${actualSourceLanguage} -> ${currentLanguage}) = "${cached}"`);
-        cachedTranslations.set(message.id, cached);
-      } else {
-        console.log(`❌ No cache for message ${message.id}: "${text}" (${actualSourceLanguage} -> ${currentLanguage})`);
-      }
-    });
-    
-    // Apply cached translations immediately
-    if (cachedTranslations.size > 0) {
-      setTranslatedMessages(prev => {
-        const newMap = new Map(prev);
-        cachedTranslations.forEach((translation, messageId) => {
-          newMap.set(messageId, translation);
-        });
-        return newMap;
-      });
-    }
-    
-    // Sort messages by timestamp descending (newest first) for translation
-    const sortedMessages = [...roomMessages].sort((a, b) => {
-      const timeA = new Date(a.timestamp || 0).getTime();
-      const timeB = new Date(b.timestamp || 0).getTime();
-      return timeB - timeA; // Descending order (newest first)
-    });
-    
-    sortedMessages.forEach((message, index) => {
-      // Translate each message using the new manager
-      // New messages get highest priority, then decreasing priority for older messages
-      const priority = index < 5 ? 'high' : index < 15 ? 'normal' : 'low';
-      
+      // Translate using the translation manager
       translationManager.translateMessage(
         message,
         currentLanguage,
-        priority,
+        'normal',
         (translatedText) => {
-          if (translatedText !== message.originalText) {
+          if (translatedText !== text) {
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
               newMap.set(message.id, translatedText);
