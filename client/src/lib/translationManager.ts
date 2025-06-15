@@ -4,11 +4,22 @@ import type { Message } from '@shared/schema';
 class TranslationManager {
   private authenticationRequired = false;
   private translationCache = new Map<string, string>(); // Simple in-memory cache
+  private userLanguage = 'ja'; // Default language
 
   setUserLanguage(language: string) {
-    console.log(`🌐 User language set to: ${language}`);
+    console.log(`🌐 TranslationManager: User language set to: ${language} (was: ${this.userLanguage})`);
+    this.userLanguage = language;
     // Clear cache when language changes to allow retranslation
     this.translationCache.clear();
+  }
+
+  getUserLanguage(): string {
+    return this.userLanguage;
+  }
+
+  // Debug access to internal state
+  get currentUserLanguage() {
+    return this.userLanguage;
   }
 
   resetAuthenticationStatus() {

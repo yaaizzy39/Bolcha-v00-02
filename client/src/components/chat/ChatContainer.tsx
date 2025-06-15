@@ -138,8 +138,18 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
-    return localStorage.getItem('selectedLanguage') || 'ja';
+    const stored = localStorage.getItem('selectedLanguage') || 'ja';
+    console.log(`🔍 INIT: Initial language state set to: ${stored}`);
+    console.log(`🔍 INIT: localStorage content:`, localStorage.getItem('selectedLanguage'));
+    return stored;
   });
+
+  // Override setCurrentLanguage to track all changes
+  const setCurrentLanguageWithDebug = (newLang: string) => {
+    console.log(`🚨 LANGUAGE CHANGE DETECTED: ${currentLanguage} -> ${newLang}`);
+    console.log(`🚨 STACK TRACE:`, new Error().stack);
+    setCurrentLanguage(newLang);
+  };
 
   // Get user's preferred language for room name translation
   // Use the local state which is always up-to-date
@@ -164,6 +174,15 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Debug: Track all language state changes
+  useEffect(() => {
+    console.log(`🎯 LANGUAGE STATE CHANGED: currentLanguage = ${currentLanguage}`);
+    console.log(`🎯 TRANSLATION MANAGER LANGUAGE: ${translationManager.currentUserLanguage}`);
+    
+    // Ensure TranslationManager is synced with current language
+    translationManager.setUserLanguage(currentLanguage);
+  }, [currentLanguage]);
+
   // Initialize and sync local language state with user data (run only once when user data loads)
   useEffect(() => {
     if (user && (user as any)?.preferredLanguage) {
@@ -174,18 +193,18 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       const savedLanguage = localStorage.getItem('selectedLanguage');
       if (!savedLanguage) {
         console.log(`🔄 INIT: Setting language from server: ${serverLanguage}`);
-        setCurrentLanguage(serverLanguage);
+        setCurrentLanguageWithDebug(serverLanguage);
         localStorage.setItem('selectedLanguage', serverLanguage);
       } else {
         console.log(`💾 INIT: Using saved language: ${savedLanguage}`);
         // Ensure current state matches localStorage
         if (currentLanguage !== savedLanguage) {
           console.log(`🔄 INIT: Syncing current state to localStorage: ${savedLanguage}`);
-          setCurrentLanguage(savedLanguage);
+          setCurrentLanguageWithDebug(savedLanguage);
         }
       }
     }
-  }, [user]); // Remove currentLanguage from dependencies to prevent infinite loops
+  }, [user]);
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
