@@ -55,88 +55,46 @@ export function MessageBubble({
   // Determine if this message should be displayed on the right side
   const shouldDisplayRight = isOwnMessage ? messageAlignment === 'right' : !isOwnMessage;
   
-  // Check if this message needs translation
-  const needsTranslation = String(message.originalLanguage) !== String(currentUserLanguage);
+  // Simple translation logic for Japanese to English
+  const needsTranslation = message.originalLanguage === 'ja' && currentUserLanguage === 'en';
+  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
+  const showTranslateButton = needsTranslation && !hasTranslation;
   
-  // Check if we have completed translation
-  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText && translatedText.trim() !== '');
-  
-  // Determine display state
-  const isTranslating = needsTranslation && !hasTranslation;
-  const showBothTexts = needsTranslation && hasTranslation;
-  
-  // Debug translation state
-  console.log(`Message ${message.id} translation state:`, {
-    originalText: message.originalText,
-    originalLang: message.originalLanguage,
-    currentUserLang: currentUserLanguage,
-    translatedText,
-    needsTranslation,
-    hasTranslation,
-    showBothTexts
-  });
-
   // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
-    if (isOwnMessage && user) {
-      return getCurrentProfileImage(user);
+    if (userProfileImage) return userProfileImage;
+    if ((user as any)?.useCustomProfileImage && (user as any)?.customProfileImageUrl) {
+      return (user as any).customProfileImageUrl;
     }
-    
-    // Use enhanced message data that includes sender profile information
-    const enhancedMessage = message as any;
-    if (enhancedMessage.senderUseCustomProfileImage && enhancedMessage.senderCustomProfileImageUrl) {
-      return enhancedMessage.senderCustomProfileImageUrl;
-    }
-    
-    return enhancedMessage.senderProfileImageUrl || userProfileImage;
+    return getCurrentProfileImage(user);
   };
 
-  // Get sender display name from enhanced message data
+  // Get sender display name
   const getSenderDisplayName = () => {
-    if (isOwnMessage && user) {
-      return getDisplayName(user);
-    }
-    
-    const enhancedMessage = message as any;
-    const firstName = enhancedMessage.senderFirstName || '';
-    const lastName = enhancedMessage.senderLastName || '';
-    
-    if (firstName || lastName) {
-      return `${firstName} ${lastName}`.trim();
-    }
-    
-    return enhancedMessage.senderEmail || 'Unknown User';
+    if (message.senderName) return message.senderName;
+    if (isOwnMessage) return getDisplayName(user);
+    return message.senderId || 'Unknown User';
   };
 
-
-  // Function to handle link click with warning
-  const handleLinkClick = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-    const confirmed = window.confirm(
-      `このリンクを開きますか？\n\n${url}\n\n外部サイトのリンクです。信頼できるサイトかどうか確認してください。`
-    );
-    if (confirmed) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  // Function to convert URLs to clickable links and handle line breaks and mentions
-  const renderTextWithLinks = (text: string | undefined, isOwnMessage: boolean = false) => {
+  const renderTextWithLinks = (text: string, allowLineBreaks = false) => {
     if (!text) return '';
-    const safeText = String(text);
+    
+    // URL regex pattern
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const mentionRegex = /(@\w+)/g;
+    const mentionRegex = /@[\w\s]+/g;
     
-    // First split by URLs, then handle mentions within each part
-    const urlParts = safeText.split(urlRegex);
+    const parts = text.split(urlRegex);
     
-    return urlParts.map((part, index) => {
+    return parts.map((part, index) => {
+      // Check if this part is a URL
       if (urlRegex.test(part)) {
         return (
           <a
             key={index}
-            onClick={(e) => handleLinkClick(e, part)}
-            className={`underline break-all cursor-pointer hover:opacity-80 ${
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`underline hover:no-underline ${
               isOwnMessage 
                 ? 'text-blue-100 hover:text-blue-50' 
                 : 'text-blue-600 hover:text-blue-700'
@@ -179,42 +137,38 @@ export function MessageBubble({
 
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: '2-digit', 
-    minute: '2-digit' 
+    minute: '2-digit',
+    hour12: false 
   }) : '';
 
-  if (isOwnMessage) {
+  // For own messages on right side
+  if (shouldDisplayRight) {
     return (
-      <div className={`group flex items-start gap-2 sm:gap-3 ${shouldDisplayRight ? 'justify-end' : 'justify-start'} px-2 sm:px-4 ${
+      <div className={`group flex items-start gap-2 sm:gap-3 justify-end px-2 sm:px-4 ${
         isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
-        isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
-      }`} id={`message-${message.id}`}>
-        {/* Avatar on left when messageAlignment is left */}
-        {!shouldDisplayRight && (
-          <Avatar className="w-8 h-8 flex-shrink-0">
-            <AvatarImage src={getProfileImageUrl() || undefined} />
-            <AvatarFallback>
-              {getSenderDisplayName().charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        )}
-        
-        <div className={`flex flex-col ${shouldDisplayRight ? 'items-end ml-auto' : 'items-start mr-auto'} max-w-[85%] sm:max-w-lg`}>
-          <div className={`bg-primary text-primary-foreground rounded-2xl ${shouldDisplayRight ? 'rounded-tr-md' : 'rounded-tl-md'} px-3 sm:px-4 py-2 sm:py-3`}>
-            {message.replyToId && (
+        isMentioned ? 'bg-blue-50/50 dark:bg-blue-900/10 rounded-lg p-2 -m-2' : ''
+      }`}>
+        <div className="flex flex-col items-end max-w-[85%] sm:max-w-[70%]">
+          <div className={`rounded-lg px-3 py-2 max-w-full break-words ${
+            isOwnMessage 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-muted text-foreground'
+          }`}>
+            {message.replyToText && (
               <div 
-                className="bg-primary-foreground/10 rounded-lg p-2 mb-2 border-l-2 border-primary-foreground/30 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
-                onClick={() => onNavigateToMessage?.(message.replyToId!)}
+                className="bg-black/10 dark:bg-white/10 rounded p-2 mb-2 cursor-pointer text-xs border-l-2 border-primary-foreground/40"
+                onClick={() => onNavigateToMessage && onNavigateToMessage(message.id)}
               >
-                <div className="text-xs text-primary-foreground/70 flex items-center gap-1 mb-1">
-                  <Reply className="w-3 h-3" />
+                <div className="font-medium text-primary-foreground/80 mb-1">
                   返信先: {message.replyToSenderName || 'Unknown User'}
                 </div>
                 <p className="text-sm text-primary-foreground/90 line-clamp-2">{message.replyToText}</p>
               </div>
             )}
+            
             {hasTranslation ? (
               <div>
-                <p className="mb-2">
+                <p className="mb-2 font-medium">
                   <CulturalContextTooltip
                     text={message.originalText || ''}
                     originalLanguage={message.originalLanguage || 'en'}
@@ -223,17 +177,16 @@ export function MessageBubble({
                     {renderTextWithLinks(translatedText || '', true)}
                   </CulturalContextTooltip>
                 </p>
-                <div className="text-xs text-amber-200/70 border-l-2 border-amber-200/40 pl-2 opacity-70">
-                  {renderTextWithLinks(message.originalText || '', true)}
+                <div className="text-xs text-primary-foreground/60 border-l-2 border-primary-foreground/30 pl-2">
+                  Original: {renderTextWithLinks(message.originalText || '', true)}
                 </div>
               </div>
             ) : (
               <p>{renderTextWithLinks(message.originalText || '', true)}</p>
             )}
           </div>
-          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${shouldDisplayRight ? 'justify-end' : 'justify-start'}`}>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
+          
+          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end`}>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
               {onReply && (
                 <Button
@@ -246,20 +199,17 @@ export function MessageBubble({
                   返信
                 </Button>
               )}
-              {onTranslate && needsTranslation && !hasTranslation && (
+              
+              {showTranslateButton && onTranslate && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    console.log(`Translation button clicked for message ${message.id}:`, {
-                      text: message.originalText,
-                      from: message.originalLanguage,
-                      to: currentUserLanguage
-                    });
-                    onTranslate && onTranslate(
+                    console.log(`🔵 Translate button clicked for message ${message.id}`);
+                    onTranslate(
                       message.id, 
                       message.originalText || '', 
-                      message.originalLanguage || 'en', 
+                      message.originalLanguage || 'ja', 
                       currentUserLanguage
                     );
                   }}
@@ -269,6 +219,23 @@ export function MessageBubble({
                   翻訳
                 </Button>
               )}
+              
+              {onToggleLike && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleLike}
+                  className={`h-6 px-2 text-xs ${
+                    userLiked 
+                      ? 'text-red-500 hover:text-red-600' 
+                      : 'hover:text-red-500'
+                  }`}
+                >
+                  <Heart className={`w-3 h-3 mr-1 ${userLiked ? 'fill-current' : ''}`} />
+                  {totalLikes > 0 && <span className="ml-1">{totalLikes}</span>}
+                </Button>
+              )}
+              
               {onDelete && (
                 <Button
                   variant="ghost"
@@ -311,51 +278,54 @@ export function MessageBubble({
   return (
     <div className={`group flex items-start gap-2 sm:gap-3 justify-start px-2 sm:px-4 ${
       isHighlighted ? 'bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg p-2 -m-2 animate-pulse' : 
-      isMentioned ? 'bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-2 -m-2 border-l-4 border-blue-400' : ''
-    }`} id={`message-${message.id}`}>
-      <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
+      isMentioned ? 'bg-blue-50/50 dark:bg-blue-900/10 rounded-lg p-2 -m-2' : ''
+    }`}>
+      <Avatar className="w-8 h-8 flex-shrink-0">
         <AvatarImage src={getProfileImageUrl() || undefined} />
         <AvatarFallback>
           {getSenderDisplayName().charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex flex-col items-start max-w-[85%] sm:max-w-lg mr-auto">
-        <div className="bg-muted rounded-2xl rounded-tl-md px-3 sm:px-4 py-2 sm:py-3">
-          {message.replyToId && (
+      <div className="flex flex-col items-start max-w-[85%] sm:max-w-[70%]">
+        <div className={`rounded-lg px-3 py-2 max-w-full break-words ${
+          isOwnMessage 
+            ? 'bg-primary text-primary-foreground' 
+            : 'bg-muted text-foreground'
+        }`}>
+          {message.replyToText && (
             <div 
-              className="bg-background/50 rounded-lg p-2 mb-2 border-l-2 border-border cursor-pointer hover:bg-background/70 transition-colors"
-              onClick={() => onNavigateToMessage?.(message.replyToId!)}
+              className="bg-black/10 dark:bg-white/10 rounded p-2 mb-2 cursor-pointer text-xs border-l-2 border-muted-foreground/40"
+              onClick={() => message.replyToMessageId && onNavigateToMessage?.(message.replyToMessageId)}
             >
-              <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                <Reply className="w-3 h-3" />
+              <div className="font-medium text-muted-foreground mb-1">
                 返信先: {message.replyToSenderName || 'Unknown User'}
               </div>
-              <p className="text-sm text-foreground/80 line-clamp-2">{message.replyToText}</p>
+              <p className="text-sm text-muted-foreground/90 line-clamp-2">{message.replyToText}</p>
             </div>
           )}
+          
           {hasTranslation ? (
             <div>
-              <p className="text-foreground mb-2">
+              <p className="mb-2 font-medium text-primary">
                 <CulturalContextTooltip
                   text={message.originalText || ''}
                   originalLanguage={message.originalLanguage || 'en'}
                   targetLanguage={currentUserLanguage}
                 >
-                  {renderTextWithLinks(translatedText || '', false)}
+                  {renderTextWithLinks(translatedText || '', true)}
                 </CulturalContextTooltip>
               </p>
-              <div className="text-xs text-gray-400 border-l-2 border-gray-300 pl-2 opacity-70">
-                {renderTextWithLinks(message.originalText || '', false)}
+              <div className="text-xs text-muted-foreground border-l-2 border-muted pl-2 opacity-70">
+                Original: {renderTextWithLinks(message.originalText || '', true)}
               </div>
             </div>
           ) : (
-            <p className="text-foreground">
-              {renderTextWithLinks(message.originalText || '', false)}
-            </p>
+            <p>{renderTextWithLinks(message.originalText || '', true)}</p>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+        
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-start">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -364,53 +334,75 @@ export function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={() => onReply(message)}
-                className="h-6 w-6 p-0 text-xs hover:bg-muted/50"
+                className="h-6 px-2 text-xs hover:bg-muted/50"
               >
-                <Reply className="w-3 h-3" />
+                <Reply className="w-3 h-3 mr-1" />
+                返信
               </Button>
             )}
+            
+            {showTranslateButton && onTranslate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  console.log(`🔵 Translate button clicked for message ${message.id}`);
+                  onTranslate(
+                    message.id, 
+                    message.originalText || '', 
+                    message.originalLanguage || 'ja', 
+                    currentUserLanguage
+                  );
+                }}
+                className="h-6 px-2 text-xs hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/20"
+              >
+                <RotateCcw className="w-3 h-3 mr-1" />
+                翻訳
+              </Button>
+            )}
+            
             {onToggleLike && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onToggleLike}
-                className={`h-6 w-6 p-0 text-xs relative ${
+                className={`h-6 px-2 text-xs ${
                   userLiked 
-                    ? 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300' 
-                    : 'hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300'
+                    ? 'text-red-500 hover:text-red-600' 
+                    : 'hover:text-red-500'
                 }`}
               >
-                <Heart className={`w-3 h-3 ${userLiked ? 'fill-current' : ''}`} />
-                {totalLikes > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                    {totalLikes}
-                  </span>
-                )}
+                <Heart className={`w-3 h-3 mr-1 ${userLiked ? 'fill-current' : ''}`} />
+                {totalLikes > 0 && <span className="ml-1">{totalLikes}</span>}
               </Button>
             )}
+            
             {onDelete && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteModal(true)}
-                className="h-6 w-6 p-0 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
+                className="h-6 px-2 text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20"
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-3 h-3 mr-1" />
+                削除
               </Button>
             )}
           </div>
           <span>{timestamp}</span>
+          <Check className="w-3 h-3 text-green-500" />
         </div>
-        <DeleteConfirmationModal
-          open={showDeleteModal}
-          onOpenChange={setShowDeleteModal}
-          onConfirm={() => onDelete && onDelete(message.id)}
-          title="メッセージを削除"
-          description="このメッセージを削除しますか？削除したメッセージは復元できません。"
-          confirmText="削除"
-          cancelText="キャンセル"
-        />
       </div>
+      
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        onConfirm={() => onDelete && onDelete(message.id)}
+        title="メッセージを削除"
+        description="このメッセージを削除しますか？削除したメッセージは復元できません。"
+        confirmText="削除"
+        cancelText="キャンセル"
+      />
     </div>
   );
 }

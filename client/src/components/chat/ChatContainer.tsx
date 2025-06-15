@@ -410,23 +410,26 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     });
 
     try {
-      console.log(`Starting translation for message ${messageId}: "${text}"`);
+      console.log(`🔄 Starting translation for message ${messageId}: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
       const translated = await translateText(text, sourceLanguage, targetLanguage);
-      console.log(`Translation result for message ${messageId}: "${translated}"`);
+      console.log(`✅ Translation result: "${translated}"`);
       
-      if (translated && translated !== text && translated.trim() !== '') {
-        console.log(`Setting translation for message ${messageId}: "${translated}"`);
+      if (translated && translated !== text) {
+        console.log(`📝 Setting translation for message ${messageId}`);
         setTranslatedMessages(prev => {
           const newMap = new Map(prev);
           newMap.set(messageId, translated);
-          console.log(`Updated translated messages map:`, newMap);
           return newMap;
         });
+        
+        // Also store in cache for future use
+        translationCache.set(text, translated, sourceLanguage, targetLanguage);
+        console.log(`💾 Cached translation: "${text}" -> "${translated}"`);
       } else {
-        console.log(`Translation not set - same as original or empty`);
+        console.log(`⚠️ No valid translation received`);
       }
     } catch (error) {
-      console.error('Translation failed:', error);
+      console.error('❌ Translation failed:', error);
     } finally {
       setTranslatingMessages(prev => {
         const newSet = new Set(prev);

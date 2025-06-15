@@ -133,6 +133,16 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 15, 2025**: Translation System Complete Rebuild and Infinite Loop Resolution
+  - Completely resolved infinite translation loop causing hundreds of duplicate API requests
+  - Rebuilt translation system with manual on-demand translation buttons instead of automatic translation
+  - Implemented proper translation caching system that persists across room visits
+  - Enhanced local translation dictionary with common Japanese phrases including "します" and "昨日のこと"
+  - Simplified translation logic to focus on Japanese-to-English translation for reliability
+  - Added comprehensive debugging logs for translation tracking and troubleshooting
+  - Fixed translation button display logic and improved translated text presentation
+  - Maintained cultural context tooltips and existing translation quality features
+
 - **June 14, 2025**: Translation System Debugging and Profile Image Fixes
   - Resolved critical white screen errors caused by undefined senderName values in MessageBubble component
   - Removed duplicate translation API routes that were causing conflicts
