@@ -7,6 +7,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { Languages, ArrowRight, User, MessageCircle } from 'lucide-react';
 
 export function TranslationDemo() {
+  // Component disabled to prevent infinite translation loop
+  return null;
   const { user } = useAuth();
   const { translateText } = useTranslation();
   const [demoResults, setDemoResults] = useState<{

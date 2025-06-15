@@ -7,6 +7,8 @@ import { useI18n } from '@/hooks/useI18n';
 import { Globe, ArrowRight } from 'lucide-react';
 
 export function LanguageTestPanel() {
+  // Component disabled to prevent infinite translation loop
+  return null;
   const { t } = useI18n();
   const { translateText, isTranslating } = useTranslation();
   const [testText, setTestText] = useState('');

@@ -26,9 +26,8 @@ class TranslationManager {
     priority: 'high' | 'normal' | 'low' = 'normal',
     callback: (result: string) => void
   ): void {
-    // Translation completely disabled to prevent infinite loop
-    const text = message.originalText || '';
-    callback(text);
+    // Translation completely disabled - return immediately without callback to stop loop
+    return;
   }
 }
 

@@ -281,10 +281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Translation route - TEMPORARILY DISABLED to prevent infinite loop
-  app.post('/api/translate', isAuthenticated, async (req: Request, res: Response) => {
-    console.log('🛑 Translation endpoint DISABLED - preventing runaway requests');
-    res.status(503).json({ error: 'Translation temporarily disabled to prevent infinite loop' });
+  // Translation route - DISABLED to prevent infinite loop
+  app.post('/api/translate', (req: Request, res: Response) => {
+    // Silently return error without logging to prevent console spam
+    res.status(503).json({ error: 'Translation disabled' });
   });
 
   // User settings routes
