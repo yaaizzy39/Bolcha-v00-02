@@ -59,11 +59,6 @@ export function MessageBubble({
   const timestampAlignment = isOwnMessage ? 
     (messageAlignment === 'left' ? 'justify-start' : 'justify-end') : 'justify-start';
   
-  // Debug logging for timestamp alignment
-  if (isOwnMessage) {
-    console.log(`Message ${message.id}: messageAlignment=${messageAlignment}, timestampAlignment=${timestampAlignment}, shouldDisplayRight=${shouldDisplayRight}`);
-  }
-  
   // Enhanced translation logic - show translate button for any Japanese text
   const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
   const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
@@ -337,6 +332,13 @@ export function MessageBubble({
         </div>
         
         <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${timestampAlignment}`}>
+          {/* Timestamp first for left alignment */}
+          {isOwnMessage && messageAlignment === 'left' && (
+            <>
+              <span>{timestamp}</span>
+              <Check className="w-3 h-3 text-green-500" />
+            </>
+          )}
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -400,8 +402,13 @@ export function MessageBubble({
               </Button>
             )}
           </div>
-          <span>{timestamp}</span>
-          <Check className="w-3 h-3 text-green-500" />
+          {/* Timestamp at end for right alignment or non-own messages */}
+          {!(isOwnMessage && messageAlignment === 'left') && (
+            <>
+              <span>{timestamp}</span>
+              <Check className="w-3 h-3 text-green-500" />
+            </>
+          )}
         </div>
       </div>
       
