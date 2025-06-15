@@ -561,16 +561,39 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   });
 
   const handleLanguageChange = (newLanguage: string) => {
-    console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
+    console.log(`🔄 User selected language: ${newLanguage}, current language: ${currentLanguage}`);
     
     if (newLanguage === currentLanguage) {
       console.log('Same language selected, skipping update');
       return;
     }
     
+    console.log(`🌐 Immediately updating language to: ${newLanguage}`);
+    
     // Update local state immediately for responsive UI
     setCurrentLanguage(newLanguage);
     localStorage.setItem('selectedLanguage', newLanguage);
+    
+    // Clear translation cache and force re-translation immediately
+    setTranslatedMessages(new Map());
+    translationManager.setUserLanguage(newLanguage);
+    
+    // Force immediate re-translation of all messages
+    if (roomMessages.length > 0) {
+      console.log(`🔄 Forcing immediate re-translation to ${newLanguage} for ${roomMessages.length} messages`);
+      roomMessages.forEach(message => {
+        if (message.id && user && message.senderId !== user.id) {
+          translationManager.translateMessage(message, newLanguage, 'high', (result) => {
+            console.log(`✅ Immediate translation: "${message.originalText}" -> "${result}"`);
+            if (result !== message.originalText) {
+              setTranslatedMessages(prev => new Map(prev.set(message.id, result)));
+            }
+          });
+        }
+      });
+    }
+    
+    // Update server settings
     updateLanguageMutation.mutate(newLanguage);
   };
 

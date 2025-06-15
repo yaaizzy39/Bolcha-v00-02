@@ -24,6 +24,8 @@ class TranslationManager {
   ): void {
     const text = message.originalText || '';
     
+    console.log(`🎯 TranslationManager.translateMessage called with targetLanguage: ${targetLanguage}`);
+    
     if (this.authenticationRequired) {
       callback(text);
       return;
@@ -40,8 +42,10 @@ class TranslationManager {
     };
     
     const sourceLanguage = detectLanguage(text);
+    console.log(`🔍 Detected source language: ${sourceLanguage} for text: "${text}"`);
     
     if (sourceLanguage === targetLanguage) {
+      console.log(`⏭️ Skipping translation - source and target language are the same (${sourceLanguage})`);
       callback(text);
       return;
     }
