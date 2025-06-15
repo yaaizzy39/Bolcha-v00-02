@@ -401,8 +401,11 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       const text = message.originalText || '';
       const detectedLanguage = detectLanguage(text);
       
+      console.log(`🔍 Message ${message.id}: "${text}" detected as ${detectedLanguage}, target: ${currentLanguage}`);
+      
       // Skip if same language or empty text
       if (detectedLanguage === currentLanguage || !text.trim()) {
+        console.log(`⏭️ Skipping message ${message.id} - same language or empty`);
         return;
       }
       
@@ -414,6 +417,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         currentLanguage,
         'normal',
         (translatedText) => {
+          console.log(`✅ Translation received for ${message.id}: "${translatedText}"`);
           if (translatedText !== text) {
             setTranslatedMessages(prev => {
               const newMap = new Map(prev);
