@@ -188,7 +188,7 @@ export function MessageBubble({
             )}
           </div>
           
-          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-end`}>
+          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${shouldDisplayRight ? 'justify-end' : 'justify-start'}`}>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
               {onReply && (
                 <Button
