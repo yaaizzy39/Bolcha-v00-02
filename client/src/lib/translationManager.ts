@@ -19,8 +19,8 @@ class TranslationManager {
   private isDisabled = false; // Enable manual translation only
 
   constructor() {
-    console.log('TranslationManager initialized - manual translation only');
-    this.loadCache();
+    console.log('TranslationManager completely disabled to prevent infinite loop');
+    // All functionality disabled
   }
 
   setUserLanguage(language: string) {
@@ -73,66 +73,10 @@ class TranslationManager {
     priority: 'high' | 'normal' | 'low' = 'normal',
     callback: (result: string) => void
   ): Promise<void> {
-    // Only allow manual translation with high priority
-    if (priority !== 'high') {
-      callback(message.originalText || '');
-      return;
-    }
-
-    const text = message.originalText;
-    if (!text || !text.trim()) {
-      callback(text);
-      return;
-    }
-
-    const sourceLanguage = this.detectLanguage(text);
-    
-    if (sourceLanguage === targetLanguage) {
-      callback(text);
-      return;
-    }
-
-    const cacheKey = this.getCacheKey(text, sourceLanguage, targetLanguage);
-    
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey)!;
-      callback(cached.translatedText);
-      return;
-    }
-
-    if (this.isProcessing) {
-      callback(text);
-      return;
-    }
-
-    this.isProcessing = true;
-    console.log(`Manual translation: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
-
-    try {
-      const response = await apiRequest('POST', '/api/translate', {
-        text: text.trim(),
-        source: sourceLanguage,
-        target: targetLanguage,
-      }) as any;
-
-      const translatedText = response.translatedText || text;
-      
-      this.cache.set(cacheKey, {
-        text,
-        source: sourceLanguage,
-        target: targetLanguage,
-        translatedText,
-        timestamp: Date.now()
-      });
-      
-      this.saveCache();
-      callback(translatedText);
-    } catch (error) {
-      console.error('Translation failed:', error);
-      callback(text);
-    } finally {
-      this.isProcessing = false;
-    }
+    // Translation completely disabled to prevent infinite loop
+    console.log(`Translation blocked: "${message.originalText}" to prevent infinite requests`);
+    callback(message.originalText || '');
+    return;
   }
 
   private detectLanguage(text: string): string {

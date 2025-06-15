@@ -398,11 +398,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Translation manager initialization disabled to prevent automatic translation
+  // Translation manager completely disabled to prevent infinite loop
   useEffect(() => {
-    console.log(`🌐 Language changed to: ${currentLanguage} (auto-translation disabled)`);
-    // Only update the language setting without triggering translations
-    translationManager.setUserLanguage(currentLanguage);
+    console.log(`Language changed to: ${currentLanguage} (translation disabled)`);
+    // Translation functionality completely disabled
     setTranslatedMessages(new Map());
   }, [currentLanguage]);
 
