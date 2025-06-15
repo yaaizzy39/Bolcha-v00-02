@@ -653,29 +653,24 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-            {/* Language Selector */}
+            {/* Language Selector - Simplified Dropdown */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <Select
+              <select
                 value={currentLanguage}
-                onValueChange={(value) => {
-                  console.log(`🎯 Language selector triggered with value: ${value}`);
-                  handleLanguageChange(value);
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  console.log(`🎯 Language selector triggered with value: ${newLang}`);
+                  handleLanguageChange(newLang);
                 }}
+                className="w-[120px] sm:w-[200px] h-8 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
-                  <SelectValue>
-                    {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {getSupportedLanguages().map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.nativeName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {getSupportedLanguages().map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.nativeName}
+                  </option>
+                ))}
+              </select>
             </div>
             
 
