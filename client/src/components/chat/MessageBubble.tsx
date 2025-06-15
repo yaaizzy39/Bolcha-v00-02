@@ -59,6 +59,11 @@ export function MessageBubble({
   const timestampAlignment = isOwnMessage ? 
     (messageAlignment === 'left' ? 'justify-start' : 'justify-end') : 'justify-start';
   
+  // Debug logging for timestamp alignment
+  if (isOwnMessage) {
+    console.log(`Message ${message.id}: messageAlignment=${messageAlignment}, timestampAlignment=${timestampAlignment}, shouldDisplayRight=${shouldDisplayRight}`);
+  }
+  
   // Enhanced translation logic - show translate button for any Japanese text
   const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
   const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
