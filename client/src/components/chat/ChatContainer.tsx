@@ -51,9 +51,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   
   // Load initial messages for the current room
   const { data: initialMessages, refetch: refetchMessages, isLoading: messagesLoading, error: messagesError } = useQuery({
-    queryKey: ['/api/messages', roomId],
+    queryKey: ['/api/rooms', roomId, 'messages'],
     queryFn: async () => {
-      const res = await fetch(`/api/messages/${roomId}`, { credentials: 'include' });
+      const res = await fetch(`/api/rooms/${roomId}/messages`, { credentials: 'include' });
       if (!res.ok) throw new Error(`Failed to load messages: ${res.status}`);
       return res.json();
     },
@@ -222,9 +222,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
 
 
-  // Clear messages and reload when room changes
+  // Reload messages when room changes (without clearing)
   useEffect(() => {
-    setRoomMessages([]);
     if (roomId) {
       refetchMessages();
     }

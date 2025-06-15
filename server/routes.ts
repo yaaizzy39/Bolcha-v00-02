@@ -224,6 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 200;
       
       const messages = await storage.getMessages(roomId, limit);
+      console.log(`Fetched ${messages.length} messages for room ${roomId}`);
       res.json(messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
