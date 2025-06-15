@@ -409,7 +409,44 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [translateText, translatingMessages, translatedMessages]);
 
+  // Enhanced translation loading with automatic translation for Japanese messages
+  useEffect(() => {
+    if (!user || !roomMessages.length) return;
 
+    const userLanguage = (user as any)?.preferredLanguage || 'ja';
+    
+    roomMessages.forEach(async (message) => {
+      // Check if message contains Japanese characters or is marked as Japanese
+      const isJapanese = message.originalLanguage === 'ja' || 
+                        /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
+      
+      if (!isJapanese || 
+          userLanguage === 'ja' ||
+          translatedMessages.has(message.id)) {
+        return;
+      }
+
+      // Check cache first
+      const cached = translationCache.get(
+        message.originalText || '', 
+        'ja', 
+        userLanguage
+      );
+      
+      if (cached) {
+        console.log(`📚 Loading cached translation for message ${message.id}: "${cached}"`);
+        setTranslatedMessages(prev => {
+          const newMap = new Map(prev);
+          newMap.set(message.id, cached);
+          return newMap;
+        });
+      } else if ((user as any)?.autoTranslate !== false) {
+        // Auto-translate if enabled (default true)
+        console.log(`🔄 Auto-translating Japanese message ${message.id}`);
+        handleManualTranslation(message.id, message.originalText || '', 'ja', userLanguage);
+      }
+    });
+  }, [roomMessages, user, handleManualTranslation]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
