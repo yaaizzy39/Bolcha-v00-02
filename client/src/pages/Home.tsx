@@ -132,7 +132,7 @@ export default function Home() {
                       <Settings className="w-4 h-4 mr-2" />
                       {t('nav.settings')}
                     </DropdownMenuItem>
-                    {user?.isAdmin && (
+                    {user && (user as any)?.isAdmin && (
                       <DropdownMenuItem onClick={() => window.location.href = '/admin'}>
                         <Globe className="w-4 h-4 mr-2" />
                         管理者設定
@@ -156,7 +156,7 @@ export default function Home() {
         <aside className="hidden lg:block w-80 bg-background border-r border-border overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Rooms</h2>
+              <h2 className="text-lg font-semibold">ルーム一覧</h2>
               <Button
                 onClick={() => setShowCreateModal(true)}
                 size="sm"
@@ -166,10 +166,16 @@ export default function Home() {
                 新規作成
               </Button>
             </div>
-            <RoomsList 
-              onRoomSelect={setSelectedRoomId} 
-              selectedRoomId={selectedRoomId || undefined}
-            />
+            {user ? (
+              <RoomsList 
+                onRoomSelect={setSelectedRoomId} 
+                selectedRoomId={selectedRoomId || undefined}
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                認証中...
+              </div>
+            )}
           </div>
         </aside>
 
