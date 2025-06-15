@@ -668,14 +668,21 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                   handleLanguageChange(value);
                 }}
               >
-                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
+                <SelectTrigger 
+                  className="w-[120px] sm:w-[200px] h-8 text-xs"
+                  onClick={() => console.log(`🖱️ Language dropdown clicked, current: ${currentLanguage}`)}
+                >
                   <SelectValue>
                     {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {getSupportedLanguages().map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
+                    <SelectItem 
+                      key={lang.code} 
+                      value={lang.code}
+                      onClick={() => console.log(`🔍 SelectItem clicked: ${lang.code}`)}
+                    >
                       {lang.nativeName}
                     </SelectItem>
                   ))}
