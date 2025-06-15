@@ -133,6 +133,21 @@ Bolcha is a real-time multilingual chat application that enables users to commun
 
 ## Recent Changes
 
+- **June 15, 2025**: Translation Cache Restoration Fixed
+  - Fixed critical issue where translation cache wasn't restored when switching between chat rooms
+  - Modified ChatContainer to immediately load and apply cached translations on room entry
+  - Removed automatic translation map clearing that was preventing cache restoration
+  - Enhanced cache loading logic to detect language content and apply proper source language mapping
+  - Translation results now persist across room navigation and maintain user experience continuity
+  - System now properly restores both manual and automatic translations from localStorage cache
+
+- **June 15, 2025**: Message Timestamp Alignment Corrected
+  - Fixed timestamp positioning for left-aligned messages where timestamps appeared on wrong side
+  - Implemented conditional timestamp rendering based on message alignment preference
+  - Left-aligned messages now show timestamp and check mark on the left side of action buttons
+  - Right-aligned and other users' messages maintain timestamp positioning on the right
+  - Enhanced timestamp display logic to respect user's message alignment settings
+
 - **June 15, 2025**: API Creation Function Fixed
   - Fixed critical API request parameter order bug preventing translation API creation
   - Corrected apiRequest function calls from (url, method, data) to (method, url, data) format

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useI18n } from '@/hooks/useI18n';
 import { translationManager } from '@/lib/translationManager';
+import { translationCache } from '@/lib/translationCache';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
 import { getDisplayName } from '@/lib/profileUtils';
@@ -382,8 +383,47 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
     console.log(`🌐 Processing translations for ${roomMessages.length} messages in language: ${currentLanguage}`);
     
-    // Clear existing translations when language changes
-    setTranslatedMessages(new Map());
+    // First, load cached translations for all messages
+    const cachedTranslations = new Map<number, string>();
+    roomMessages.forEach(message => {
+      const text = message.originalText || '';
+      const sourceLanguage = message.originalLanguage || 'ja';
+      
+      // Skip if same language
+      if (sourceLanguage === currentLanguage) return;
+      
+      // Detect actual language content
+      const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
+      const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim());
+      
+      let actualSourceLanguage = sourceLanguage;
+      if (hasJapaneseChars && !hasEnglishChars) {
+        actualSourceLanguage = 'ja';
+      } else if (hasEnglishChars && !hasJapaneseChars) {
+        actualSourceLanguage = 'en';
+      }
+      
+      // Skip if detected source and target are the same
+      if (actualSourceLanguage === currentLanguage) return;
+      
+      // Check cache
+      const cached = translationCache.get(text, actualSourceLanguage, currentLanguage);
+      if (cached) {
+        console.log(`💾 Cache hit for: "${text}" (${actualSourceLanguage} -> ${currentLanguage})`);
+        cachedTranslations.set(message.id, cached);
+      }
+    });
+    
+    // Apply cached translations immediately
+    if (cachedTranslations.size > 0) {
+      setTranslatedMessages(prev => {
+        const newMap = new Map(prev);
+        cachedTranslations.forEach((translation, messageId) => {
+          newMap.set(messageId, translation);
+        });
+        return newMap;
+      });
+    }
     
     // Sort messages by timestamp descending (newest first) for translation
     const sortedMessages = [...roomMessages].sort((a, b) => {
