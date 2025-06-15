@@ -290,7 +290,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing required parameters: text, source, target' });
       }
 
-      console.log(`Translation request from user ${req.user?.claims?.sub}: "${text}" (${source} -> ${target})`);
+      const userId = (req.user as any)?.claims?.sub || 'unknown';
+      console.log(`Translation request from user ${userId}: "${text}" (${source} -> ${target})`);
 
       // Get active translation APIs in priority order
       const apis = await storage.getActiveTranslationApis();

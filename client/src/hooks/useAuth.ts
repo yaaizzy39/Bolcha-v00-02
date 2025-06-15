@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { translationManager } from "@/lib/translationManager";
 
 export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
@@ -24,8 +23,7 @@ export function useAuth() {
       const userId = String((user as any).id);
       localStorage.setItem('currentUserId', userId);
       localStorage.setItem('wsUserData', JSON.stringify(user));
-      // Reset translation authentication status when user is authenticated
-      translationManager.resetAuthenticationStatus();
+      // Translation authentication disabled to prevent infinite loop
     }
   }, [user]);
 

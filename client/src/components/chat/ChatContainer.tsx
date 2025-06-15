@@ -408,12 +408,26 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   // DISABLED: Translation system completely removed to prevent infinite loop
 
-  // Manual translation handler - DISABLED to prevent infinite loop
+  // Manual translation handler for translate buttons
   const handleManualTranslation = useCallback((messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
-    console.log(`🛑 Manual translation disabled to prevent infinite loop: "${text}"`);
-    // Translation system completely disabled
-    return;
-  }, []);
+    const message = roomMessages.find(m => m.id === messageId);
+    if (!message) return;
+
+    console.log(`Manual translation requested: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
+    
+    translationManager.translateMessage(
+      message,
+      targetLanguage,
+      'high',
+      (translatedResult) => {
+        setTranslatedMessages(prev => {
+          const updated = new Map(prev);
+          updated.set(messageId, translatedResult);
+          return updated;
+        });
+      }
+    );
+  }, [roomMessages]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;
