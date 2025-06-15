@@ -93,32 +93,9 @@ class TranslationManager {
     target: string, 
     callback: (result: string) => void
   ): Promise<void> {
-    try {
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ text, source, target })
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.authenticationRequired = true;
-          console.log(`🔒 Translation requires authentication`);
-        }
-        callback(text);
-        return;
-      }
-
-      const result = await response.json();
-      const translatedText = result.translatedText || text;
-      
-      console.log(`✅ Translation result: "${text}" -> "${translatedText}"`);
-      callback(translatedText);
-    } catch (error) {
-      console.error('Translation error:', error);
-      callback(text);
-    }
+    console.log(`🛑 Translation DISABLED - stopping infinite loop`);
+    console.log(`🛑 Would translate: "${text}" (${source} -> ${target})`);
+    callback(text); // Return original text
   }
 }
 
