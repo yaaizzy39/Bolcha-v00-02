@@ -246,6 +246,22 @@ export function MessageBubble({
                   返信
                 </Button>
               )}
+              {onTranslate && needsTranslation && !hasTranslation && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onTranslate(
+                    message.id, 
+                    message.originalText || '', 
+                    message.originalLanguage || 'en', 
+                    currentUserLanguage
+                  )}
+                  className="h-6 px-2 text-xs hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/20"
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  翻訳
+                </Button>
+              )}
               {onDelete && (
                 <Button
                   variant="ghost"

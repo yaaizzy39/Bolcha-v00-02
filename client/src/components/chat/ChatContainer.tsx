@@ -671,6 +671,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     userLiked={likeData?.userLiked || false}
                     onToggleLike={() => toggleLike(message.id)}
                     userProfileImage={getUserProfileImage(message.senderId)}
+                    onTranslate={handleManualTranslation}
                   />
                 );
               })}
