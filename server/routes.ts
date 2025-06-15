@@ -83,10 +83,12 @@ async function translateText(text: string, source: string, target: string): Prom
           
           try {
             const data = JSON.parse(responseText);
-            if (data.translatedText && data.translatedText !== text) {
-              console.log(`API ${api.name} translation: "${text}" -> "${data.translatedText}"`);
+            // Check for various response formats
+            const translatedText = data.translatedText || data.text || data.result;
+            if (translatedText && translatedText !== text && data.code === 200) {
+              console.log(`API ${api.name} translation: "${text}" -> "${translatedText}"`);
               await storage.updateApiStats(api.id, true);
-              return data.translatedText;
+              return translatedText;
             }
           } catch (parseError) {
             console.log(`API ${api.name} response not JSON: ${responseText.substring(0, 100)}...`);
