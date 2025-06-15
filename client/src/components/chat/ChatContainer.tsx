@@ -644,12 +644,15 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <Select
                 value={currentLanguage}
-                onValueChange={handleLanguageChange}
+                onValueChange={(value) => {
+                  console.log(`🎯 Language selector triggered with value: ${value}`);
+                  handleLanguageChange(value);
+                }}
               >
                 <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
-                  <SelectValue placeholder={
-                    getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'ja'
-                  } />
+                  <SelectValue>
+                    {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {getSupportedLanguages().map((lang) => (
