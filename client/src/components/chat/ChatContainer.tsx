@@ -574,24 +574,38 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     setCurrentLanguage(newLanguage);
     localStorage.setItem('selectedLanguage', newLanguage);
     
-    // Clear translation cache and force re-translation immediately
+    // FORCE COMPLETE RESET - Clear everything translation-related
     setTranslatedMessages(new Map());
     translationManager.setUserLanguage(newLanguage);
     
-    // Force immediate re-translation of all messages
-    if (roomMessages.length > 0) {
-      console.log(`🔄 Forcing immediate re-translation to ${newLanguage} for ${roomMessages.length} messages`);
-      roomMessages.forEach(message => {
-        if (message.id && user && message.senderId !== user.id) {
-          translationManager.translateMessage(message, newLanguage, 'high', (result) => {
-            console.log(`✅ Immediate translation: "${message.originalText}" -> "${result}"`);
-            if (result !== message.originalText) {
-              setTranslatedMessages(prev => new Map(prev.set(message.id, result)));
-            }
-          });
-        }
-      });
-    }
+    // Force immediate page refresh-like behavior for translations
+    setTimeout(() => {
+      // Clear all cached translations completely
+      setTranslatedMessages(new Map());
+      
+      // Force re-translation of all messages with new language
+      if (roomMessages.length > 0) {
+        console.log(`🔄 FORCING COMPLETE RE-TRANSLATION to ${newLanguage} for ${roomMessages.length} messages`);
+        
+        const freshTranslations = new Map();
+        let processedCount = 0;
+        
+        roomMessages.forEach(message => {
+          if (message.id && user && message.senderId !== user.id) {
+            translationManager.translateMessage(message, newLanguage, 'high', (result) => {
+              console.log(`✅ Fresh translation: "${message.originalText}" -> "${result}" (${newLanguage})`);
+              if (result !== message.originalText) {
+                freshTranslations.set(message.id, result);
+              }
+              
+              processedCount++;
+              // Update UI with fresh translations
+              setTranslatedMessages(new Map(freshTranslations));
+            });
+          }
+        });
+      }
+    }, 200); // Small delay to ensure state is completely reset
     
     // Update server settings
     updateLanguageMutation.mutate(newLanguage);
