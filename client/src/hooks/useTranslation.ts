@@ -6,41 +6,31 @@ export function useTranslation() {
   const [isTranslating, setIsTranslating] = useState(false);
 
   const translateText = useCallback(async (text: string, source: string, target: string): Promise<string> => {
-    console.log(`🔄 useTranslation.translateText called:`, { text, source, target });
-    
     if (!text.trim() || source === target) {
-      console.log(`⏭️ Translation skipped: empty text or same language`);
       return text;
     }
 
     // Check cache first
     const cachedTranslation = translationCache.get(text, source, target);
     if (cachedTranslation) {
-      console.log(`💾 Using cached translation for: "${text}"`);
       return cachedTranslation;
     }
 
     setIsTranslating(true);
     try {
-      console.log(`📡 Making API request to /api/translate`);
       const response = await apiRequest('POST', '/api/translate', {
         text,
         source,
         target
       });
       
-      console.log(`📨 API response status:`, response.status);
       const data = await response.json();
-      console.log(`📄 API response data:`, data);
-      
       let translatedText = data.translatedText || text;
       
       // If translatedText is a JSON string, parse it
       try {
         const parsedResult = JSON.parse(translatedText);
-        if (parsedResult.code === 200 && parsedResult.text) {
-          translatedText = parsedResult.text;
-        } else if (parsedResult.text) {
+        if (parsedResult && typeof parsedResult === 'object' && parsedResult.text) {
           translatedText = parsedResult.text;
         }
       } catch (parseError) {

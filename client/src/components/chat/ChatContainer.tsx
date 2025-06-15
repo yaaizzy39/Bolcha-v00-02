@@ -356,62 +356,48 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Simple translation system without infinite loops
-  useEffect(() => {
-    if (!user || !roomMessages.length) return;
+  // Manual translation on demand only - no automatic translation
+  const handleManualTranslation = useCallback(async (messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
+    if (translatingMessages.has(messageId) || translatedMessages.has(messageId)) {
+      return;
+    }
 
-    const userLanguage = (user as any)?.preferredLanguage || 'ja';
-    
-    // Process only messages that need translation
-    const messagesToTranslate = roomMessages.filter(message => 
-      message.originalLanguage && 
-      message.originalLanguage !== userLanguage &&
-      !translatedMessages.has(message.id) &&
-      !translatingMessages.has(message.id)
-    );
+    // Check cache first
+    const cached = translationCache.get(text, sourceLanguage, targetLanguage);
+    if (cached) {
+      setTranslatedMessages(prev => {
+        const newMap = new Map(prev);
+        newMap.set(messageId, cached);
+        return newMap;
+      });
+      return;
+    }
 
-    if (messagesToTranslate.length === 0) return;
+    setTranslatingMessages(prev => {
+      const newSet = new Set(prev);
+      newSet.add(messageId);
+      return newSet;
+    });
 
-    const processTranslations = async () => {
-      for (const message of messagesToTranslate) {
-        // Check cache first
-        const cached = translationCache.get(
-          message.originalText || '', 
-          message.originalLanguage, 
-          userLanguage
-        );
-        
-        if (cached) {
-          setTranslatedMessages(prev => new Map(prev).set(message.id, cached));
-        } else {
-          // Mark as translating to prevent duplicates
-          setTranslatingMessages(prev => new Set(prev).add(message.id));
-          
-          try {
-            const translated = await translateText(
-              message.originalText || '',
-              message.originalLanguage,
-              userLanguage
-            );
-            
-            if (translated) {
-              setTranslatedMessages(prev => new Map(prev).set(message.id, translated));
-            }
-          } catch (error) {
-            console.error(`Translation failed for message ${message.id}:`, error);
-          } finally {
-            setTranslatingMessages(prev => {
-              const updated = new Set(prev);
-              updated.delete(message.id);
-              return updated;
-            });
-          }
-        }
+    try {
+      const translated = await translateText(text, sourceLanguage, targetLanguage);
+      if (translated && translated !== text) {
+        setTranslatedMessages(prev => {
+          const newMap = new Map(prev);
+          newMap.set(messageId, translated);
+          return newMap;
+        });
       }
-    };
-
-    processTranslations();
-  }, [roomMessages.length, user]); // Only depend on message count, not the full array
+    } catch (error) {
+      console.error('Translation failed:', error);
+    } finally {
+      setTranslatingMessages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+    }
+  }, [translateText, translatingMessages, translatedMessages]);
 
 
 
