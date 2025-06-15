@@ -281,10 +281,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Translation route - DISABLED to prevent infinite loop
-  app.post('/api/translate', (req: Request, res: Response) => {
-    // Silently return error without logging to prevent console spam
-    res.status(503).json({ error: 'Translation disabled' });
+  // Translation route with sequential API fallback
+  app.post('/api/translate', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { text, source, target } = req.body;
+      
+      if (!text || !source || !target) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      // Get active translation APIs in priority order
+      const apis = await storage.getActiveTranslationApis();
+      
+      if (apis.length === 0) {
+        return res.status(503).json({ error: 'No translation APIs configured' });
+      }
+
+      // Try each API sequentially until one succeeds
+      for (const api of apis) {
+        try {
+          const response = await fetch(api.url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text,
+              source,
+              target
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            await storage.updateApiStats(api.id, true);
+            return res.json({ translatedText: data.translatedText });
+          } else {
+            console.log(`API ${api.name} failed with status ${response.status}`);
+            await storage.updateApiStats(api.id, false);
+          }
+        } catch (error) {
+          console.log(`API ${api.name} error:`, error);
+          await storage.updateApiStats(api.id, false);
+        }
+      }
+
+      // All APIs failed
+      return res.status(503).json({ error: 'All translation APIs failed' });
+    } catch (error) {
+      console.error('Translation error:', error);
+      res.status(500).json({ error: 'Translation service error' });
+    }
   });
 
   // User settings routes

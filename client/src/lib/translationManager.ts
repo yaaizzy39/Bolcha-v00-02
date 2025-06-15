@@ -4,7 +4,6 @@ class TranslationManager {
   private userLanguage = 'ja'; // Default language
 
   setUserLanguage(language: string) {
-    console.log(`🛑 Translation disabled: language set to ${language}`);
     this.userLanguage = language;
   }
 
@@ -17,7 +16,7 @@ class TranslationManager {
   }
 
   resetAuthenticationStatus() {
-    console.log(`🛑 Translation disabled: authentication reset`);
+    // Do nothing
   }
 
   translateMessage(
@@ -26,8 +25,8 @@ class TranslationManager {
     priority: 'high' | 'normal' | 'low' = 'normal',
     callback: (result: string) => void
   ): void {
-    // Translation completely disabled - return immediately without callback to stop loop
-    return;
+    // Translation system completely disabled
+    // No callback execution to prevent infinite loops
   }
 }
 
