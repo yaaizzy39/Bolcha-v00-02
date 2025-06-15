@@ -80,6 +80,19 @@ export const messageLikes = pgTable("message_likes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const translationApis = pgTable("translation_apis", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  url: text("url").notNull(),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(1), // Lower numbers = higher priority
+  lastUsed: timestamp("last_used"),
+  errorCount: integer("error_count").default(0),
+  successCount: integer("success_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
@@ -102,6 +115,15 @@ export const insertMessageLikeSchema = createInsertSchema(messageLikes).omit({
   createdAt: true,
 });
 
+export const insertTranslationApiSchema = createInsertSchema(translationApis).omit({
+  id: true,
+  lastUsed: true,
+  errorCount: true,
+  successCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
@@ -110,3 +132,5 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
 export type MessageLike = typeof messageLikes.$inferSelect;
+export type InsertTranslationApi = z.infer<typeof insertTranslationApiSchema>;
+export type TranslationApi = typeof translationApis.$inferSelect;

@@ -29,55 +29,67 @@ async function translateText(text: string, source: string, target: string): Prom
   }
 
   try {
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbyRgU6XjIjoFZh1Y8kIY9-YnLmkNxalGWwlI-0k93wnjfFjWcjDZijIOMy_-WjV47Be0A/exec';
+    // Get active translation APIs ordered by priority
+    const apis = await storage.getActiveTranslationApis();
     
-    let response;
-    
-    try {
-      // Try GET request first
-      const params = new URLSearchParams({
-        text: text,
-        source: source,
-        target: target
-      });
-      
-      response = await fetch(`${gasUrl}?${params}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`GET request failed: ${response.status}`);
-      }
-    } catch (error) {
-      // If GET fails, try POST
-      response = await fetch(gasUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: text,
-          source: source,
-          target: target
-        })
-      });
+    if (apis.length === 0) {
+      console.log('No active translation APIs configured');
+      return text;
     }
 
-    if (response.ok) {
-      const responseText = await response.text();
-      console.log(`GAS API response: ${responseText}`);
-      
+    // Try each API in priority order
+    for (const api of apis) {
       try {
-        const data = JSON.parse(responseText);
-        if (data.translatedText && data.translatedText !== text) {
-          console.log(`GAS translation: "${text}" -> "${data.translatedText}"`);
-          return data.translatedText;
+        console.log(`Trying API: ${api.name} (${api.url})`);
+        
+        let response;
+        
+        try {
+          // Try GET request first
+          const params = new URLSearchParams({
+            text: text,
+            source: source,
+            target: target
+          });
+          
+          response = await fetch(`${api.url}?${params}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`GET request failed: ${response.status}`);
+          }
+        } catch (error) {
+          // If GET fails, try POST
+          response = await fetch(api.url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: text,
+              source: source,
+              target: target
+            })
+          });
         }
-      } catch (parseError) {
-        console.log(`GAS API response not JSON: ${responseText.substring(0, 100)}...`);
+
+        if (response.ok) {
+          const responseText = await response.text();
+          console.log(`API ${api.name} response: ${responseText.substring(0, 100)}...`);
+          
+          try {
+            const data = JSON.parse(responseText);
+            if (data.translatedText && data.translatedText !== text) {
+              console.log(`API ${api.name} translation: "${text}" -> "${data.translatedText}"`);
+              await storage.updateApiStats(api.id, true);
+              return data.translatedText;
+            }
+          } catch (parseError) {
+            console.log(`API ${api.name} response not JSON: ${responseText.substring(0, 100)}...`);
       }
     } else {
       console.log(`GAS API request failed with status: ${response.status}`);

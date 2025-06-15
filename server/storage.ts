@@ -3,6 +3,7 @@ import {
   messages,
   chatRooms,
   messageLikes,
+  translationApis,
   type User,
   type UpsertUser,
   type Message,
@@ -11,6 +12,8 @@ import {
   type InsertChatRoom,
   type MessageLike,
   type InsertMessageLike,
+  type TranslationApi,
+  type InsertTranslationApi,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, lt, sql } from "drizzle-orm";
@@ -39,6 +42,14 @@ export interface IStorage {
   toggleMessageLike(messageId: number, userId: string): Promise<{ liked: boolean; totalLikes: number }>;
   getMessageLikes(messageId: number): Promise<MessageLike[]>;
   getUserLikes(userId: string): Promise<number[]>; // Returns array of liked message IDs
+  
+  // Translation API operations
+  getTranslationApis(): Promise<TranslationApi[]>;
+  getActiveTranslationApis(): Promise<TranslationApi[]>;
+  createTranslationApi(api: InsertTranslationApi): Promise<TranslationApi>;
+  updateTranslationApi(id: number, updates: Partial<TranslationApi>): Promise<TranslationApi>;
+  deleteTranslationApi(id: number): Promise<boolean>;
+  updateApiStats(id: number, success: boolean): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -273,6 +284,70 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messageLikes.userId, userId));
     
     return likes.map(like => like.messageId);
+  }
+
+  // Translation API operations
+  async getTranslationApis(): Promise<TranslationApi[]> {
+    return await db
+      .select()
+      .from(translationApis)
+      .orderBy(translationApis.priority, translationApis.createdAt);
+  }
+
+  async getActiveTranslationApis(): Promise<TranslationApi[]> {
+    return await db
+      .select()
+      .from(translationApis)
+      .where(eq(translationApis.isActive, true))
+      .orderBy(translationApis.priority, translationApis.createdAt);
+  }
+
+  async createTranslationApi(apiData: InsertTranslationApi): Promise<TranslationApi> {
+    const [api] = await db
+      .insert(translationApis)
+      .values(apiData)
+      .returning();
+    return api;
+  }
+
+  async updateTranslationApi(id: number, updates: Partial<TranslationApi>): Promise<TranslationApi> {
+    const [api] = await db
+      .update(translationApis)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(translationApis.id, id))
+      .returning();
+    return api;
+  }
+
+  async deleteTranslationApi(id: number): Promise<boolean> {
+    const result = await db
+      .delete(translationApis)
+      .where(eq(translationApis.id, id));
+    return result.rowCount > 0;
+  }
+
+  async updateApiStats(id: number, success: boolean): Promise<void> {
+    if (success) {
+      await db
+        .update(translationApis)
+        .set({
+          successCount: sql`${translationApis.successCount} + 1`,
+          lastUsed: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(translationApis.id, id));
+    } else {
+      await db
+        .update(translationApis)
+        .set({
+          errorCount: sql`${translationApis.errorCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(translationApis.id, id));
+    }
   }
 }
 
