@@ -331,6 +331,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user settings
+  app.patch('/api/user/settings', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      const updates = req.body;
+      const updatedUser = await storage.updateUserSettings(user.claims.sub, updates);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      res.status(500).json({ error: 'Failed to update settings' });
+    }
+  });
+
+  // Update user profile image
+  app.post('/api/user/profile-image', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      const { imageUrl, useCustom } = req.body;
+      
+      console.log('Profile image update request:', {
+        userId: user.claims.sub,
+        imageUrlLength: imageUrl?.length || 0,
+        useCustom,
+        hasImageUrl: !!imageUrl
+      });
+      
+      if (!imageUrl || typeof useCustom !== 'boolean') {
+        console.log('Missing required fields for profile image update');
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const updatedUser = await storage.updateUserProfileImage(user.claims.sub, imageUrl, useCustom);
+      console.log('Profile image updated successfully:', {
+        userId: user.claims.sub,
+        useCustomProfileImage: updatedUser.useCustomProfileImage,
+        hasCustomImageUrl: !!updatedUser.customProfileImageUrl
+      });
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating profile image:', error);
+      res.status(500).json({ error: 'Failed to update profile image' });
+    }
+  });
+
   // Likes routes
   app.post('/api/messages/:messageId/like', isAuthenticated, async (req: Request, res: Response) => {
     try {
