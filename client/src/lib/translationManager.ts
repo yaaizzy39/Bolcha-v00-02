@@ -54,30 +54,32 @@ class TranslationManager {
       return;
     }
 
-    // Detect actual language content
-    const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
-    const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim());
-    
-    // Don't translate English text to English
-    if (hasEnglishChars && !hasJapaneseChars && targetLanguage === 'en') {
-      callback(text);
-      return;
-    }
-    
-    // Only translate Japanese text
-    if (!hasJapaneseChars) {
-      callback(text);
-      return;
-    }
-    
     // Don't translate if source and target languages are the same
     if (sourceLanguage === targetLanguage) {
       callback(text);
       return;
     }
+    
+    // Detect actual language content for better language detection
+    const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
+    const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim());
+    
+    // Update source language based on actual content if needed
+    let actualSourceLanguage = sourceLanguage;
+    if (hasJapaneseChars && !hasEnglishChars) {
+      actualSourceLanguage = 'ja';
+    } else if (hasEnglishChars && !hasJapaneseChars) {
+      actualSourceLanguage = 'en';
+    }
+    
+    // Don't translate if detected source and target are the same
+    if (actualSourceLanguage === targetLanguage) {
+      callback(text);
+      return;
+    }
 
     // Check cache first
-    const cached = translationCache.get(text, sourceLanguage, targetLanguage);
+    const cached = translationCache.get(text, actualSourceLanguage, targetLanguage);
     if (cached) {
       console.log(`📚 Using cached translation for message ${message.id}: "${cached}"`);
       callback(cached);
@@ -88,7 +90,7 @@ class TranslationManager {
     const request: TranslationRequest = {
       messageId: message.id,
       text,
-      sourceLanguage,
+      sourceLanguage: actualSourceLanguage,
       targetLanguage,
       priority
     };
