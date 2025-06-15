@@ -35,10 +35,7 @@ class TranslationManager {
   ): void {
     const text = message.originalText || '';
     
-    console.log(`🛑 TranslationManager DISABLED - preventing infinite loop`);
-    console.log(`🎯 Would translate: "${text}" to ${targetLanguage}`);
-    
-    // TEMPORARY: Return original text to stop infinite loop
+    // COMPLETELY DISABLED - Return original text immediately
     callback(text);
     return;
     

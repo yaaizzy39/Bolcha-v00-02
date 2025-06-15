@@ -410,46 +410,21 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       console.log(`🔄 Language changed to ${currentLanguage}, forcing re-translation of ${roomMessages.length} messages`);
       // Trigger re-translation by clearing cache and processing messages again
       setTimeout(() => {
-        roomMessages.forEach(message => {
-          if (message.id && user && message.senderId !== user.id) {
-            translationManager.translateMessage(message, currentLanguage, 'normal', (result) => {
-              if (result !== message.originalText) {
-                setTranslatedMessages(prev => new Map(prev.set(message.id, result)));
-              }
-            });
-          }
-        });
+        // Translation disabled - preventing infinite loop
+        console.log(`🛑 Would retranslate ${roomMessages.length} messages to ${currentLanguage}`);
       }, 100);
     }
   }, [currentLanguage, roomMessages.length, user]);
 
-  // DISABLED: Handle message translations - preventing infinite loop
-  // Translation is now handled only through manual language selection
-  /*
-  useEffect(() => {
-    // Translation effect temporarily disabled to fix infinite loop
-  }, [roomMessages, currentLanguage]);
-  */
+  // DISABLED: Translation system completely removed to prevent infinite loop
 
   // Manual translation handler for buttons
   const handleManualTranslation = useCallback((messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
     const message = roomMessages.find(m => m.id === messageId);
     if (!message) return;
 
-    translationManager.translateMessage(
-      message,
-      targetLanguage,
-      'high', // Manual translations get high priority
-      (translatedText) => {
-        if (translatedText !== text) {
-          setTranslatedMessages(prev => {
-            const newMap = new Map(prev);
-            newMap.set(messageId, translatedText);
-            return newMap;
-          });
-        }
-      }
-    );
+    // Translation disabled - infinite loop prevention
+    console.log(`🛑 Translation disabled: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
   }, [roomMessages]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
@@ -575,20 +550,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         const freshTranslations = new Map();
         let processedCount = 0;
         
-        roomMessages.forEach(message => {
-          if (message.id && user && message.senderId !== user.id) {
-            translationManager.translateMessage(message, newLanguage, 'high', (result) => {
-              console.log(`✅ Fresh translation: "${message.originalText}" -> "${result}" (${newLanguage})`);
-              if (result !== message.originalText) {
-                freshTranslations.set(message.id, result);
-              }
-              
-              processedCount++;
-              // Update UI with fresh translations
-              setTranslatedMessages(new Map(freshTranslations));
-            });
-          }
-        });
+        // Translation disabled - preventing infinite loop
+        console.log(`🛑 Would translate ${roomMessages.length} messages to ${newLanguage}`);
       }
     }, 200); // Small delay to ensure state is completely reset
     
