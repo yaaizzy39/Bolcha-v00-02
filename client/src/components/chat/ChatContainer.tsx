@@ -664,13 +664,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               <Select
                 value={currentLanguage}
                 onValueChange={(value) => {
-                  console.log(`🎯 Language selector triggered with value: ${value}`);
+                  console.log(`🎯 RADIX SELECT: onValueChange triggered with: ${value}`);
+                  console.log(`🎯 RADIX SELECT: Current state before change: ${currentLanguage}`);
                   handleLanguageChange(value);
+                }}
+                onOpenChange={(open) => {
+                  console.log(`🔓 RADIX SELECT: dropdown ${open ? 'opened' : 'closed'}`);
                 }}
               >
                 <SelectTrigger 
                   className="w-[120px] sm:w-[200px] h-8 text-xs"
-                  onClick={() => console.log(`🖱️ Language dropdown clicked, current: ${currentLanguage}`)}
+                  onClick={() => console.log(`🖱️ RADIX SELECT: trigger clicked, current: ${currentLanguage}`)}
                 >
                   <SelectValue>
                     {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
@@ -681,7 +685,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     <SelectItem 
                       key={lang.code} 
                       value={lang.code}
-                      onClick={() => console.log(`🔍 SelectItem clicked: ${lang.code}`)}
+                      onSelect={() => console.log(`🔍 RADIX SELECT: item selected: ${lang.code}`)}
                     >
                       {lang.nativeName}
                     </SelectItem>
