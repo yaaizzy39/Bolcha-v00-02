@@ -682,19 +682,30 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-            {/* Language Selector - Reliable HTML Select */}
+            {/* Language Selector - Debug Version */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <select
                 value={currentLanguage}
                 onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const newLang = e.target.value;
-                  console.log(`🎯 HTML SELECT: onChange triggered with: ${newLang}`);
-                  console.log(`🎯 HTML SELECT: Current state before change: ${currentLanguage}`);
-                  handleLanguageChange(newLang);
+                  console.log(`🎯 SELECT CHANGE: ${currentLanguage} -> ${newLang}`);
+                  
+                  // Immediate state update
+                  setCurrentLanguageWithDebug(newLang);
+                  localStorage.setItem('selectedLanguage', newLang);
+                  
+                  // Clear and retranslate
+                  setTranslatedMessages(new Map());
+                  translationManager.setUserLanguage(newLang);
+                  
+                  console.log(`✅ Language changed to: ${newLang}`);
                 }}
-                onClick={() => console.log(`🖱️ HTML SELECT: clicked, current: ${currentLanguage}`)}
-                className="w-[120px] sm:w-[200px] h-8 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
+                onFocus={() => console.log(`🔍 SELECT FOCUSED: current = ${currentLanguage}`)}
+                onBlur={() => console.log(`🔍 SELECT BLURRED: current = ${currentLanguage}`)}
+                className="w-[120px] sm:w-[200px] h-8 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium cursor-pointer"
               >
                 {getSupportedLanguages().map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -702,6 +713,9 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                   </option>
                 ))}
               </select>
+              <span className="text-xs text-gray-500 ml-1">
+                Current: {currentLanguage}
+              </span>
             </div>
             
 
