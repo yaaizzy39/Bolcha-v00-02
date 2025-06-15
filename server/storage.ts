@@ -323,10 +323,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTranslationApi(id: number): Promise<boolean> {
-    const result = await db
-      .delete(translationApis)
-      .where(eq(translationApis.id, id));
-    return result.rowCount > 0;
+    try {
+      const result = await db
+        .delete(translationApis)
+        .where(eq(translationApis.id, id));
+      console.log('Delete result:', result);
+      return true; // Assume success if no error thrown
+    } catch (error) {
+      console.error('Error deleting translation API:', error);
+      return false;
+    }
   }
 
   async updateApiStats(id: number, success: boolean): Promise<void> {

@@ -83,7 +83,7 @@ export default function AdminSettings() {
   // Delete API mutation
   const deleteApiMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/admin/translation-apis/${id}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/admin/translation-apis/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/translation-apis'] });
@@ -92,10 +92,11 @@ export default function AdminSettings() {
         description: "翻訳APIが削除されました",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Delete API error:', error);
       toast({
         title: "エラー",
-        description: "APIの削除に失敗しました",
+        description: `APIの削除に失敗しました: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     },
