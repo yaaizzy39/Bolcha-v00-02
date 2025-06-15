@@ -53,7 +53,7 @@ export function MessageBubble({
   const messageAlignment = (user as any)?.messageAlignment || 'right';
   
   // Determine if this message should be displayed on the right side
-  const shouldDisplayRight = isOwnMessage ? messageAlignment === 'right' : !isOwnMessage;
+  const shouldDisplayRight = isOwnMessage && messageAlignment === 'right';
   
   // Enhanced translation logic - show translate button for any Japanese text
   const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
