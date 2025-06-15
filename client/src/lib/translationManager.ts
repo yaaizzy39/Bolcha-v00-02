@@ -48,12 +48,9 @@ class TranslationManager {
     const text = message.originalText || '';
     const sourceLanguage = message.originalLanguage || 'ja';
     
-    // Always return original text immediately to prevent UI blocking
-    // Translation will happen asynchronously if possible
-    callback(text);
-    
     // Skip if authentication required or same language
     if (this.authenticationRequired || sourceLanguage === targetLanguage) {
+      callback(text);
       return;
     }
 
