@@ -42,27 +42,66 @@ async function translateText(text: string, source: string, target: string): Prom
       return fallbackResult;
     }
 
-    // Try Google Apps Script translation API - URL needs to be updated with working endpoint
-    const gasUrl = process.env.GAS_TRANSLATE_URL || 'https://script.google.com/macros/s/AKfycbxqy_0-lMQLr9FlI7oDWXxKHhQ1iHNMjI3hgEhMqOxuVG6BnNYj_AcgZRTn9TPGAB77/exec';
+    // Try Google Apps Script translation API
+    const gasUrl = process.env.GAS_TRANSLATE_URL || 'https://script.google.com/macros/s/AKfycbyRgU6XjIjoFZh1Y8kIY9-YnLmkNxalGWwlI-0k93wnjfFjWcjDZijIOMy_-WjV47Be0A/exec';
     
-    const response = await fetch(gasUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: text,
-        source: source,
-        target: target
-      })
-    });
+    // Try both GET and POST methods for GAS API compatibility
+    let response;
+    
+    // First try GET method with query parameters
+    const getUrl = `${gasUrl}?text=${encodeURIComponent(text)}&source=${source}&target=${target}`;
+    try {
+      response = await fetch(getUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        // If GET fails, try POST method
+        response = await fetch(gasUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            source: source,
+            target: target
+          })
+        });
+      }
+    } catch (error) {
+      // If GET fails completely, try POST
+      response = await fetch(gasUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          source: source,
+          target: target
+        })
+      });
+    }
 
     if (response.ok) {
-      const data = await response.json();
-      if (data.translatedText && data.translatedText !== text) {
-        console.log(`GAS translation: "${text}" -> "${data.translatedText}"`);
-        return data.translatedText;
+      const responseText = await response.text();
+      console.log(`GAS API response: ${responseText}`);
+      
+      try {
+        const data = JSON.parse(responseText);
+        if (data.translatedText && data.translatedText !== text) {
+          console.log(`GAS translation: "${text}" -> "${data.translatedText}"`);
+          return data.translatedText;
+        }
+      } catch (parseError) {
+        console.log(`GAS API response not JSON: ${responseText.substring(0, 100)}...`);
       }
+    } else {
+      console.log(`GAS API request failed with status: ${response.status}`);
     }
 
     console.log(`No translation available for: "${text}"`);
@@ -110,6 +149,12 @@ function getSimpleTranslation(text: string, target: string): string {
       'nl': 'Niet vertaald',
       'th': 'ไม่ได้แปล',
       'vi': 'Không được dịch'
+    },
+    '入力時は翻訳されますが、一度ルームを退出して再度入り直すと翻訳されてません。': {
+      'en': 'Translation works when inputting, but once you leave the room and re-enter, it is not translated.'
+    },
+    'ふざけないでください。': {
+      'en': 'Please don\'t joke around.'
     },
     'おはよう': {
       'en': 'Good morning',
