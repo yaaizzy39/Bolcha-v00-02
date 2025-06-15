@@ -55,6 +55,10 @@ export function MessageBubble({
   // Determine if this message should be displayed on the right side
   const shouldDisplayRight = isOwnMessage && messageAlignment === 'right';
   
+  // Determine timestamp alignment based on message alignment and message type
+  const timestampAlignment = isOwnMessage ? 
+    (messageAlignment === 'left' ? 'justify-start' : 'justify-end') : 'justify-start';
+  
   // Enhanced translation logic - show translate button for any Japanese text
   const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
   const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
@@ -188,7 +192,7 @@ export function MessageBubble({
             )}
           </div>
           
-          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${shouldDisplayRight ? 'justify-end' : 'justify-start'}`}>
+          <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${timestampAlignment}`}>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
               {onReply && (
                 <Button
@@ -327,7 +331,7 @@ export function MessageBubble({
           )}
         </div>
         
-        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground justify-start">
+        <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${timestampAlignment}`}>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">{getSenderDisplayName()}</span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">•</span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
