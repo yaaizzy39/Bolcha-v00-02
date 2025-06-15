@@ -3,6 +3,7 @@ import type { Message } from '@shared/schema';
 
 class TranslationManager {
   private authenticationRequired = false;
+  private translationCache = new Map<string, string>(); // Simple in-memory cache
 
   setUserLanguage(language: string) {
     console.log(`🌐 User language set to: ${language}`);
@@ -43,10 +44,25 @@ class TranslationManager {
       return;
     }
 
+    // Check cache first
+    const cacheKey = `${text}|${sourceLanguage}|${targetLanguage}`;
+    const cached = this.translationCache.get(cacheKey);
+    
+    if (cached) {
+      console.log(`💾 Using cached translation: "${text}" -> "${cached}"`);
+      callback(cached);
+      return;
+    }
+
     console.log(`🔄 Translating: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
     
-    // Translate immediately
-    this.performTranslation(text, sourceLanguage, targetLanguage, callback);
+    // Translate and cache result
+    this.performTranslation(text, sourceLanguage, targetLanguage, (result) => {
+      if (result !== text) {
+        this.translationCache.set(cacheKey, result);
+      }
+      callback(result);
+    });
   }
 
   private async performTranslation(
