@@ -123,7 +123,15 @@ class TranslationManager {
   private sortQueue(): void {
     this.queue.sort((a, b) => {
       const priorityOrder = { high: 0, normal: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+      
+      // First sort by priority
+      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+      
+      // Within same priority, sort by messageId descending (newest first)
+      return b.messageId - a.messageId;
     });
   }
 
@@ -133,10 +141,12 @@ class TranslationManager {
     }
 
     this.processing = true;
-    console.log(`🔄 Processing translation queue (${this.queue.length} items)`);
+    console.log(`🔄 Processing translation queue (${this.queue.length} items) - newest messages first`);
 
     while (this.queue.length > 0) {
       const request = this.queue.shift()!;
+      console.log(`🔍 Translating message ${request.messageId}: "${request.text}" (${request.sourceLanguage} -> ${request.targetLanguage})`);
+      
       
       // Skip English text being translated to English
       const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(request.text.trim());

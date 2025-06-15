@@ -385,12 +385,22 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     // Clear existing translations when language changes
     setTranslatedMessages(new Map());
     
-    roomMessages.forEach((message, index) => {
+    // Sort messages by timestamp descending (newest first) for translation
+    const sortedMessages = [...roomMessages].sort((a, b) => {
+      const timeA = new Date(a.timestamp || 0).getTime();
+      const timeB = new Date(b.timestamp || 0).getTime();
+      return timeB - timeA; // Descending order (newest first)
+    });
+    
+    sortedMessages.forEach((message, index) => {
       // Translate each message using the new manager
+      // New messages get highest priority, then decreasing priority for older messages
+      const priority = index < 5 ? 'high' : index < 15 ? 'normal' : 'low';
+      
       translationManager.translateMessage(
         message,
         currentLanguage,
-        index < 10 ? 'high' : 'normal', // Prioritize recent messages
+        priority,
         (translatedText) => {
           if (translatedText !== message.originalText) {
             setTranslatedMessages(prev => {
