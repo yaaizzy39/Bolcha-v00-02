@@ -16,9 +16,10 @@ class TranslationManager {
   private userLanguage = 'ja';
   private cache: Map<string, CacheEntry> = new Map();
   private isProcessing = false;
+  private isDisabled = true; // Completely disable to prevent infinite loops
 
   constructor() {
-    // Cache loading disabled to prevent infinite loops
+    console.log('🛑 TranslationManager initialized in disabled mode to prevent infinite loops');
   }
 
   setUserLanguage(language: string) {
@@ -72,8 +73,14 @@ class TranslationManager {
     callback: (result: string) => void
   ): Promise<void> {
     // Translation system completely disabled to prevent infinite loop
+    if (this.isDisabled) {
+      console.log(`🛑 Translation disabled to prevent infinite loop: "${message.originalText}"`);
+      callback(message.originalText || '');
+      return;
+    }
+
+    // This code path should never be reached while disabled
     callback(message.originalText || '');
-    return;
   }
 
   private detectLanguage(text: string): string {
