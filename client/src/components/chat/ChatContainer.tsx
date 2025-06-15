@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
-import { translationCache } from '@/lib/translationCache';
+import { translationManager } from '@/lib/translationManager';
 import { MessageBubble } from './MessageBubble';
 import { MentionInput, type MentionInputRef } from './MentionInput';
 import { getDisplayName } from '@/lib/profileUtils';
@@ -146,9 +145,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   };
   
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const { translateText } = useTranslation();
   const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
-  const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
 
 
 
@@ -356,98 +353,62 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Manual translation on demand only
-  const handleManualTranslation = useCallback(async (messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
-    if (translatingMessages.has(messageId) || translatedMessages.has(messageId)) {
-      return;
-    }
+  // Initialize translation manager with user language
+  useEffect(() => {
+    const userLanguage = (user as any)?.preferredLanguage || 'en';
+    translationManager.setUserLanguage(userLanguage);
+  }, [(user as any)?.preferredLanguage]);
 
-    // Check cache first
-    const cached = translationCache.get(text, sourceLanguage, targetLanguage);
-    if (cached) {
-      setTranslatedMessages(prev => {
-        const newMap = new Map(prev);
-        newMap.set(messageId, cached);
-        return newMap;
-      });
-      return;
-    }
-
-    setTranslatingMessages(prev => {
-      const newSet = new Set(prev);
-      newSet.add(messageId);
-      return newSet;
-    });
-
-    try {
-      console.log(`🔄 Starting translation for message ${messageId}: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
-      const translated = await translateText(text, sourceLanguage, targetLanguage);
-      console.log(`✅ Translation result: "${translated}"`);
-      
-      if (translated && translated !== text) {
-        console.log(`📝 Setting translation for message ${messageId}`);
-        setTranslatedMessages(prev => {
-          const newMap = new Map(prev);
-          newMap.set(messageId, translated);
-          return newMap;
-        });
-        
-        // Also store in cache for future use
-        translationCache.set(text, translated, sourceLanguage, targetLanguage);
-        console.log(`💾 Cached translation: "${text}" -> "${translated}"`);
-      } else {
-        console.log(`⚠️ No valid translation received`);
-      }
-    } catch (error) {
-      console.error('❌ Translation failed:', error);
-    } finally {
-      setTranslatingMessages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(messageId);
-        return newSet;
-      });
-    }
-  }, [translateText, translatingMessages, translatedMessages]);
-
-  // Enhanced translation loading with automatic translation for Japanese messages
+  // Handle message translations automatically
   useEffect(() => {
     if (!user || !roomMessages.length) return;
 
     const userLanguage = (user as any)?.preferredLanguage || 'en';
-    console.log(`🔍 Auto-translation check - User language: ${userLanguage}, User ID: ${(user as any)?.id}`);
+    console.log(`🌐 Processing translations for ${roomMessages.length} messages in language: ${userLanguage}`);
     
-    roomMessages.forEach(async (message) => {
-      // Check if message contains Japanese characters or is marked as Japanese
-      const isJapanese = message.originalLanguage === 'ja' || 
-                        /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
-      
-      if (!isJapanese || 
-          userLanguage === 'ja' ||
-          translatedMessages.has(message.id)) {
-        return;
-      }
-
-      // Check cache first
-      const cached = translationCache.get(
-        message.originalText || '', 
-        'ja', 
-        userLanguage
+    // Get viewport to determine which messages need high priority
+    const scrollArea = scrollAreaRef.current;
+    const visibleMessages = new Set<number>();
+    
+    roomMessages.forEach((message, index) => {
+      // Translate each message using the new manager
+      translationManager.translateMessage(
+        message,
+        userLanguage,
+        index < 10 ? 'high' : 'normal', // Prioritize recent messages
+        (translatedText) => {
+          if (translatedText !== message.originalText) {
+            setTranslatedMessages(prev => {
+              const newMap = new Map(prev);
+              newMap.set(message.id, translatedText);
+              return newMap;
+            });
+          }
+        }
       );
-      
-      if (cached) {
-        console.log(`📚 Loading cached translation for message ${message.id}: "${cached}"`);
-        setTranslatedMessages(prev => {
-          const newMap = new Map(prev);
-          newMap.set(message.id, cached);
-          return newMap;
-        });
-      } else if ((user as any)?.autoTranslate !== false) {
-        // Auto-translate if enabled (default true)
-        console.log(`🔄 Auto-translating Japanese message ${message.id}`);
-        handleManualTranslation(message.id, message.originalText || '', 'ja', userLanguage);
-      }
     });
-  }, [roomMessages, user, handleManualTranslation]);
+  }, [roomMessages, (user as any)?.preferredLanguage]);
+
+  // Manual translation handler for buttons
+  const handleManualTranslation = useCallback((messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
+    const message = roomMessages.find(m => m.id === messageId);
+    if (!message) return;
+
+    translationManager.translateMessage(
+      message,
+      targetLanguage,
+      'high', // Manual translations get high priority
+      (translatedText) => {
+        if (translatedText !== text) {
+          setTranslatedMessages(prev => {
+            const newMap = new Map(prev);
+            newMap.set(messageId, translatedText);
+            return newMap;
+          });
+        }
+      }
+    );
+  }, [roomMessages]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
     if (!text.trim()) return;

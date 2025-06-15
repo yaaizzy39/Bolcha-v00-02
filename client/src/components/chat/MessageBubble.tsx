@@ -177,7 +177,7 @@ export function MessageBubble({
             
             {hasTranslation ? (
               <div>
-                <p className="mb-2 font-medium">
+                <p className="mb-2">
                   <CulturalContextTooltip
                     text={message.originalText || ''}
                     originalLanguage={message.originalLanguage || 'en'}
@@ -186,8 +186,8 @@ export function MessageBubble({
                     {renderTextWithLinks(translatedText || '', true)}
                   </CulturalContextTooltip>
                 </p>
-                <div className="text-xs text-primary-foreground/60 border-l-2 border-primary-foreground/30 pl-2">
-                  Original: {renderTextWithLinks(message.originalText || '', true)}
+                <div className="text-xs text-primary-foreground/60 border-l-2 border-primary-foreground/30 pl-2 mt-1">
+                  {renderTextWithLinks(message.originalText || '', true)}
                 </div>
               </div>
             ) : (
@@ -316,7 +316,7 @@ export function MessageBubble({
           
           {hasTranslation ? (
             <div>
-              <p className="mb-2 font-medium text-primary">
+              <p className="mb-2">
                 <CulturalContextTooltip
                   text={message.originalText || ''}
                   originalLanguage={message.originalLanguage || 'en'}
@@ -325,8 +325,8 @@ export function MessageBubble({
                   {renderTextWithLinks(translatedText || '', true)}
                 </CulturalContextTooltip>
               </p>
-              <div className="text-xs text-muted-foreground border-l-2 border-muted pl-2 opacity-70">
-                Original: {renderTextWithLinks(message.originalText || '', true)}
+              <div className="text-xs text-muted-foreground border-l-2 border-muted-foreground/30 pl-2 mt-1 opacity-70">
+                {renderTextWithLinks(message.originalText || '', true)}
               </div>
             </div>
           ) : (
