@@ -372,6 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Checking admin access for user:', user.claims.sub);
       const userData = await storage.getUser(user.claims.sub);
       console.log('User data:', userData);
+      console.log('isAdmin field:', userData?.isAdmin);
       if (!userData?.isAdmin) {
         console.log('User is not admin, access denied');
         return res.status(403).json({ error: 'Admin access required' });
@@ -384,6 +385,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Test admin endpoint
+  app.get('/api/admin/test', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      console.log('Admin test endpoint accessed by user:', user.claims.sub);
+      const userData = await storage.getUser(user.claims.sub);
+      console.log('User data in test endpoint:', userData);
+      res.json({ 
+        message: 'Admin test successful', 
+        user: userData,
+        isAdmin: userData?.isAdmin 
+      });
+    } catch (error) {
+      console.error('Error in admin test:', error);
+      res.status(500).json({ error: 'Test failed' });
+    }
+  });
+
   app.get('/api/admin/translation-apis', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
     try {
       const apis = await storage.getTranslationApis();
@@ -391,6 +410,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching translation APIs:', error);
       res.status(500).json({ error: 'Failed to fetch translation APIs' });
+    }
+  });
+
+  // Temporary direct API creation endpoint
+  app.post('/api/translation-apis/create', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      console.log('Direct API creation endpoint accessed by user:', user.claims.sub);
+      const userData = await storage.getUser(user.claims.sub);
+      console.log('User data for direct creation:', userData);
+      
+      if (!userData?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      console.log('Creating new translation API with data:', req.body);
+      const { name, url, priority, isActive } = req.body;
+      
+      if (!name || !url) {
+        return res.status(400).json({ error: 'Name and URL are required' });
+      }
+      
+      const newApi = await storage.createTranslationApi({
+        name,
+        url,
+        priority: priority || 1,
+        isActive: isActive !== false
+      });
+      console.log('Successfully created translation API:', newApi);
+      res.json(newApi);
+    } catch (error) {
+      console.error('Error creating translation API:', error);
+      res.status(500).json({ error: 'Failed to create translation API', details: String(error) });
     }
   });
 

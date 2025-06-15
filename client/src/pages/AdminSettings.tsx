@@ -40,7 +40,7 @@ export default function AdminSettings() {
   // Create API mutation
   const createApiMutation = useMutation({
     mutationFn: async (apiData: InsertTranslationApi) => {
-      return await apiRequest('/api/admin/translation-apis', 'POST', apiData);
+      return await apiRequest('/api/translation-apis/create', 'POST', apiData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/translation-apis'] });
