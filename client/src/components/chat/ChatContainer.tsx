@@ -129,7 +129,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
   const userLanguage = (user as any)?.preferredLanguage || 
                       localStorage.getItem('selectedLanguage') || 
-                      'ja';
+                      'en';
 
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
@@ -413,7 +413,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     if (!user || !roomMessages.length) return;
 
-    const userLanguage = (user as any)?.preferredLanguage || 'ja';
+    const userLanguage = (user as any)?.preferredLanguage || 'en';
+    console.log(`🔍 Auto-translation check - User language: ${userLanguage}, User ID: ${(user as any)?.id}`);
     
     roomMessages.forEach(async (message) => {
       // Check if message contains Japanese characters or is marked as Japanese
@@ -678,7 +679,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
                     translatedText={translation}
                     isOwnMessage={isOwnMessage}
                     showOriginal={(user as any)?.showOriginalText || false}
-                    currentUserLanguage={(user as any)?.preferredLanguage || 'ja'}
+                    currentUserLanguage={(user as any)?.preferredLanguage || 'en'}
                     onReply={handleReply}
                     onNavigateToMessage={handleNavigateToMessage}
                     onDelete={message.senderId === currentUserId || (user as any)?.email === 'yaaizzy39@gmail.com' ? handleDeleteMessage : undefined}
