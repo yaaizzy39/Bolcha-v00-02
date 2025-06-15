@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal';
-import { Languages, Check, CheckCheck, Reply, Trash2, Heart } from 'lucide-react';
+import { Languages, Check, CheckCheck, Reply, Trash2, Heart, RotateCcw } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 import { useAuth } from '@/hooks/useAuth';
 import { getDisplayName, getCurrentProfileImage } from '@/lib/profileUtils';
@@ -25,6 +25,7 @@ interface MessageBubbleProps {
   userLiked?: boolean;
   onToggleLike?: () => void;
   userProfileImage?: string;
+  onTranslate?: (messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => void;
 }
 
 export function MessageBubble({ 
@@ -41,7 +42,8 @@ export function MessageBubble({
   totalLikes = 0,
   userLiked = false,
   onToggleLike,
-  userProfileImage
+  userProfileImage,
+  onTranslate
 }: MessageBubbleProps) {
   const { t } = useI18n();
   const { user } = useAuth();

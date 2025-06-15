@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -356,7 +356,37 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Manual translation on demand only - no automatic translation
+  // Load cached translations when room changes (no API calls)
+  useEffect(() => {
+    if (!user || !roomMessages.length) return;
+
+    const userLanguage = (user as any)?.preferredLanguage || 'ja';
+    
+    roomMessages.forEach(message => {
+      if (!message.originalLanguage || 
+          message.originalLanguage === userLanguage ||
+          translatedMessages.has(message.id)) {
+        return;
+      }
+
+      // Only load from cache - no API calls
+      const cached = translationCache.get(
+        message.originalText || '', 
+        message.originalLanguage, 
+        userLanguage
+      );
+      
+      if (cached) {
+        setTranslatedMessages(prev => {
+          const newMap = new Map(prev);
+          newMap.set(message.id, cached);
+          return newMap;
+        });
+      }
+    });
+  }, [roomId, user]); // Only run when room or user changes
+
+  // Manual translation on demand only
   const handleManualTranslation = useCallback(async (messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
     if (translatingMessages.has(messageId) || translatedMessages.has(messageId)) {
       return;
