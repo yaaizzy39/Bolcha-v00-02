@@ -385,12 +385,19 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     
     // First, load cached translations for all messages
     const cachedTranslations = new Map<number, string>();
+    console.log(`🔍 Checking cache for ${roomMessages.length} messages in room ${roomId}, target language: ${currentLanguage}`);
+    
     roomMessages.forEach(message => {
       const text = message.originalText || '';
       const sourceLanguage = message.originalLanguage || 'ja';
       
+      console.log(`🔍 Checking message ${message.id}: "${text}" (source: ${sourceLanguage})`);
+      
       // Skip if same language
-      if (sourceLanguage === currentLanguage) return;
+      if (sourceLanguage === currentLanguage) {
+        console.log(`⏭️ Skipping message ${message.id} - same language (${sourceLanguage})`);
+        return;
+      }
       
       // Detect actual language content
       const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
@@ -403,14 +410,21 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         actualSourceLanguage = 'en';
       }
       
+      console.log(`🔍 Detected language for "${text}": ${actualSourceLanguage} (original: ${sourceLanguage})`);
+      
       // Skip if detected source and target are the same
-      if (actualSourceLanguage === currentLanguage) return;
+      if (actualSourceLanguage === currentLanguage) {
+        console.log(`⏭️ Skipping message ${message.id} - detected same language (${actualSourceLanguage})`);
+        return;
+      }
       
       // Check cache
       const cached = translationCache.get(text, actualSourceLanguage, currentLanguage);
       if (cached) {
-        console.log(`💾 Cache hit for: "${text}" (${actualSourceLanguage} -> ${currentLanguage})`);
+        console.log(`💾 Cache hit for message ${message.id}: "${text}" (${actualSourceLanguage} -> ${currentLanguage}) = "${cached}"`);
         cachedTranslations.set(message.id, cached);
+      } else {
+        console.log(`❌ No cache for message ${message.id}: "${text}" (${actualSourceLanguage} -> ${currentLanguage})`);
       }
     });
     
