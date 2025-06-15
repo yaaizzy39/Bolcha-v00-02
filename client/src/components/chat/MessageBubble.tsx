@@ -60,14 +60,7 @@ export function MessageBubble({
   const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
   const showTranslateButton = isJapanese && !hasTranslation && currentUserLanguage !== 'ja';
   
-  console.log(`Translation button check for message ${message.id}:`, {
-    isJapanese,
-    hasTranslation,
-    currentUserLanguage,
-    showTranslateButton,
-    originalText: message.originalText,
-    translatedText
-  });
+
   
   // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
