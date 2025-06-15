@@ -119,6 +119,20 @@ class TranslationManager {
     while (this.queue.length > 0) {
       const request = this.queue.shift()!;
       
+      // Skip English text being translated to English
+      const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(request.text.trim());
+      const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(request.text);
+      
+      if (hasEnglishChars && !hasJapaneseChars && request.targetLanguage === 'en') {
+        console.log(`⏭️ Skipping English text: "${request.text}"`);
+        const callback = this.callbacks.get(request.messageId);
+        if (callback) {
+          callback(request.text);
+          this.callbacks.delete(request.messageId);
+        }
+        continue;
+      }
+      
       try {
         console.log(`🔍 Translating message ${request.messageId}: "${request.text}" (${request.sourceLanguage} -> ${request.targetLanguage})`);
         
@@ -178,7 +192,8 @@ class TranslationManager {
   clearQueue(): void {
     this.queue = [];
     this.callbacks.clear();
-    console.log(`🧹 Translation queue cleared`);
+    this.processing = false;
+    console.log(`🧹 Translation queue cleared and processing stopped`);
   }
 }
 
