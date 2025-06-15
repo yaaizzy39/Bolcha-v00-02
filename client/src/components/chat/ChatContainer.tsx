@@ -600,7 +600,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     console.log(`🌐 Immediately updating language to: ${newLanguage}`);
     
     // Update local state immediately for responsive UI
-    setCurrentLanguage(newLanguage);
+    setCurrentLanguageWithDebug(newLanguage);
     localStorage.setItem('selectedLanguage', newLanguage);
     
     // FORCE COMPLETE RESET - Clear everything translation-related
