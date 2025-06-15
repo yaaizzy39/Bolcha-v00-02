@@ -138,7 +138,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
-    return localStorage.getItem('selectedLanguage') || 'en';
+    return localStorage.getItem('selectedLanguage') || 'ja';
   });
 
   // Get user's preferred language for room name translation
@@ -168,14 +168,19 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     if (user && (user as any)?.preferredLanguage) {
       const serverLanguage = (user as any).preferredLanguage;
-      // Only set if not already set from localStorage
+      console.log(`📊 User database language: ${serverLanguage}, current state: ${currentLanguage}`);
+      
+      // Always sync with server data, but preserve localStorage overrides
       const savedLanguage = localStorage.getItem('selectedLanguage');
       if (!savedLanguage) {
+        console.log(`🔄 Setting language from server: ${serverLanguage}`);
         setCurrentLanguage(serverLanguage);
         localStorage.setItem('selectedLanguage', serverLanguage);
+      } else {
+        console.log(`💾 Using saved language: ${savedLanguage}`);
       }
     }
-  }, [user]);
+  }, [user, currentLanguage]);
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
@@ -653,24 +658,29 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-            {/* Language Selector - Simplified Dropdown */}
+            {/* Language Selector */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <select
+              <Select
                 value={currentLanguage}
-                onChange={(e) => {
-                  const newLang = e.target.value;
-                  console.log(`🎯 Language selector triggered with value: ${newLang}`);
-                  handleLanguageChange(newLang);
+                onValueChange={(value) => {
+                  console.log(`🎯 Language selector triggered with value: ${value}`);
+                  handleLanguageChange(value);
                 }}
-                className="w-[120px] sm:w-[200px] h-8 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                {getSupportedLanguages().map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.nativeName}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
+                  <SelectValue>
+                    {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {getSupportedLanguages().map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.nativeName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
 
