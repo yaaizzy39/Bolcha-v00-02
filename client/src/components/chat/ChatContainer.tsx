@@ -164,23 +164,28 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize and sync local language state with user data
+  // Initialize and sync local language state with user data (run only once when user data loads)
   useEffect(() => {
     if (user && (user as any)?.preferredLanguage) {
       const serverLanguage = (user as any).preferredLanguage;
-      console.log(`📊 User database language: ${serverLanguage}, current state: ${currentLanguage}`);
+      console.log(`📊 INIT: User database language: ${serverLanguage}, current state: ${currentLanguage}`);
       
       // Always sync with server data, but preserve localStorage overrides
       const savedLanguage = localStorage.getItem('selectedLanguage');
       if (!savedLanguage) {
-        console.log(`🔄 Setting language from server: ${serverLanguage}`);
+        console.log(`🔄 INIT: Setting language from server: ${serverLanguage}`);
         setCurrentLanguage(serverLanguage);
         localStorage.setItem('selectedLanguage', serverLanguage);
       } else {
-        console.log(`💾 Using saved language: ${savedLanguage}`);
+        console.log(`💾 INIT: Using saved language: ${savedLanguage}`);
+        // Ensure current state matches localStorage
+        if (currentLanguage !== savedLanguage) {
+          console.log(`🔄 INIT: Syncing current state to localStorage: ${savedLanguage}`);
+          setCurrentLanguage(savedLanguage);
+        }
       }
     }
-  }, [user, currentLanguage]);
+  }, [user]); // Remove currentLanguage from dependencies to prevent infinite loops
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
@@ -658,40 +663,26 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
               ルーム一覧
             </Button>
             
-            {/* Language Selector */}
+            {/* Language Selector - Reliable HTML Select */}
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <Select
+              <select
                 value={currentLanguage}
-                onValueChange={(value) => {
-                  console.log(`🎯 RADIX SELECT: onValueChange triggered with: ${value}`);
-                  console.log(`🎯 RADIX SELECT: Current state before change: ${currentLanguage}`);
-                  handleLanguageChange(value);
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  console.log(`🎯 HTML SELECT: onChange triggered with: ${newLang}`);
+                  console.log(`🎯 HTML SELECT: Current state before change: ${currentLanguage}`);
+                  handleLanguageChange(newLang);
                 }}
-                onOpenChange={(open) => {
-                  console.log(`🔓 RADIX SELECT: dropdown ${open ? 'opened' : 'closed'}`);
-                }}
+                onClick={() => console.log(`🖱️ HTML SELECT: clicked, current: ${currentLanguage}`)}
+                className="w-[120px] sm:w-[200px] h-8 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium"
               >
-                <SelectTrigger 
-                  className="w-[120px] sm:w-[200px] h-8 text-xs"
-                  onClick={() => console.log(`🖱️ RADIX SELECT: trigger clicked, current: ${currentLanguage}`)}
-                >
-                  <SelectValue>
-                    {getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'Language'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {getSupportedLanguages().map((lang) => (
-                    <SelectItem 
-                      key={lang.code} 
-                      value={lang.code}
-                      onSelect={() => console.log(`🔍 RADIX SELECT: item selected: ${lang.code}`)}
-                    >
-                      {lang.nativeName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {getSupportedLanguages().map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.nativeName}
+                  </option>
+                ))}
+              </select>
             </div>
             
 
