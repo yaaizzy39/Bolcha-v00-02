@@ -221,6 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageData: InsertMessage = {
         roomId,
         senderId: user.claims.sub,
+        senderName: user.claims.first_name || user.claims.email || 'Anonymous',
         originalText: text.trim(),
         originalLanguage: detectLanguage(text.trim()),
         replyToId: replyToId || null,

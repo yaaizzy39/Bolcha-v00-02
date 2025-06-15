@@ -143,16 +143,15 @@ Bolcha is a real-time multilingual chat application that enables users to commun
   - Fixed message alignment where other users' messages now correctly display on left side
   - Enhanced UI to display both translated and original text cleanly without redundant labels
 
-- **June 15, 2025**: Translation System Complete Rebuild and API Quota Management
-  - Completely resolved infinite translation loop causing hundreds of duplicate API requests
-  - Fixed English text misidentification as Japanese preventing translation errors
-  - Enhanced language detection with proper Japanese character validation
-  - Implemented GAS API quota limit handling with informative error messages
-  - Expanded local translation dictionary with user-requested phrases including "どういう事？" and "ふざけないでください"
-  - Added dual GET/POST method support for improved GAS API compatibility
-  - Restored automatic translation functionality with persistent caching across room changes
-  - Enhanced error handling for API response validation and JSON parsing
-  - Maintained clean UI display with translated text above original text without redundant labels
+- **June 15, 2025**: Translation System Simplification and Local Dictionary Removal
+  - Completely removed local translation dictionary as per user request
+  - Simplified translation system to rely solely on external GAS translation API
+  - When translation fails or API quota is exceeded, system displays original text unchanged
+  - Removed all fallback translation logic and local phrase storage
+  - Enhanced error handling to gracefully handle API failures without redundant processing
+  - Maintained automatic translation functionality with GAS API as single source
+  - Cleaned up translation codebase by removing complex local dictionary management
+  - System now provides clear feedback when translation service is unavailable
 
 - **June 14, 2025**: Translation System Debugging and Profile Image Fixes
   - Resolved critical white screen errors caused by undefined senderName values in MessageBubble component
