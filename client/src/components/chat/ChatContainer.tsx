@@ -130,6 +130,17 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
 
 
+  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
+  const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
+    return localStorage.getItem('selectedLanguage') || 'ja';
+  });
+
   // Get user's preferred language for room name translation
   // Use the local state which is always up-to-date
   const userLanguage = currentLanguage;
@@ -147,36 +158,26 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     const profile = getParticipantProfile(userId);
     return profile?.profileImageUrl;
   };
-  
-  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const [translatedMessages, setTranslatedMessages] = useState<Map<number, string>>(new Map());
-
-
-
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
-    return (user as any)?.preferredLanguage || localStorage.getItem('selectedLanguage') || 'ja';
-  });
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mentionInputRef = useRef<MentionInputRef>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync local language state with user data
+  // Initialize and sync local language state with user data
   useEffect(() => {
     if (user && (user as any)?.preferredLanguage) {
       const serverLanguage = (user as any).preferredLanguage;
-      if (serverLanguage !== currentLanguage) {
-        setCurrentLanguage(serverLanguage);
-        localStorage.setItem('selectedLanguage', serverLanguage);
+      setCurrentLanguage(serverLanguage);
+      localStorage.setItem('selectedLanguage', serverLanguage);
+    } else if (!user) {
+      // Initialize from localStorage if user data isn't loaded yet
+      const savedLanguage = localStorage.getItem('selectedLanguage');
+      if (savedLanguage && savedLanguage !== currentLanguage) {
+        setCurrentLanguage(savedLanguage);
       }
     }
-  }, [user, currentLanguage]);
+  }, [user]);
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
