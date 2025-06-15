@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/components/auth/Landing";
 import Home from "@/pages/Home";
+import AdminSettings from "@/pages/AdminSettings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -18,6 +19,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/admin" component={AdminSettings} />
         </>
       )}
       <Route component={NotFound} />

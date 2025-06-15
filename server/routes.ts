@@ -90,9 +90,18 @@ async function translateText(text: string, source: string, target: string): Prom
             }
           } catch (parseError) {
             console.log(`API ${api.name} response not JSON: ${responseText.substring(0, 100)}...`);
+          }
+        } else {
+          console.log(`API ${api.name} request failed with status: ${response.status}`);
+        }
+        
+        // Mark this API as having an error
+        await storage.updateApiStats(api.id, false);
+        
+      } catch (apiError) {
+        console.log(`API ${api.name} failed:`, apiError);
+        await storage.updateApiStats(api.id, false);
       }
-    } else {
-      console.log(`GAS API request failed with status: ${response.status}`);
     }
 
     console.log(`No translation available for: "${text}"`);
@@ -353,6 +362,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching user likes:', error);
       res.status(500).json({ error: 'Failed to fetch user likes' });
+    }
+  });
+
+  // Admin translation API management routes
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      const userData = await storage.getUser(user.claims.sub);
+      if (!userData?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      next();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to verify admin status' });
+    }
+  };
+
+  app.get('/api/admin/translation-apis', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const apis = await storage.getTranslationApis();
+      res.json(apis);
+    } catch (error) {
+      console.error('Error fetching translation APIs:', error);
+      res.status(500).json({ error: 'Failed to fetch translation APIs' });
+    }
+  });
+
+  app.post('/api/admin/translation-apis', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { name, url, priority, isActive } = req.body;
+      const newApi = await storage.createTranslationApi({
+        name,
+        url,
+        priority: priority || 1,
+        isActive: isActive !== false
+      });
+      res.json(newApi);
+    } catch (error) {
+      console.error('Error creating translation API:', error);
+      res.status(500).json({ error: 'Failed to create translation API' });
+    }
+  });
+
+  app.put('/api/admin/translation-apis/:id', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedApi = await storage.updateTranslationApi(id, updates);
+      res.json(updatedApi);
+    } catch (error) {
+      console.error('Error updating translation API:', error);
+      res.status(500).json({ error: 'Failed to update translation API' });
+    }
+  });
+
+  app.delete('/api/admin/translation-apis/:id', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTranslationApi(id);
+      if (success) {
+        res.json({ message: 'Translation API deleted successfully' });
+      } else {
+        res.status(404).json({ error: 'Translation API not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting translation API:', error);
+      res.status(500).json({ error: 'Failed to delete translation API' });
     }
   });
 
