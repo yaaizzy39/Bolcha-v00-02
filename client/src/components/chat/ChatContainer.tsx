@@ -398,23 +398,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Initialize translation manager with current language
+  // Initialize translation manager with current language (no auto-translation)
   useEffect(() => {
     console.log(`🌐 Setting translation manager language to: ${currentLanguage}`);
     translationManager.setUserLanguage(currentLanguage);
-    // Clear existing translations when language changes and force re-translation
+    // Clear existing translations when language changes
     setTranslatedMessages(new Map());
-    
-    // Force re-translation of all visible messages for new target language
-    if (roomMessages.length > 0) {
-      console.log(`🔄 Language changed to ${currentLanguage}, forcing re-translation of ${roomMessages.length} messages`);
-      // Trigger re-translation by clearing cache and processing messages again
-      setTimeout(() => {
-        // Translation disabled - preventing infinite loop
-        console.log(`🛑 Would retranslate ${roomMessages.length} messages to ${currentLanguage}`);
-      }, 100);
-    }
-  }, [currentLanguage, roomMessages.length, user]);
+  }, [currentLanguage]);
 
   // DISABLED: Translation system completely removed to prevent infinite loop
 
