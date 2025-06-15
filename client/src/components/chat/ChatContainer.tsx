@@ -427,7 +427,10 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     if (!user || !roomMessages.length) return;
 
-    console.log(`🌐 Processing translations for ${roomMessages.length} visible messages in language: ${currentLanguage}`);
+    console.log(`🌐 CRITICAL: Processing translations for ${roomMessages.length} visible messages`);
+    console.log(`🌐 CRITICAL: currentLanguage state = ${currentLanguage}`);
+    console.log(`🌐 CRITICAL: localStorage selectedLanguage = ${localStorage.getItem('selectedLanguage')}`);
+    console.log(`🌐 CRITICAL: translationManager language = ${translationManager.currentUserLanguage}`);
     
     // Don't clear here since it's already cleared in the language change effect
     
@@ -454,7 +457,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         return;
       }
       
-      console.log(`🔄 Translating message ${message.id}: "${text}" (${detectedLanguage} -> ${currentLanguage})`);
+      console.log(`🔄 CRITICAL: About to translate message ${message.id}: "${text}" (${detectedLanguage} -> ${currentLanguage})`);
+      console.log(`🔄 CRITICAL: Passing targetLanguage = ${currentLanguage} to translationManager`);
       
       // Translate using the translation manager
       translationManager.translateMessage(
