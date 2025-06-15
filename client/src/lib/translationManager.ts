@@ -7,6 +7,8 @@ class TranslationManager {
 
   setUserLanguage(language: string) {
     console.log(`🌐 User language set to: ${language}`);
+    // Clear cache when language changes to allow retranslation
+    this.translationCache.clear();
   }
 
   resetAuthenticationStatus() {
