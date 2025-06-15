@@ -374,6 +374,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   // Initialize translation manager with current language
   useEffect(() => {
     translationManager.setUserLanguage(currentLanguage);
+    // Clear existing translations when language changes
+    setTranslatedMessages(new Map());
   }, [currentLanguage]);
 
   // Handle message translations for visible messages only
@@ -382,8 +384,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
     console.log(`🌐 Processing translations for ${roomMessages.length} visible messages in language: ${currentLanguage}`);
     
-    // Clear previous translations when language changes
-    setTranslatedMessages(new Map());
+    // Don't clear here since it's already cleared in the language change effect
     
     // Simple language detection function
     const detectLanguage = (text: string): string => {
