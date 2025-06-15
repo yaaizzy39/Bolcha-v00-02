@@ -20,6 +20,7 @@ class TranslationManager {
   private processing = false;
   private callbacks = new Map<number, (result: string) => void>();
   private currentUserLanguage: string = 'en';
+  private authenticationRequired = false;
 
   setUserLanguage(language: string) {
     if (this.currentUserLanguage !== language) {
@@ -39,6 +40,12 @@ class TranslationManager {
   ): void {
     const text = message.originalText || '';
     const sourceLanguage = message.originalLanguage || 'ja';
+    
+    // Skip if authentication required
+    if (this.authenticationRequired) {
+      callback(text);
+      return;
+    }
     
     // Skip if same language
     if (sourceLanguage === targetLanguage) {
@@ -109,7 +116,7 @@ class TranslationManager {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.processing || this.queue.length === 0) {
+    if (this.processing || this.queue.length === 0 || this.authenticationRequired) {
       return;
     }
 
@@ -146,6 +153,33 @@ class TranslationManager {
             target: request.targetLanguage
           })
         });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.log(`🔒 Translation requires authentication, stopping queue processing`);
+            this.authenticationRequired = true;
+            this.processing = false;
+            
+            // Clear all pending requests with original text
+            while (this.queue.length > 0) {
+              const pendingRequest = this.queue.shift()!;
+              const callback = this.callbacks.get(pendingRequest.messageId);
+              if (callback) {
+                callback(pendingRequest.text);
+                this.callbacks.delete(pendingRequest.messageId);
+              }
+            }
+            
+            // Handle current request
+            const callback = this.callbacks.get(request.messageId);
+            if (callback) {
+              callback(request.text);
+              this.callbacks.delete(request.messageId);
+            }
+            return;
+          }
+          throw new Error(`Translation API error: ${response.status}`);
+        }
 
         const result = await response.json();
         const translatedText = result.translatedText || request.text;
