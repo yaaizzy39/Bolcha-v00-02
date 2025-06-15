@@ -46,9 +46,24 @@ class TranslationManager {
       return;
     }
 
-    // Check if this is Japanese text (our main use case)
-    const isJapanese = sourceLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
-    if (!isJapanese) {
+    // Detect actual language content
+    const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
+    const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim());
+    
+    // Don't translate English text to English
+    if (hasEnglishChars && !hasJapaneseChars && targetLanguage === 'en') {
+      callback(text);
+      return;
+    }
+    
+    // Only translate Japanese text
+    if (!hasJapaneseChars) {
+      callback(text);
+      return;
+    }
+    
+    // Don't translate if source and target languages are the same
+    if (sourceLanguage === targetLanguage) {
       callback(text);
       return;
     }
