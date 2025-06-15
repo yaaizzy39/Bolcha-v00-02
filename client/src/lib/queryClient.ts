@@ -12,6 +12,12 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Block all translation API requests to stop infinite loop
+  if (url.includes('/api/translate')) {
+    console.log(`🛑 Translation API blocked to prevent infinite loop: ${url}`);
+    throw new Error('Translation API temporarily disabled');
+  }
+
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -29,7 +35,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const url = queryKey[0] as string;
+    
+    // Block all translation API requests to stop infinite loop
+    if (url.includes('/api/translate')) {
+      console.log(`🛑 Translation API blocked in queryFn: ${url}`);
+      throw new Error('Translation API temporarily disabled');
+    }
+
+    const res = await fetch(url, {
       credentials: "include",
     });
 
