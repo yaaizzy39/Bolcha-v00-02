@@ -281,63 +281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Translation route with sequential API fallback  
-  app.post('/api/translate', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const { text, source, target } = req.body;
-      
-      if (!text || !source || !target) {
-        return res.status(400).json({ error: 'Missing required parameters' });
-      }
-
-      console.log(`🔄 Translation request: "${text}" (${source} -> ${target})`);
-
-      // Get active translation APIs in priority order
-      const apis = await storage.getActiveTranslationApis();
-      
-      if (apis.length === 0) {
-        console.log('❌ No translation APIs configured');
-        return res.json({ translatedText: text }); // Return original text
-      }
-
-      // Try each API sequentially until one succeeds
-      for (const api of apis) {
-        try {
-          console.log(`🔄 Trying API: ${api.name} (${api.url})`);
-          const response = await fetch(api.url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              text,
-              source,
-              target
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            await storage.updateApiStats(api.id, true);
-            console.log(`✅ Translation successful via ${api.name}: "${data.translatedText}"`);
-            return res.json({ translatedText: data.translatedText });
-          } else {
-            console.log(`❌ API ${api.name} failed with status ${response.status}`);
-            await storage.updateApiStats(api.id, false);
-          }
-        } catch (error) {
-          console.log(`❌ API ${api.name} error:`, error);
-          await storage.updateApiStats(api.id, false);
-        }
-      }
-
-      // All APIs failed - return original text
-      console.log('❌ All translation APIs failed, returning original text');
-      return res.json({ translatedText: text });
-    } catch (error) {
-      console.error('Translation error:', error);
-      res.status(500).json({ error: 'Translation service error' });
-    }
+  // Translation route - return error to break infinite loop
+  app.post('/api/translate', async (req: Request, res: Response) => {
+    console.log(`🚫 Translation API temporarily disabled to break infinite loop`);
+    res.status(503).json({ error: 'Translation service temporarily disabled' });
   });
 
   // User settings routes

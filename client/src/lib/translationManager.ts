@@ -18,7 +18,7 @@ class TranslationManager {
   private isProcessing = false;
 
   constructor() {
-    this.loadCache();
+    // Cache loading disabled to prevent infinite loops
   }
 
   setUserLanguage(language: string) {
@@ -71,71 +71,9 @@ class TranslationManager {
     priority: 'high' | 'normal' | 'low' = 'normal',
     callback: (result: string) => void
   ): Promise<void> {
-    // Only allow high priority (manual) translation
-    if (priority !== 'high') {
-      callback(message.originalText || '');
-      return;
-    }
-
-    const text = message.originalText;
-    if (!text || !text.trim()) {
-      callback(text);
-      return;
-    }
-
-    // Detect source language
-    const sourceLanguage = this.detectLanguage(text);
-    
-    // No translation needed if same language
-    if (sourceLanguage === targetLanguage) {
-      callback(text);
-      return;
-    }
-
-    const cacheKey = this.getCacheKey(text, sourceLanguage, targetLanguage);
-    
-    // Check cache first
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey)!;
-      callback(cached.translatedText);
-      return;
-    }
-
-    // Prevent duplicate requests
-    if (this.isProcessing) {
-      callback(text);
-      return;
-    }
-
-    this.isProcessing = true;
-    console.log(`🔄 Manual translation: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
-
-    try {
-      const response = await apiRequest('POST', '/api/translate', {
-        text: text.trim(),
-        source: sourceLanguage,
-        target: targetLanguage,
-      }) as any;
-
-      const translatedText = response.translatedText || text;
-      
-      // Cache the result
-      this.cache.set(cacheKey, {
-        text,
-        source: sourceLanguage,
-        target: targetLanguage,
-        translatedText,
-        timestamp: Date.now()
-      });
-      
-      this.saveCache();
-      callback(translatedText);
-    } catch (error) {
-      console.error('Translation failed:', error);
-      callback(text); // Return original text on failure
-    } finally {
-      this.isProcessing = false;
-    }
+    // Translation system completely disabled to prevent infinite loop
+    callback(message.originalText || '');
+    return;
   }
 
   private detectLanguage(text: string): string {
