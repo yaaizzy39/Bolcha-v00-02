@@ -138,7 +138,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
-    return localStorage.getItem('selectedLanguage') || 'ja';
+    return localStorage.getItem('selectedLanguage') || 'en';
   });
 
   // Get user's preferred language for room name translation
@@ -168,13 +168,11 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     if (user && (user as any)?.preferredLanguage) {
       const serverLanguage = (user as any).preferredLanguage;
-      setCurrentLanguage(serverLanguage);
-      localStorage.setItem('selectedLanguage', serverLanguage);
-    } else if (!user) {
-      // Initialize from localStorage if user data isn't loaded yet
+      // Only set if not already set from localStorage
       const savedLanguage = localStorage.getItem('selectedLanguage');
-      if (savedLanguage && savedLanguage !== currentLanguage) {
-        setCurrentLanguage(savedLanguage);
+      if (!savedLanguage) {
+        setCurrentLanguage(serverLanguage);
+        localStorage.setItem('selectedLanguage', serverLanguage);
       }
     }
   }, [user]);
@@ -373,6 +371,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
   // Initialize translation manager with current language
   useEffect(() => {
+    console.log(`🌐 Setting translation manager language to: ${currentLanguage}`);
     translationManager.setUserLanguage(currentLanguage);
     // Clear existing translations when language changes
     setTranslatedMessages(new Map());
