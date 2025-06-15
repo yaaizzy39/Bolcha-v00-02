@@ -29,7 +29,14 @@ class TranslationManager {
       // Clear queue and restart translations for new language
       this.queue = [];
       this.callbacks.clear();
+      this.authenticationRequired = false; // Reset auth flag when user changes language
     }
+  }
+
+  // Reset authentication status (call when user logs in)
+  resetAuthenticationStatus() {
+    this.authenticationRequired = false;
+    console.log(`🔓 Authentication status reset, translations enabled`);
   }
 
   translateMessage(
@@ -41,15 +48,12 @@ class TranslationManager {
     const text = message.originalText || '';
     const sourceLanguage = message.originalLanguage || 'ja';
     
-    // Skip if authentication required
-    if (this.authenticationRequired) {
-      callback(text);
-      return;
-    }
+    // Always return original text immediately to prevent UI blocking
+    // Translation will happen asynchronously if possible
+    callback(text);
     
-    // Skip if same language
-    if (sourceLanguage === targetLanguage) {
-      callback(text);
+    // Skip if authentication required or same language
+    if (this.authenticationRequired || sourceLanguage === targetLanguage) {
       return;
     }
 

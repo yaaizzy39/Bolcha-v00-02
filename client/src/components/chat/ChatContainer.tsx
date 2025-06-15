@@ -50,10 +50,16 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const queryClient = useQueryClient();
   
   // Load initial messages for the current room
-  const { data: initialMessages, refetch: refetchMessages } = useQuery({
+  const { data: initialMessages, refetch: refetchMessages, isLoading: messagesLoading, error: messagesError } = useQuery({
     queryKey: ['/api/messages', roomId],
-    queryFn: () => fetch(`/api/messages/${roomId}`, { credentials: 'include' }).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch(`/api/messages/${roomId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`Failed to load messages: ${res.status}`);
+      return res.json();
+    },
     enabled: !!user && !!roomId,
+    retry: false,
+    staleTime: 0,
   });
 
   // Load current room information
@@ -526,7 +532,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
           {/* Room Info */}
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-              {currentRoom?.name ? translateRoomName(currentRoom.name) : '読み込み中...'}
+              {currentRoom?.name ? translateRoomName(currentRoom.name) : 'チャットルーム'}
             </h2>
             {currentRoom?.description && (
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
