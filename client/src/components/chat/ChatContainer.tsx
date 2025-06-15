@@ -399,14 +399,34 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         return;
       }
       
-      // Detect actual language content
-      const hasJapaneseChars = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
-      const hasEnglishChars = /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim());
-      
+      // Enhanced language detection (same as server-side)
+      const patterns: Record<string, RegExp> = {
+        'ja': /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/,
+        'ko': /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/,
+        'zh': /[\u4E00-\u9FFF]/,
+        'ar': /[\u0600-\u06FF\u0750-\u077F]/,
+        'hi': /[\u0900-\u097F]/,
+        'th': /[\u0E00-\u0E7F]/,
+        'vi': /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i,
+        'ru': /[\u0400-\u04FF]/,
+        'es': /[ñáéíóúü]/i,
+        'fr': /[àâäçéèêëïîôùûüÿ]/i,
+        'de': /[äöüßÄÖÜ]/,
+        'pt': /[ãâáàçêéíôóõúü]/i,
+        'it': /[àèéìíîòóù]/i,
+        'nl': /[äëïöüÄËÏÖÜ]/,
+      };
+
       let actualSourceLanguage = sourceLanguage;
-      if (hasJapaneseChars && !hasEnglishChars) {
-        actualSourceLanguage = 'ja';
-      } else if (hasEnglishChars && !hasJapaneseChars) {
+      // Check for specific language patterns
+      for (const [lang, pattern] of Object.entries(patterns)) {
+        if (pattern.test(text)) {
+          actualSourceLanguage = lang;
+          break;
+        }
+      }
+      // Default to English for basic Latin text if no pattern matches
+      if (actualSourceLanguage === sourceLanguage && /^[a-zA-Z0-9\s\.,!?;:()"-]+$/.test(text.trim())) {
         actualSourceLanguage = 'en';
       }
       
