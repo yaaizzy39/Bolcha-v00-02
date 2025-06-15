@@ -50,10 +50,11 @@ export default function AdminSettings() {
         description: "新しい翻訳APIが追加されました",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Create API error:', error);
       toast({
         title: "エラー",
-        description: "APIの作成に失敗しました",
+        description: `APIの作成に失敗しました: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     },

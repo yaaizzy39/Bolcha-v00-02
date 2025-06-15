@@ -369,12 +369,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user as AuthenticatedUser;
+      console.log('Checking admin access for user:', user.claims.sub);
       const userData = await storage.getUser(user.claims.sub);
+      console.log('User data:', userData);
       if (!userData?.isAdmin) {
+        console.log('User is not admin, access denied');
         return res.status(403).json({ error: 'Admin access required' });
       }
+      console.log('Admin access granted');
       next();
     } catch (error) {
+      console.error('Error verifying admin status:', error);
       res.status(500).json({ error: 'Failed to verify admin status' });
     }
   };
@@ -391,17 +396,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/translation-apis', isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
     try {
+      console.log('Creating new translation API with data:', req.body);
       const { name, url, priority, isActive } = req.body;
+      
+      if (!name || !url) {
+        return res.status(400).json({ error: 'Name and URL are required' });
+      }
+      
       const newApi = await storage.createTranslationApi({
         name,
         url,
         priority: priority || 1,
         isActive: isActive !== false
       });
+      console.log('Successfully created translation API:', newApi);
       res.json(newApi);
     } catch (error) {
       console.error('Error creating translation API:', error);
-      res.status(500).json({ error: 'Failed to create translation API' });
+      res.status(500).json({ error: 'Failed to create translation API', details: String(error) });
     }
   });
 
