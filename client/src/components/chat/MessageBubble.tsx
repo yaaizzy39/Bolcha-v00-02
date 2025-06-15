@@ -157,7 +157,7 @@ export function MessageBubble({
             {message.replyToText && (
               <div 
                 className="bg-black/10 dark:bg-white/10 rounded p-2 mb-2 cursor-pointer text-xs border-l-2 border-primary-foreground/40"
-                onClick={() => onNavigateToMessage && onNavigateToMessage(message.id)}
+                onClick={() => message.replyToId && onNavigateToMessage?.(message.replyToId)}
               >
                 <div className="font-medium text-primary-foreground/80 mb-1">
                   返信先: {message.replyToSenderName || 'Unknown User'}
@@ -296,7 +296,7 @@ export function MessageBubble({
           {message.replyToText && (
             <div 
               className="bg-black/10 dark:bg-white/10 rounded p-2 mb-2 cursor-pointer text-xs border-l-2 border-muted-foreground/40"
-              onClick={() => message.replyToMessageId && onNavigateToMessage?.(message.replyToMessageId)}
+              onClick={() => message.replyToId && onNavigateToMessage?.(message.replyToId)}
             >
               <div className="font-medium text-muted-foreground mb-1">
                 返信先: {message.replyToSenderName || 'Unknown User'}
