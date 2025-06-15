@@ -131,10 +131,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
 
 
   // Get user's preferred language for room name translation
-  // Try multiple possible language sources since the user might have updated language in UI but not persisted yet
-  const userLanguage = (user as any)?.preferredLanguage || 
-                      localStorage.getItem('selectedLanguage') || 
-                      'en';
+  // Use the local state which is always up-to-date
+  const userLanguage = currentLanguage;
 
   // Function to translate room names
   const translateRoomName = (roomName: string): string => {
@@ -160,11 +158,25 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [mentionedMessageIds, setMentionedMessageIds] = useState<Set<number>>(new Set());
   const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<string>(() => {
+    return (user as any)?.preferredLanguage || localStorage.getItem('selectedLanguage') || 'ja';
+  });
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mentionInputRef = useRef<MentionInputRef>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const userScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync local language state with user data
+  useEffect(() => {
+    if (user && (user as any)?.preferredLanguage) {
+      const serverLanguage = (user as any).preferredLanguage;
+      if (serverLanguage !== currentLanguage) {
+        setCurrentLanguage(serverLanguage);
+        localStorage.setItem('selectedLanguage', serverLanguage);
+      }
+    }
+  }, [user, currentLanguage]);
 
   // Initialize audio for notifications and request notification permission
   useEffect(() => {
@@ -510,7 +522,6 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   });
 
   const handleLanguageChange = (newLanguage: string) => {
-    const currentLanguage = (user as any)?.preferredLanguage || 'ja';
     console.log(`User selected language: ${newLanguage}, current language: ${currentLanguage}`);
     
     if (newLanguage === currentLanguage) {
@@ -518,6 +529,8 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
       return;
     }
     
+    // Update local state immediately for responsive UI
+    setCurrentLanguage(newLanguage);
     localStorage.setItem('selectedLanguage', newLanguage);
     updateLanguageMutation.mutate(newLanguage);
   };
@@ -568,12 +581,12 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
             <div className="flex items-center gap-2">
               <Languages className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <Select
-                value={(user as any)?.preferredLanguage || 'ja'}
+                value={currentLanguage}
                 onValueChange={handleLanguageChange}
               >
                 <SelectTrigger className="w-[120px] sm:w-[200px] h-8 text-xs">
                   <SelectValue placeholder={
-                    getSupportedLanguages().find(lang => lang.code === ((user as any)?.preferredLanguage || 'ja'))?.nativeName || 'ja'
+                    getSupportedLanguages().find(lang => lang.code === currentLanguage)?.nativeName || 'ja'
                   } />
                 </SelectTrigger>
                 <SelectContent>
