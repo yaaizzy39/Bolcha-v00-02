@@ -59,10 +59,11 @@ export function MessageBubble({
   const timestampAlignment = isOwnMessage ? 
     (messageAlignment === 'left' ? 'justify-start' : 'justify-end') : 'justify-start';
   
-  // Translation system disabled to prevent infinite loop
-  const isJapanese = false;
-  const hasTranslation = false;
-  const showTranslateButton = false;
+  // Enhanced translation logic - show translate button for non-English text
+  const isJapanese = message.originalLanguage === 'ja' || /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(message.originalText || '');
+  const isNonEnglish = isJapanese || /[\u4E00-\u9FFF]/.test(message.originalText || '') || /[\uAC00-\uD7AF]/.test(message.originalText || '');
+  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
+  const showTranslateButton = isNonEnglish && !hasTranslation && currentUserLanguage !== message.originalLanguage;
   
 
   

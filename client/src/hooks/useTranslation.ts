@@ -16,7 +16,7 @@ export function useTranslation() {
         text: text.trim(),
         source,
         target,
-      });
+      }) as any;
       
       return response.translatedText || text;
     } catch (error) {

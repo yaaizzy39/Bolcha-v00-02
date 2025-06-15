@@ -1,7 +1,25 @@
 import type { Message } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+
+// Simple translation cache in localStorage
+const CACHE_KEY = 'bolcha_translations';
+
+interface CacheEntry {
+  text: string;
+  source: string;
+  target: string;
+  translatedText: string;
+  timestamp: number;
+}
 
 class TranslationManager {
-  private userLanguage = 'ja'; // Default language
+  private userLanguage = 'ja';
+  private cache: Map<string, CacheEntry> = new Map();
+  private isProcessing = false;
+
+  constructor() {
+    this.loadCache();
+  }
 
   setUserLanguage(language: string) {
     this.userLanguage = language;
@@ -16,17 +34,119 @@ class TranslationManager {
   }
 
   resetAuthenticationStatus() {
-    // Do nothing
+    // Clear cache on auth reset
+    this.cache.clear();
+    this.saveCache();
   }
 
-  translateMessage(
+  private loadCache() {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const entries = JSON.parse(cached);
+        this.cache = new Map(entries);
+      }
+    } catch (error) {
+      console.error('Failed to load translation cache:', error);
+      this.cache.clear();
+    }
+  }
+
+  private saveCache() {
+    try {
+      const entries = Array.from(this.cache.entries());
+      localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
+    } catch (error) {
+      console.error('Failed to save translation cache:', error);
+    }
+  }
+
+  private getCacheKey(text: string, source: string, target: string): string {
+    return `${source}-${target}-${text}`;
+  }
+
+  async translateMessage(
     message: Message, 
     targetLanguage: string, 
     priority: 'high' | 'normal' | 'low' = 'normal',
     callback: (result: string) => void
-  ): void {
-    // Translation system completely disabled
-    // No callback execution to prevent infinite loops
+  ): Promise<void> {
+    const text = message.originalText;
+    if (!text || !text.trim()) {
+      callback(text);
+      return;
+    }
+
+    // Detect source language
+    const sourceLanguage = this.detectLanguage(text);
+    
+    // No translation needed if same language
+    if (sourceLanguage === targetLanguage) {
+      callback(text);
+      return;
+    }
+
+    const cacheKey = this.getCacheKey(text, sourceLanguage, targetLanguage);
+    
+    // Check cache first
+    if (this.cache.has(cacheKey)) {
+      const cached = this.cache.get(cacheKey)!;
+      callback(cached.translatedText);
+      return;
+    }
+
+    // Prevent duplicate requests
+    if (this.isProcessing) {
+      callback(text);
+      return;
+    }
+
+    this.isProcessing = true;
+
+    try {
+      const response = await apiRequest('POST', '/api/translate', {
+        text: text.trim(),
+        source: sourceLanguage,
+        target: targetLanguage,
+      }) as any;
+
+      const translatedText = response.translatedText || text;
+      
+      // Cache the result
+      this.cache.set(cacheKey, {
+        text,
+        source: sourceLanguage,
+        target: targetLanguage,
+        translatedText,
+        timestamp: Date.now()
+      });
+      
+      this.saveCache();
+      callback(translatedText);
+    } catch (error) {
+      console.error('Translation failed:', error);
+      callback(text); // Return original text on failure
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  private detectLanguage(text: string): string {
+    const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+    const chineseRegex = /[\u4E00-\u9FFF]/;
+    const koreanRegex = /[\uAC00-\uD7AF]/;
+    const arabicRegex = /[\u0600-\u06FF]/;
+    const thaiRegex = /[\u0E00-\u0E7F]/;
+    const hindiRegex = /[\u0900-\u097F]/;
+    
+    if (japaneseRegex.test(text)) return 'ja';
+    if (chineseRegex.test(text)) return 'zh';
+    if (koreanRegex.test(text)) return 'ko';
+    if (arabicRegex.test(text)) return 'ar';
+    if (thaiRegex.test(text)) return 'th';
+    if (hindiRegex.test(text)) return 'hi';
+    
+    return 'en';
   }
 }
 

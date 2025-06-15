@@ -423,8 +423,20 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     const message = roomMessages.find(m => m.id === messageId);
     if (!message) return;
 
-    // Translation disabled - infinite loop prevention
-    console.log(`🛑 Translation disabled: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
+    console.log(`🔄 Manual translation requested: "${text}" (${sourceLanguage} -> ${targetLanguage})`);
+    
+    translationManager.translateMessage(
+      message,
+      targetLanguage,
+      'high',
+      (translatedResult) => {
+        setTranslatedMessages(prev => {
+          const updated = new Map(prev);
+          updated.set(messageId, translatedResult);
+          return updated;
+        });
+      }
+    );
   }, [roomMessages]);
 
   const handleSendMessage = (text: string, mentions?: string[]) => {
