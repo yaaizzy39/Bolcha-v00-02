@@ -571,6 +571,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const onlineCount = getOnlineUserCount(data.roomId);
           console.log(`User ${ws.userId} joined room ${data.roomId}, online count: ${onlineCount}`);
+        } else if (data.type === 'chat_message') {
+          // Handle chat message creation and broadcasting
+          if (ws.roomId && ws.userId) {
+            try {
+              const messageData: InsertMessage = {
+                roomId: ws.roomId,
+                senderId: ws.userId,
+                originalText: data.text,
+                originalLanguage: detectLanguage(data.text),
+                replyToId: data.replyToId || null,
+                replyToText: data.replyToText || null,
+                replyToSenderName: data.replyToSenderName || null,
+                mentions: data.mentions || []
+              };
+
+              const newMessage = await storage.createMessage(messageData);
+              
+              broadcastToRoom(wss, ws.roomId, {
+                type: 'new_message',
+                message: newMessage,
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              console.error('Error creating message:', error);
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Failed to send message',
+                timestamp: new Date().toISOString()
+              }));
+            }
+          }
         } else if (data.type === 'new_message') {
           if (ws.roomId) {
             broadcastToRoom(wss, ws.roomId, {
