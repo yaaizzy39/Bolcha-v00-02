@@ -25,7 +25,7 @@ interface WebSocketClient extends WebSocket {
   roomId?: number;
 }
 
-// Translation API function
+// Translation API function using Google Apps Script
 async function translateText(text: string, source: string, target: string): Promise<string> {
   console.log(`Translation request: "${text}" (${source} -> ${target})`);
   
@@ -35,11 +35,34 @@ async function translateText(text: string, source: string, target: string): Prom
       return text;
     }
 
-    // Use fallback translation first for reliability
+    // Use fallback translation first for common phrases
     const fallbackResult = getSimpleTranslation(text, target);
     if (fallbackResult !== text) {
       console.log(`Using local translation: "${text}" -> "${fallbackResult}"`);
       return fallbackResult;
+    }
+
+    // Try Google Apps Script translation API - URL needs to be updated with working endpoint
+    const gasUrl = process.env.GAS_TRANSLATE_URL || 'https://script.google.com/macros/s/AKfycbxqy_0-lMQLr9FlI7oDWXxKHhQ1iHNMjI3hgEhMqOxuVG6BnNYj_AcgZRTn9TPGAB77/exec';
+    
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+        source: source,
+        target: target
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.translatedText && data.translatedText !== text) {
+        console.log(`GAS translation: "${text}" -> "${data.translatedText}"`);
+        return data.translatedText;
+      }
     }
 
     console.log(`No translation available for: "${text}"`);
