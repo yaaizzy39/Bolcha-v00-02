@@ -373,9 +373,26 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
   useEffect(() => {
     console.log(`🌐 Setting translation manager language to: ${currentLanguage}`);
     translationManager.setUserLanguage(currentLanguage);
-    // Clear existing translations when language changes
+    // Clear existing translations when language changes and force re-translation
     setTranslatedMessages(new Map());
-  }, [currentLanguage]);
+    
+    // Force re-translation of all visible messages for new target language
+    if (roomMessages.length > 0) {
+      console.log(`🔄 Language changed to ${currentLanguage}, forcing re-translation of ${roomMessages.length} messages`);
+      // Trigger re-translation by clearing cache and processing messages again
+      setTimeout(() => {
+        roomMessages.forEach(message => {
+          if (message.id && user && message.senderId !== user.id) {
+            translationManager.translateMessage(message, currentLanguage, 'normal', (result) => {
+              if (result !== message.originalText) {
+                setTranslatedMessages(prev => new Map(prev.set(message.id, result)));
+              }
+            });
+          }
+        });
+      }, 100);
+    }
+  }, [currentLanguage, roomMessages.length, user]);
 
   // Handle message translations for visible messages only
   useEffect(() => {
