@@ -575,16 +575,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Handle chat message creation and broadcasting
           if (ws.roomId && ws.userId) {
             try {
-              const messageData: InsertMessage = {
+              const messageData = {
                 roomId: ws.roomId,
                 senderId: ws.userId,
+                senderName: ws.userName || 'Unknown User',
                 originalText: data.text,
                 originalLanguage: detectLanguage(data.text),
                 replyToId: data.replyToId || null,
                 replyToText: data.replyToText || null,
                 replyToSenderName: data.replyToSenderName || null,
                 mentions: data.mentions || []
-              };
+              } as InsertMessage;
 
               const newMessage = await storage.createMessage(messageData);
               

@@ -108,6 +108,8 @@ export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   timestamp: true,
+  senderProfileImageUrl: true,
+  translatedText: true,
 });
 
 export const insertMessageLikeSchema = createInsertSchema(messageLikes).omit({
