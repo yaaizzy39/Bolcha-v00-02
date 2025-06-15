@@ -423,61 +423,13 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [currentLanguage, roomMessages.length, user]);
 
-  // Handle message translations for visible messages only
+  // DISABLED: Handle message translations - preventing infinite loop
+  // Translation is now handled only through manual language selection
+  /*
   useEffect(() => {
-    if (!user || !roomMessages.length) return;
-
-    console.log(`🌐 CRITICAL: Processing translations for ${roomMessages.length} visible messages`);
-    console.log(`🌐 CRITICAL: currentLanguage state = ${currentLanguage}`);
-    console.log(`🌐 CRITICAL: localStorage selectedLanguage = ${localStorage.getItem('selectedLanguage')}`);
-    console.log(`🌐 CRITICAL: translationManager language = ${translationManager.currentUserLanguage}`);
-    
-    // Don't clear here since it's already cleared in the language change effect
-    
-    // Simple language detection function
-    const detectLanguage = (text: string): string => {
-      if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text)) return 'ja';
-      if (/[\uAC00-\uD7AF]/.test(text)) return 'ko';
-      if (/[\u4E00-\u9FFF]/.test(text)) return 'zh';
-      if (/[\u0600-\u06FF]/.test(text)) return 'ar';
-      if (/[\u0400-\u04FF]/.test(text)) return 'ru';
-      return 'en'; // Default to English
-    };
-    
-    // Translate visible messages immediately
-    roomMessages.forEach((message) => {
-      const text = message.originalText || '';
-      const detectedLanguage = detectLanguage(text);
-      
-      console.log(`🔍 Message ${message.id}: "${text}" detected as ${detectedLanguage}, target: ${currentLanguage}`);
-      
-      // Skip if same language or empty text
-      if (detectedLanguage === currentLanguage || !text.trim()) {
-        console.log(`⏭️ Skipping message ${message.id} - same language or empty`);
-        return;
-      }
-      
-      console.log(`🔄 CRITICAL: About to translate message ${message.id}: "${text}" (${detectedLanguage} -> ${currentLanguage})`);
-      console.log(`🔄 CRITICAL: Passing targetLanguage = ${currentLanguage} to translationManager`);
-      
-      // Translate using the translation manager
-      translationManager.translateMessage(
-        message,
-        currentLanguage,
-        'normal',
-        (translatedText) => {
-          console.log(`✅ Translation received for ${message.id}: "${translatedText}"`);
-          if (translatedText !== text) {
-            setTranslatedMessages(prev => {
-              const newMap = new Map(prev);
-              newMap.set(message.id, translatedText);
-              return newMap;
-            });
-          }
-        }
-      );
-    });
+    // Translation effect temporarily disabled to fix infinite loop
   }, [roomMessages, currentLanguage]);
+  */
 
   // Manual translation handler for buttons
   const handleManualTranslation = useCallback((messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {
