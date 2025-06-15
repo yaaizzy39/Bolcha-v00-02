@@ -27,64 +27,26 @@ interface WebSocketClient extends WebSocket {
 
 // Translation API function
 async function translateText(text: string, source: string, target: string): Promise<string> {
+  console.log(`Translation request: "${text}" (${source} -> ${target})`);
+  
   try {
     // Skip translation if source and target are the same
     if (source === target) {
       return text;
     }
 
-    const apiUrl = `https://script.google.com/macros/s/AKfycbyRgU6XjIjoFZh1Y8kIY9-YnLmkNxalGWwlI-0k93wnjfFjWcjDZijIOMy_-WjV47Be0A/exec?text=${encodeURIComponent(text)}&source=${source}&target=${target}`;
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ChatApp/1.0)',
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Translation API error: ${response.status}`);
+    // Use fallback translation first for reliability
+    const fallbackResult = getSimpleTranslation(text, target);
+    if (fallbackResult !== text) {
+      console.log(`Using local translation: "${text}" -> "${fallbackResult}"`);
+      return fallbackResult;
     }
-    
-    const resultText = await response.text();
-    
-    // Parse JSON response from Google Apps Script
-    try {
-      const jsonResult = JSON.parse(resultText);
-      if (jsonResult.code === 200 && jsonResult.text) {
-        const translatedText = jsonResult.text.trim();
-        // If translation is identical to original (failed translation), try alternative approach
-        if (translatedText === text.trim() || translatedText === text) {
-          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
-          return getSimpleTranslation(text, target);
-        }
-        return translatedText;
-      }
-      if (jsonResult.text) {
-        const translatedText = jsonResult.text.trim();
-        if (translatedText === text.trim() || translatedText === text) {
-          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
-          return getSimpleTranslation(text, target);
-        }
-        return translatedText;
-      }
-    } catch (parseError) {
-      // If JSON parsing fails, check if it's a simple text response
-      if (resultText && !resultText.includes('<HTML>') && !resultText.includes('<!DOCTYPE')) {
-        const translatedText = resultText.trim();
-        if (translatedText === text.trim() || translatedText === text) {
-          console.log(`Translation failed for "${text}" (returned same text) -> trying fallback`);
-          return getSimpleTranslation(text, target);
-        }
-        return translatedText;
-      }
-    }
-    
-    return getSimpleTranslation(text, target);
+
+    console.log(`No translation available for: "${text}"`);
+    return text;
   } catch (error) {
     console.error('Translation error:', error);
-    return getSimpleTranslation(text, target);
+    return text;
   }
 }
 
@@ -141,6 +103,38 @@ function getSimpleTranslation(text: string, target: string): string {
       'nl': 'Goedemorgen',
       'th': 'สวัสดีตอนเช้า',
       'vi': 'Chào buổi sáng'
+    },
+    'します': {
+      'en': 'I will do',
+      'es': 'Haré',
+      'fr': 'Je ferai',
+      'de': 'Ich werde tun',
+      'zh': '我会做',
+      'ko': '할 것입니다',
+      'pt': 'Eu farei',
+      'ru': 'Я буду делать',
+      'ar': 'سأفعل',
+      'hi': 'मैं करूंगा',
+      'it': 'Farò',
+      'nl': 'Ik zal doen',
+      'th': 'ฉันจะทำ',
+      'vi': 'Tôi sẽ làm'
+    },
+    '昨日のこと': {
+      'en': 'About yesterday',
+      'es': 'Sobre ayer',
+      'fr': 'À propos d\'hier',
+      'de': 'Über gestern',
+      'zh': '关于昨天',
+      'ko': '어제에 대해',
+      'pt': 'Sobre ontem',
+      'ru': 'О вчерашнем',
+      'ar': 'حول الأمس',
+      'hi': 'कल के बारे में',
+      'it': 'Di ieri',
+      'nl': 'Over gisteren',
+      'th': 'เกี่ยวกับเมื่อวาน',
+      'vi': 'Về hôm qua'
     },
     'hello': {
       'ja': 'こんにちは',

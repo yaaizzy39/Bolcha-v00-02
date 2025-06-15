@@ -59,7 +59,7 @@ export function MessageBubble({
   const needsTranslation = String(message.originalLanguage) !== String(currentUserLanguage);
   
   // Check if we have completed translation
-  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText);
+  const hasTranslation = Boolean(translatedText && translatedText !== message.originalText && translatedText.trim() !== '');
   
   // Determine display state
   const isTranslating = needsTranslation && !hasTranslation;
