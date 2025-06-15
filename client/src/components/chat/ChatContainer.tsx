@@ -372,28 +372,25 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
     }
   }, [roomMessages.length, isUserScrolling, showScrollToBottom]);
 
-  // Initialize translation manager with user language
+  // Initialize translation manager with current language
   useEffect(() => {
-    const userLanguage = (user as any)?.preferredLanguage || 'en';
-    translationManager.setUserLanguage(userLanguage);
-  }, [(user as any)?.preferredLanguage]);
+    translationManager.setUserLanguage(currentLanguage);
+  }, [currentLanguage]);
 
   // Handle message translations automatically
   useEffect(() => {
     if (!user || !roomMessages.length) return;
 
-    const userLanguage = (user as any)?.preferredLanguage || 'en';
-    console.log(`🌐 Processing translations for ${roomMessages.length} messages in language: ${userLanguage}`);
+    console.log(`🌐 Processing translations for ${roomMessages.length} messages in language: ${currentLanguage}`);
     
-    // Get viewport to determine which messages need high priority
-    const scrollArea = scrollAreaRef.current;
-    const visibleMessages = new Set<number>();
+    // Clear existing translations when language changes
+    setTranslatedMessages(new Map());
     
     roomMessages.forEach((message, index) => {
       // Translate each message using the new manager
       translationManager.translateMessage(
         message,
-        userLanguage,
+        currentLanguage,
         index < 10 ? 'high' : 'normal', // Prioritize recent messages
         (translatedText) => {
           if (translatedText !== message.originalText) {
@@ -406,7 +403,7 @@ export function ChatContainer({ roomId, onOpenSettings, onRoomSelect }: ChatCont
         }
       );
     });
-  }, [roomMessages, (user as any)?.preferredLanguage]);
+  }, [roomMessages, currentLanguage]);
 
   // Manual translation handler for buttons
   const handleManualTranslation = useCallback((messageId: number, text: string, sourceLanguage: string, targetLanguage: string) => {

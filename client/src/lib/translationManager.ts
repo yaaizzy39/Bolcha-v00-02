@@ -81,8 +81,17 @@ class TranslationManager {
     // Check cache first
     const cached = translationCache.get(text, actualSourceLanguage, targetLanguage);
     if (cached) {
-      console.log(`📚 Using cached translation for message ${message.id}: "${cached}"`);
+      console.log(`📚 Using cached translation for message ${message.id}: "${text}" (${actualSourceLanguage} -> ${targetLanguage}) = "${cached}"`);
       callback(cached);
+      return;
+    }
+    
+    console.log(`🔍 No cache hit for: "${text}" (${actualSourceLanguage} -> ${targetLanguage}), adding to queue`);
+    
+    // Check if we need to translate at all
+    if (actualSourceLanguage === targetLanguage) {
+      console.log(`⏭️ Skipping translation - same language: ${actualSourceLanguage}`);
+      callback(text);
       return;
     }
 
