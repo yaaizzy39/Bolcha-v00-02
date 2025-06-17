@@ -6,8 +6,21 @@ export function useTranslation() {
   const [isTranslating, setIsTranslating] = useState(false);
 
   const translateText = useCallback(async (text: string, source: string, target: string): Promise<string> => {
-    console.log(`🛑 useTranslation disabled: "${text}" (${source} -> ${target})`);
-    return text; // Return original text - translation disabled
+    if (!text || source === target) return text;
+    const cached = translationCache.get(text, source, target);
+    if (cached) return cached;
+    setIsTranslating(true);
+    try {
+      const res = await apiRequest.post('/api/translate', { text, source, target });
+      const translated = res?.translatedText || text;
+      translationCache.set(text, source, target, translated);
+      return translated;
+    } catch (e) {
+      console.error('Translation failed:', e);
+      return text;
+    } finally {
+      setIsTranslating(false);
+    }
   }, []);
 
   const detectLanguage = useCallback((text: string): string => {

@@ -291,8 +291,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Translation route - blocked server-side to stop infinite loop
   app.post('/api/translate', async (req: Request, res: Response) => {
-    console.log('🛑 Translation API blocked server-side to prevent infinite loop');
-    res.status(503).json({ error: 'Translation service temporarily disabled to prevent infinite loop' });
+    try {
+      const { text, source, target } = req.body;
+      if (!text || !source || !target) {
+        return res.status(400).json({ error: 'Missing parameters' });
+      }
+      const translated = await translateText(text, source, target);
+      res.json({ translatedText: translated });
+    } catch (error) {
+      console.error('Translation API error:', error);
+      res.status(500).json({ error: 'Translation failed' });
+    }
   });
 
   // User settings routes
