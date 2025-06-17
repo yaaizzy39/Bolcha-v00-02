@@ -11,8 +11,9 @@ export function useTranslation() {
     if (cached) return cached;
     setIsTranslating(true);
     try {
-      const res = await apiRequest.post('/api/translate', { text, source, target });
-      const translated = res?.translatedText || text;
+      const res = await apiRequest('POST', '/api/translate', { text, source, target });
+      const data = await res.json();
+      const translated = data?.translatedText || text;
       translationCache.set(text, source, target, translated);
       return translated;
     } catch (e) {

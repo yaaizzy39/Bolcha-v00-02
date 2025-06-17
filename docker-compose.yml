@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: bolcha-postgres
+    environment:
+      POSTGRES_DB: bolcha
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespw
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: bolcha-app
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    # Dockerfileがプロジェクトルートにある場合。違う場合はbuildパスを調整してください
+
+volumes:
+  db-data:

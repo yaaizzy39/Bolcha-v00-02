@@ -165,6 +165,20 @@ function extractMentions(text: string): string[] {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Admin check middleware
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      const userData = await storage.getUser(user.claims.sub);
+      if (!userData?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      next();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to verify admin status' });
+    }
+  };
+
   // Auth middleware
   await setupAuth(app);
   const server = createServer(app);
@@ -289,6 +303,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin user management endpoints
+  app.get('/api/admin/users', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const usersList = await storage.getAllUsers();
+      res.json(usersList);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+  app.put('/api/admin/users/:id', requireAdmin, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { isAdmin } = req.body;
+    if (typeof isAdmin !== 'boolean') return res.status(400).json({ error: 'isAdmin must be boolean' });
+    try {
+      const updated = await storage.updateUserSettings(id, { isAdmin });
+      res.json(updated);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
+// Admin Translation API CRUD routes
+  app.get('/api/admin/translation-apis', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const apis = await storage.getTranslationApis();
+      res.json(apis);
+    } catch (err) {
+      console.error('Failed to fetch translation APIs:', err);
+      res.status(500).json({ error: 'Failed to fetch translation APIs' });
+    }
+  });
+
+  app.post('/api/admin/translation-apis', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { name, url, method = 'GET', priority = 1, isActive = true } = req.body;
+      if (!name || !url) {
+        return res.status(400).json({ error: 'Missing name or url' });
+      }
+      const api = await storage.createTranslationApi({ name, url, method, priority, isActive });
+      res.json(api);
+    } catch (err) {
+      console.error('Failed to create translation API:', err);
+      res.status(500).json({ error: 'Failed to create translation API' });
+    }
+  });
+
+  app.put('/api/admin/translation-apis/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const updates = req.body;
+      const api = await storage.updateTranslationApi(id, updates);
+      res.json(api);
+    } catch (err) {
+      console.error('Failed to update translation API:', err);
+      res.status(500).json({ error: 'Failed to update translation API' });
+    }
+  });
+
+  app.delete('/api/admin/translation-apis/:id', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const ok = await storage.deleteTranslationApi(id);
+      res.json({ success: ok });
+    } catch (err) {
+      console.error('Failed to delete translation API:', err);
+      res.status(500).json({ error: 'Failed to delete translation API' });
+    }
+  });
+
   // Translation route - blocked server-side to stop infinite loop
   app.post('/api/translate', async (req: Request, res: Response) => {
     try {
@@ -405,12 +488,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/user/likes', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const user = req.user as AuthenticatedUser;
-      const likedMessageIds = await storage.getUserLikes(user.claims.sub);
-      res.json(likedMessageIds);
-    } catch (error) {
-      console.error('Error fetching user likes:', error);
-      res.status(500).json({ error: 'Failed to fetch user likes' });
+
+  app.put('/api/admin/users/:id', requireAdmin, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { isAdmin } = req.body;
+    if (typeof isAdmin !== 'boolean') return res.status(400).json({ error: 'isAdmin must be boolean' });
+    try {
+      const updated = await storage.updateUserSettings(id, { isAdmin });
+      res.json(updated);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to update user' });
     }
   });
 
@@ -733,6 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`Broadcast message sent to ${sentCount} clients out of ${wss.clients.size} total`);
   }
+
 
   return server;
 }

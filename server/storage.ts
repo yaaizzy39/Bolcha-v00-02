@@ -24,6 +24,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserSettings(id: string, settings: Partial<User>): Promise<User>;
   updateUserProfileImage(id: string, customImageUrl: string, useCustom: boolean): Promise<User>;
+  getAllUsers(): Promise<User[]>;
   
   // Chat room operations
   getChatRooms(): Promise<ChatRoom[]>;
@@ -53,6 +54,12 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  async getAllUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
+  }
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;

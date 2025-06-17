@@ -1,9 +1,11 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useI18n } from '@/hooks/useI18n';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getSupportedLanguages } from '@/lib/languageSupport';
 import { Send, Smile, Globe, X, Reply } from 'lucide-react';
 import type { Message } from '@shared/schema';
 
@@ -17,10 +19,37 @@ export function MessageInput({ onSendMessage, replyingTo, onCancelReply }: Messa
   const [message, setMessage] = useState('');
   const { user } = useAuth();
   const { t } = useI18n();
-  const { detectLanguage } = useTranslation();
+  const { detectLanguage, translateText, isTranslating } = useTranslation();
 
   const detectedLanguage = message.trim() ? detectLanguage(message) : null;
-  const targetLanguage = (user as any)?.preferredLanguage === 'ja' ? 'en' : 'ja';
+  const [targetLanguage, setTargetLanguage] = useState<string>((user as any)?.preferredLanguage === 'ja' ? 'en' : 'ja');
+  const [translatedPreview, setTranslatedPreview] = useState('');
+  const supportedLanguages = useMemo(() => getSupportedLanguages(), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const translate = async () => {
+      if (!message.trim()) {
+        setTranslatedPreview('');
+        return;
+      }
+      const sourceLang = detectLanguage(message);
+      if (sourceLang === targetLanguage) {
+        setTranslatedPreview(message);
+        return;
+      }
+      const translated = await translateText(message, sourceLang, targetLanguage);
+      if (!cancelled) {
+        setTranslatedPreview(translated);
+      }
+    };
+
+    translate();
+    return () => {
+      cancelled = true;
+    };
+  }, [message, targetLanguage]);
 
   const handleSend = () => {
     if (message.trim()) {
@@ -81,6 +110,29 @@ export function MessageInput({ onSendMessage, replyingTo, onCancelReply }: Messa
             </Button>
           </div>
           
+          {/* Target language dropdown */}
+          <div className="mt-2">
+            <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+              <SelectTrigger className="h-8 w-32 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {supportedLanguages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code} className="text-xs">
+                    {lang.nativeName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Translated preview */}
+          {translatedPreview && translatedPreview !== message && (
+            <p className="mt-2 text-sm text-muted-foreground italic">
+              {isTranslating ? 'Translating...' : translatedPreview}
+            </p>
+          )}
+
           {detectedLanguage && (
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
               <Globe className="w-3 h-3" />

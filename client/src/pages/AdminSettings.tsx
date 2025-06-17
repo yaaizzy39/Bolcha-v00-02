@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import type { TranslationApi, InsertTranslationApi } from "@shared/schema";
+import AdminUsers from "./AdminUsers";
 
 interface NewApiForm {
   name: string;
@@ -30,6 +31,8 @@ export default function AdminSettings() {
     priority: 1,
     isActive: true
   });
+
+  const [tab, setTab] = useState<'api' | 'users'>('api');
 
   // Fetch translation APIs
   const { data: apis = [], isLoading: apisLoading } = useQuery<TranslationApi[]>({
@@ -151,158 +154,156 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">翻訳API管理</h1>
-        <Badge variant="outline">管理者</Badge>
+    <div className="space-y-8 max-w-2xl mx-auto py-8">
+      <div className="flex gap-4 mb-6">
+        <Button variant={tab === 'api' ? 'default' : 'outline'} onClick={() => setTab('api')}>翻訳API管理</Button>
+        <Button variant={tab === 'users' ? 'default' : 'outline'} onClick={() => setTab('users')}>ユーザー管理</Button>
       </div>
+      {tab === 'api' && (
+        <>
+          {/* New API Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>翻訳API追加</CardTitle>
+              <CardDescription>
+                新しい翻訳APIエンドポイントを追加します。
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Label htmlFor="name">API名</Label>
+                <Input
+                  id="name"
+                  value={newApi.name}
+                  onChange={(e) => setNewApi((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="例: DeepL"
+                  disabled={createApiMutation.isPending}
+                />
+                <Label htmlFor="url">API URL</Label>
+                <Input
+                  id="url"
+                  value={newApi.url}
+                  onChange={(e) => setNewApi((prev) => ({ ...prev, url: e.target.value }))}
+                  placeholder="https://api.example.com/translate"
+                  disabled={createApiMutation.isPending}
+                />
+                <Label htmlFor="priority">優先度</Label>
+                <Input
+                  id="priority"
+                  type="number"
+                  min="1"
+                  value={String(newApi.priority)}
+                  onChange={(e) => setNewApi((prev) => ({ ...prev, priority: parseInt(e.target.value) || 1 }))}
+                  className="w-20"
+                  disabled={createApiMutation.isPending}
+                />
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={newApi.isActive}
+                    onCheckedChange={(checked) => setNewApi((prev) => ({ ...prev, isActive: checked }))}
+                    disabled={createApiMutation.isPending}
+                  />
+                  <span>有効</span>
+                </div>
+                <Button onClick={handleCreateApi} disabled={createApiMutation.isPending}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  API追加
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Add New API */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            新しい翻訳API
-          </CardTitle>
-          <CardDescription>
-            Google Apps Script翻訳APIを追加します。優先度の低い番号ほど優先されます。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="api-name">API名</Label>
-              <Input
-                id="api-name"
-                placeholder="例: メイン翻訳API"
-                value={newApi.name}
-                onChange={(e) => setNewApi({ ...newApi, name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="api-url">API URL</Label>
-              <Input
-                id="api-url"
-                placeholder="https://script.google.com/macros/s/..."
-                value={newApi.url}
-                onChange={(e) => setNewApi({ ...newApi, url: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="api-priority">優先度</Label>
-              <Input
-                id="api-priority"
-                type="number"
-                min="1"
-                value={newApi.priority}
-                onChange={(e) => setNewApi({ ...newApi, priority: parseInt(e.target.value) || 1 })}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={newApi.isActive}
-                onCheckedChange={(checked) => setNewApi({ ...newApi, isActive: checked })}
-              />
-              <Label>有効</Label>
-            </div>
-          </div>
-          <Button
-            onClick={handleCreateApi}
-            disabled={createApiMutation.isPending}
-            className="w-full md:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            API追加
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Existing APIs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>登録済み翻訳API</CardTitle>
-          <CardDescription>
-            システムは優先度順にAPIを試行し、エラーが発生した場合は次のAPIにフォールバックします。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {apisLoading ? (
-            <div>読み込み中...</div>
-          ) : apis.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              登録されたAPIがありません
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {apis
-                .sort((a, b) => (a.priority || 1) - (b.priority || 1))
-                .map((api) => (
-                  <div
-                    key={api.id}
-                    className="border rounded-lg p-4 space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={api.isActive ? "default" : "secondary"}>
-                          優先度: {api.priority}
-                        </Badge>
-                        <h3 className="font-semibold">{api.name}</h3>
-                        {!api.isActive && (
-                          <Badge variant="outline">無効</Badge>
-                        )}
+          {/* Existing APIs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>登録済み翻訳API</CardTitle>
+              <CardDescription>
+                システムは優先度順にAPIを試行し、エラーが発生した場合は次のAPIにフォールバックします。
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {apisLoading ? (
+                <div>読み込み中...</div>
+              ) : apis.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  登録されたAPIがありません
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {apis
+                    .sort((a, b) => (a.priority || 1) - (b.priority || 1))
+                    .map((api) => (
+                      <div
+                        key={api.id}
+                        className="border rounded-lg p-4 space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={api.isActive ? "default" : "secondary"}>
+                              優先度: {api.priority}
+                            </Badge>
+                            <h3 className="font-semibold">{api.name}</h3>
+                            {!api.isActive && (
+                              <Badge variant="outline">無効</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={Boolean(api.isActive)}
+                              onCheckedChange={() => handleToggleActive(api)}
+                              disabled={updateApiMutation.isPending}
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteApi(api.id)}
+                              disabled={deleteApiMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600">
+                            URL: <code className="bg-gray-100 px-1 rounded">{api.url}</code>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span>成功: {api.successCount || 0}回</span>
+                            <span>エラー: {api.errorCount || 0}回</span>
+                            {api.lastUsed && (
+                              <span>最終使用: {new Date(api.lastUsed).toLocaleString('ja-JP')}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor={`priority-${api.id}`} className="text-sm">
+                              優先度:
+                            </Label>
+                            <Input
+                              id={`priority-${api.id}`}
+                              type="number"
+                              min="1"
+                              value={String(api.priority || 1)}
+                              onChange={(e) => {
+                                const newPriority = parseInt(e.target.value) || 1;
+                                handlePriorityChange(api, newPriority);
+                              }}
+                              className="w-20"
+                              disabled={updateApiMutation.isPending}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={Boolean(api.isActive)}
-                          onCheckedChange={() => handleToggleActive(api)}
-                          disabled={updateApiMutation.isPending}
-                        />
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteApi(api.id)}
-                          disabled={deleteApiMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600">
-                        URL: <code className="bg-gray-100 px-1 rounded">{api.url}</code>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span>成功: {api.successCount || 0}回</span>
-                        <span>エラー: {api.errorCount || 0}回</span>
-                        {api.lastUsed && (
-                          <span>最終使用: {new Date(api.lastUsed).toLocaleString('ja-JP')}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor={`priority-${api.id}`} className="text-sm">
-                          優先度:
-                        </Label>
-                        <Input
-                          id={`priority-${api.id}`}
-                          type="number"
-                          min="1"
-                          value={String(api.priority || 1)}
-                          onChange={(e) => {
-                            const newPriority = parseInt(e.target.value) || 1;
-                            handlePriorityChange(api, newPriority);
-                          }}
-                          className="w-20"
-                          disabled={updateApiMutation.isPending}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+      {tab === 'users' && (
+        <AdminUsers />
+      )}
     </div>
   );
 }

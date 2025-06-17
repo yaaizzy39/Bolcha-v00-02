@@ -133,11 +133,11 @@ export default function Home() {
                       {t('nav.settings')}
                     </DropdownMenuItem>
                     {user && (user as any)?.isAdmin && (
-                      <DropdownMenuItem onClick={() => window.location.href = '/admin'}>
-                        <Globe className="w-4 h-4 mr-2" />
-                        管理者設定
-                      </DropdownMenuItem>
-                    )}
+  <DropdownMenuItem onClick={() => window.location.href = '/admin-settings'}>
+    <Globe className="w-4 h-4 mr-2" />
+    管理者設定
+  </DropdownMenuItem>
+) }
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="w-4 h-4 mr-2" />
                       {t('nav.signOut')}
