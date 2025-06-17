@@ -2,7 +2,7 @@ import { Express, Request, Response, NextFunction } from "express";
 import { Server, createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage.js";
-import { isAuthenticated, setupAuth } from "./replitAuth.js";
+import { isAuthenticated, setupAuth } from "./googleAuth.js";
 import type { InsertMessage, InsertChatRoom } from "../shared/schema.js";
 
 interface AuthenticatedUser {
@@ -238,6 +238,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const roomId = parseInt(req.params.roomId);
       const { text, replyToId } = req.body;
       
+      // Fetch sender's profile details to embed in message record
+      const senderRecord = await storage.getUser(user.claims.sub);
+      const senderProfileImageUrl = senderRecord?.useCustomProfileImage && senderRecord?.customProfileImageUrl
+        ? senderRecord.customProfileImageUrl
+        : senderRecord?.profileImageUrl ?? null;
+      
+      
       if (!text?.trim()) {
         return res.status(400).json({ error: 'Message text is required' });
       }
@@ -249,6 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalText: text.trim(),
         originalLanguage: detectLanguage(text.trim()),
         replyToId: replyToId || null,
+        senderProfileImageUrl,
       };
 
       const message = await storage.createMessage(messageData);

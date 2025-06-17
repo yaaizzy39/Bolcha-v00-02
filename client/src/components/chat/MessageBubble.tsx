@@ -69,7 +69,19 @@ export function MessageBubble({
   
   // Get correct profile image URL from enhanced message data
   const getProfileImageUrl = () => {
+    // 1) explicit prop from parent (pre-computed)
     if (userProfileImage) return userProfileImage;
+
+    // 2) sender-specific fields coming from server
+    const extMsg = message as any;
+    if (extMsg.senderUseCustomProfileImage && extMsg.senderCustomProfileImageUrl) {
+      return message.senderCustomProfileImageUrl;
+    }
+    if (extMsg.senderProfileImageUrl) {
+      return message.senderProfileImageUrl;
+    }
+
+    // 3) fallback to current logged-in user so UI never breaks
     if ((user as any)?.useCustomProfileImage && (user as any)?.customProfileImageUrl) {
       return (user as any).customProfileImageUrl;
     }
