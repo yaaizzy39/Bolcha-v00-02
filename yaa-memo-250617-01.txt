@@ -1,0 +1,15 @@
+cd G:\Windsurf_products\Bolcha-v00-02
+
+
+docker exec -it bolcha-postgres bash
+
+psql -U postgres
+
+psql -U postgres -d bolcha
+
+\dt
+
+
+docker exec -it bolcha-postgres bash
+psql -U postgres -d bolcha
+\dt

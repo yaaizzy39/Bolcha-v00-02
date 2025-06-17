@@ -735,15 +735,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 message: 'Failed to send message',
                 timestamp: new Date().toISOString()
               }));
+              return;
             }
           }
         } else if (data.type === 'new_message') {
           if (ws.roomId) {
-            broadcastToRoom(wss, ws.roomId, {
-              type: 'new_message',
-              message: data.message,
-              timestamp: new Date().toISOString()
-            });
+            try {
+              broadcastToRoom(wss, ws.roomId, {
+                type: 'new_message',
+                message: data.message,
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              console.error('Error handling new message:', error);
+            }
           }
         } else if (data.type === 'message_deleted') {
           if (ws.roomId) {
@@ -759,32 +764,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             room: data.room,
             timestamp: new Date().toISOString()
           });
-        } else if (data.type === 'room_deleted') {
-          broadcastToAll(wss, {
-            type: 'room_deleted',
-            roomId: data.roomId,
+
+      } else if (data.type === 'room_deleted') {
+        broadcastToAll(wss, {
+          type: 'room_deleted',
+          roomId: data.roomId,
+          timestamp: new Date().toISOString()
+        });
+      } else if (data.type === 'message_like_updated') {
+        if (ws.roomId) {
+          broadcastToRoom(wss, ws.roomId, {
+            type: 'message_like_updated',
+            messageId: data.messageId,
+            liked: data.liked,
+            totalLikes: data.totalLikes,
+            userId: data.userId,
             timestamp: new Date().toISOString()
           });
-        } else if (data.type === 'message_like_updated') {
-          if (ws.roomId) {
-            broadcastToRoom(wss, ws.roomId, {
-              type: 'message_like_updated',
-              messageId: data.messageId,
-              liked: data.liked,
-              totalLikes: data.totalLikes,
-              userId: data.userId,
-              timestamp: new Date().toISOString()
-            });
-          }
         }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-        ws.send(JSON.stringify({
-          type: 'error',
-          message: 'Invalid message format',
-          timestamp: new Date().toISOString()
-        }));
       }
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Invalid message format',
+        timestamp: new Date().toISOString()
+      }));
+    }
     });
 
     ws.on('close', () => {
